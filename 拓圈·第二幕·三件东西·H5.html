@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>TOPOO · 第二幕 · 三件东西</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --sky-dark:#0B0F1E;
+  --amber:#E8B44C;
+  --amber-glow:rgba(232,180,76,.5);
+}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;}
+body{
+  font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC",sans-serif;
+  -webkit-font-smoothing:antialiased;color:#fff;
+  -webkit-user-select:none;user-select:none;
+}
+#app{width:100vw;height:100vh;position:relative;overflow:hidden;
+  background:#000;background-image:url('images/space-bg.png');background-size:cover;background-position:center;}
+
+/* ===== 星空 ===== */
+.starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite alternate;opacity:0;}
+@keyframes twinkle{0%{opacity:.05;transform:scale(.6)}100%{opacity:var(--max-o,.7);transform:scale(1.2)}}
+
+/* ===== 主场景 ===== */
+.scene{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity 1.5s ease;
+  z-index:1;
+}
+.scene.active{opacity:1;pointer-events:auto;}
+
+/* ===== 星球：从身下浮现，缓缓旋转 ===== */
+.act2-planet{
+  position:absolute;
+  bottom:-40px;left:50%;
+  transform:translateX(-50%) scale(0.2);
+  width:220px;height:220px;
+  background:url('images/送的星球.png') center/contain no-repeat;
+  opacity:0;
+  transition:all 2.2s cubic-bezier(.23,1,.32,1);
+  z-index:2;
+}
+.act2-planet.show{
+  bottom:8%;
+  opacity:1;
+  transform:translateX(-50%) scale(1);
+  animation:planetRotate 25s linear infinite;
+}
+@keyframes planetRotate{
+  0%{transform:translateX(-50%) scale(1) rotateY(0deg);}
+  100%{transform:translateX(-50%) scale(1) rotateY(360deg);}
+}
+
+/* ===== 笔记本 ===== */
+.act2-notebook{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(0) rotate(-6deg);
+  width:150px;height:190px;
+  background:url('images/送的笔记本.png') center/contain no-repeat;
+  opacity:0;
+  transition:all 1.2s cubic-bezier(.34,1.56,.64,1);
+  z-index:3;
+  filter:drop-shadow(0 0 24px rgba(232,180,76,.35));
+}
+.act2-notebook.show{
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1) rotate(0deg);
+}
+
+/* ===== 身份卡：可翻转 ===== */
+.act2-card-container{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:160px;height:220px;
+  perspective:900px;
+  opacity:0;pointer-events:none;
+  transition:opacity .8s ease;
+  z-index:4;
+}
+.act2-card-container.show{opacity:1;pointer-events:auto;}
+.act2-card-inner{
+  width:100%;height:100%;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform .7s ease;
+  cursor:pointer;
+}
+.act2-card-inner.flipped{transform:rotateY(180deg);}
+.act2-card-front,.act2-card-back{
+  position:absolute;width:100%;height:100%;
+  backface-visibility:hidden;
+  border-radius:12px;
+  background-size:cover;background-position:center;
+}
+.act2-card-front{background-image:url('images/身份卡正面.png');}
+.act2-card-back{background-image:url('images/身份卡背面.png');transform:rotateY(180deg);}
+
+/* ===== 卡片种入星球 ===== */
+.act2-card-container.planting{
+  transition:all 1.8s cubic-bezier(.23,1,.32,1);
+  top:68%;
+  opacity:0.4;
+  transform:translate(-50%,-50%) scale(0.2) rotate(15deg);
+}
+
+/* ===== 对话样式 ===== */
+.act2-dialogue{
+  position:absolute;
+  top:6%;left:50%;transform:translateX(-50%);
+  width:88vw;max-width:500px;
+  z-index:15;text-align:center;
+  max-height:35vh;overflow-y:auto;
+}
+.act2-dialogue::-webkit-scrollbar{width:2px;}
+.act2-dialogue::-webkit-scrollbar-thumb{background:rgba(232,180,76,.2);border-radius:1px;}
+
+.act2-line{
+  margin-bottom:18px;
+  opacity:0;
+  animation:lineIn .5s ease forwards;
+}
+@keyframes lineIn{to{opacity:1;}}
+
+.act2-line-label{
+  font-size:10px;color:rgba(232,180,76,.4);
+  letter-spacing:3px;margin-bottom:5px;
+  font-family:'Courier New',monospace;
+}
+.act2-line-text{
+  font-size:19px;color:var(--amber);
+  letter-spacing:1.2px;line-height:2;
+  font-family:'Courier New',monospace;
+  border-right:2px solid rgba(232,180,76,.7);
+  animation:cursorBlink 1.2s step-end infinite;
+  white-space:pre-wrap;word-break:break-all;
+  display:inline;
+}
+.act2-line-text.typing-done{border-right-color:transparent;animation:none;}
+.act2-line-text.user{color:rgba(255,255,255,.88);}
+
+@keyframes cursorBlink{0%,100%{border-right-color:rgba(232,180,76,.7);}50%{border-right-color:transparent;}}
+
+/* ===== 触摸提示 ===== */
+.touch-hint{
+  position:absolute;
+  bottom:12%;left:50%;transform:translateX(-50%);
+  text-align:center;z-index:21;pointer-events:none;
+  opacity:0;transition:opacity 1s ease;
+}
+.touch-hint.show{opacity:1;}
+.touch-hint-icon{
+  width:48px;height:48px;margin:0 auto 10px;
+  border:1px solid rgba(255,255,255,.12);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  animation:touchFloat 2.5s ease infinite;
+}
+@keyframes touchFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.touch-hint-text{font-size:13px;color:rgba(255,255,255,.4);letter-spacing:2px;}
+
+/* ===== 幕标题 ===== */
+.act-title{
+  position:fixed;top:env(safe-area-inset-top,20px);left:50%;transform:translateX(-50%);
+  z-index:50;font-size:11px;color:rgba(255,255,255,.3);letter-spacing:3px;
+  opacity:0;transition:opacity 1s ease;white-space:nowrap;
+}
+.act-title.show{opacity:.6;}
+
+/* ===== 进度条 ===== */
+.progress-bar{
+  position:fixed;bottom:0;left:0;width:100%;height:1px;z-index:100;
+  background:rgba(255,255,255,.03);
+}
+.progress-fill{
+  height:100%;width:0;
+  background:linear-gradient(90deg,var(--amber),rgba(232,180,76,.3));
+  transition:width 1.2s ease;
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="starfield" id="starfield"></div>
+
+  <!-- 第二幕场景 -->
+  <div class="scene active" id="phase-act2">
+    <div class="act2-planet" id="act2-planet"></div>
+    <div class="act2-notebook" id="act2-notebook"></div>
+    <div class="act2-card-container" id="act2-card-container">
+      <div class="act2-card-inner" id="act2-card-inner">
+        <div class="act2-card-front"></div>
+        <div class="act2-card-back"></div>
+      </div>
+    </div>
+    <div class="act2-dialogue" id="act2-dialogue"></div>
+    <div class="touch-hint" id="act2-touch-hint">
+      <div class="touch-hint-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+          <path d="M8 12l3 3 5-6"/>
+        </svg>
+      </div>
+      <div class="touch-hint-text">点击卡片翻转</div>
+    </div>
+  </div>
+
+  <div class="act-title" id="act-title">第二幕 · 三件东西</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+
+<script>
+/* ========================================
+   星空
+======================================== */
+function createStarfield(){
+  var el = document.getElementById('starfield');
+  for(var i=0;i<120;i++){
+    var s = document.createElement('div');
+    s.className='star';
+    var maxO = (.3 + Math.random()*.5).toFixed(2);
+    s.style.cssText =
+      'left:'+ (Math.random()*100) +'%;'+
+      'top:'+ (Math.random()*100) +'%;'+
+      'width:'+ (.5+Math.random()*1.8) +'px;'+
+      'height:'+ (.5+Math.random()*1.8) +'px;'+
+      '--d:'+ (2+Math.random()*5) +'s;'+
+      '--max-o:'+ maxO +';'+
+      'animation-delay:'+ (Math.random()*4) +'s;';
+    el.appendChild(s);
+  }
+}
+createStarfield();
+
+/* ========================================
+   打字机效果
+======================================== */
+function typewriter(text, element, speed){
+  return new Promise(function(resolve){
+    element.textContent = '';
+    element.classList.remove('typing-done');
+    var i = 0;
+    function tick(){
+      if(i < text.length){
+        element.textContent += text.charAt(i);
+        i++;
+        setTimeout(tick, speed || 95);
+      } else {
+        element.classList.add('typing-done');
+        resolve();
+      }
+    }
+    tick();
+  });
+}
+
+/* ========================================
+   音效：打字音
+======================================== */
+var audioCtx = null;
+function ensureAudio(){
+  try {
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+  } catch(e){}
+}
+function playTypeSound(){
+  try {
+    if(!audioCtx) return;
+    var now = audioCtx.currentTime;
+    var osc = audioCtx.createOscillator();
+    var gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(600 + Math.random()*200, now);
+    gain.gain.setValueAtTime(0.04, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.04);
+  } catch(e){}
+}
+
+/* ========================================
+   添加系统消息
+======================================== */
+function addSystemLine(text){
+  return new Promise(function(resolve){
+    var dia = document.getElementById('act2-dialogue');
+    if(!dia){ resolve(); return; }
+    var line = document.createElement('div');
+    line.className = 'act2-line';
+    var label = document.createElement('div');
+    label.className = 'act2-line-label';
+    label.textContent = 'SYSTEM';
+    var textEl = document.createElement('div');
+    textEl.className = 'act2-line-text';
+    line.appendChild(label);
+    line.appendChild(textEl);
+    dia.appendChild(line);
+    typewriter(text, textEl, 95).then(function(){
+      var hold = text.length * 95 + 1000;
+      setTimeout(resolve, Math.max(hold, 2000));
+    });
+  });
+}
+
+/* ========================================
+   添加用户消息
+======================================== */
+function addUserMsg(text){
+  return new Promise(function(resolve){
+    var dia = document.getElementById('act2-dialogue');
+    if(!dia){ resolve(); return; }
+    var line = document.createElement('div');
+    line.className = 'act2-line';
+    var textEl = document.createElement('div');
+    textEl.className = 'act2-line-text user';
+    textEl.textContent = text;
+    line.appendChild(textEl);
+    dia.appendChild(line);
+    setTimeout(resolve, 2600);
+  });
+}
+
+/* ========================================
+   显示星球
+======================================== */
+function showPlanet(){
+  return new Promise(function(resolve){
+    var el = document.getElementById('act2-planet');
+    if(el) el.classList.add('show');
+    setTimeout(resolve, 2200);
+  });
+}
+
+/* ========================================
+   显示笔记本
+======================================== */
+function showNotebook(){
+  return new Promise(function(resolve){
+    var el = document.getElementById('act2-notebook');
+    if(el) el.classList.add('show');
+    // 播放音效：书本翻页感
+    try {
+      if(audioCtx){
+        var now = audioCtx.currentTime;
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(300, now + 0.15);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      }
+    } catch(e){}
+    setTimeout(resolve, 1200);
+  });
+}
+
+/* ========================================
+   显示身份卡
+======================================== */
+function showCard(){
+  return new Promise(function(resolve){
+    var el = document.getElementById('act2-card-container');
+    if(el) el.classList.add('show');
+    setTimeout(resolve, 800);
+  });
+}
+
+/* ========================================
+   翻转提示（等待用户点击卡片）
+======================================== */
+function showFlipHint(){
+  return new Promise(function(resolve){
+    var hint = document.getElementById('act2-touch-hint');
+    if(hint) hint.classList.add('show');
+    var inner = document.getElementById('act2-card-inner');
+    if(inner && !inner._flipBound){
+      inner._flipBound = true;
+      inner.addEventListener('click', function(){
+        inner.classList.add('flipped');
+        if(hint) hint.classList.remove('show');
+      });
+    }
+    // 3秒后自动继续（如果用户没点）
+    var resolved = false;
+    function doResolve(){ if(!resolved){ resolved=true; resolve(); } }
+    setTimeout(doResolve, 3000);
+    if(inner && !inner._flipBound){
+      inner._flipBound = true;
+      inner.addEventListener('click', function(){
+        inner.classList.add('flipped');
+        if(hint) hint.classList.remove('show');
+        doResolve();
+      });
+    }
+  });
+}
+
+/* ========================================
+   卡片种入星球
+======================================== */
+function plantCard(){
+  return new Promise(function(resolve){
+    var el = document.getElementById('act2-card-container');
+    if(el) el.classList.add('planting');
+    // 种入音效
+    try {
+      if(audioCtx){
+        var now = audioCtx.currentTime;
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 1.5);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 1.8);
+      }
+    } catch(e){}
+    setTimeout(resolve, 2000);
+  });
+}
+
+/* ========================================
+   进度条
+======================================== */
+function updateProgress(pct){
+  var el = document.getElementById('progress-fill');
+  if(el) el.style.width = pct + '%';
+}
+
+/* ========================================
+   对话数据
+======================================== */
+var dialogues = [
+  {type:'system', text:'既然来了，总不能空手。我先送你三样东西。'},
+  {type:'__planet__'},
+  {type:'system', text:'第一件，一颗星球。只有一颗，你要好好珍惜它。'},
+  {type:'user', text:'星球？这玩意儿能干什么？'},
+  {type:'system', text:'现在干不了什么。但以后，它会跟着你一起长大。'},
+  {type:'user', text:'长大？星球还能长大？'},
+  {type:'system', text:'……你以后看看就知道了。'},
+  {type:'system', text:'不过有件事我要先告诉你——这颗星球，不是完全空白的。'},
+  {type:'user', text:'什么意思？'},
+  {type:'system', text:'等你自己发现吧。'},
+  {type:'__notebook__'},
+  {type:'system', text:'第二件，一本笔记本。'},
+  {type:'user', text:'笔记本？就这？'},
+  {type:'system', text:'别小看它。这不是普通的笔记本。'},
+  {type:'system', text:'你在这里写的每一个字、画的每一幅画、甚至只是随手涂鸦……都会成为你的一部分。'},
+  {type:'user', text:'这么严重？'},
+  {type:'system', text:'你以为你只是在"记录"。但其实，你是在往这个宇宙里……写入你的灵魂。'},
+  {type:'__card__'},
+  {type:'system', text:'第三件——'},
+  {type:'system', text:'你的身份卡。'},
+  {type:'user', text:'这又是什么？'},
+  {type:'system', text:'证明你来过。不过……它不是我"给"你的。'},
+  {type:'user', text:'那它是哪来的？'},
+  {type:'system', text:'它是从你自己的星球里……长出来的。'},
+  {type:'__flip__'},
+  {type:'user', text:'背面怎么没字？'},
+  {type:'system', text:'现在没有。以后会有。'},
+  {type:'user', text:'谁写的？'},
+  {type:'system', text:'……'},
+  {type:'__plant__'},
+];
+
+/* ========================================
+   对话执行主控
+======================================== */
+var dialogIdx = 0;
+
+function runDialogue(){
+  if(dialogIdx >= dialogues.length){
+    // 第二幕结束
+    var title = document.getElementById('act-title');
+    if(title) title.textContent = '【第二幕完】';
+    return;
+  }
+  var d = dialogues[dialogIdx];
+  dialogIdx++;
+
+  if(d.type === '__planet__'){ showPlanet().then(runDialogue); return; }
+  if(d.type === '__notebook__'){ showNotebook().then(runDialogue); return; }
+  if(d.type === '__card__'){ showCard().then(runDialogue); return; }
+  if(d.type === '__flip__'){ showFlipHint().then(runDialogue); return; }
+  if(d.type === '__plant__'){ plantCard().then(runDialogue); return; }
+
+  if(d.type === 'system'){ addSystemLine(d.text).then(runDialogue); return; }
+  if(d.type === 'user'){ addUserMsg(d.text).then(runDialogue); return; }
+
+  setTimeout(runDialogue, 1000);
+}
+
+/* ========================================
+   启动
+======================================== */
+// 等待用户交互后初始化音频并启动
+var started = false;
+function initAndStart(){
+  if(started) return;
+  started = true;
+  ensureAudio();
+  updateProgress(70);
+  setTimeout(runDialogue, 500);
+  // 隐藏启动提示
+  var hint = document.getElementById('start-hint');
+  if(hint) hint.style.display = 'none';
+}
+
+// 启动提示层
+var startHint = document.createElement('div');
+startHint.id = 'start-hint';
+startHint.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;cursor:pointer;';
+startHint.innerHTML = '<div style="text-align:center;"><div style="font-size:16px;color:rgba(232,180,76,.6);letter-spacing:3px;">点击开始第二幕</div></div>';
+startHint.addEventListener('click', initAndStart);
+startHint.addEventListener('touchstart', initAndStart);
+document.body.appendChild(startHint);
+</script>
+</body>
+</html>

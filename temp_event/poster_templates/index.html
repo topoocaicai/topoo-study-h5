@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>不废话局 · 海报模板</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: #1a1a2e;
+    font-family: -apple-system, 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+    padding: 40px;
+  }
+  
+  .label {
+    color: #888;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  
+  .templates {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 80px;
+  }
+  
+  /* ==================== 金句海报 ==================== */
+  .quote-poster {
+    width: 750px;
+    height: 1000px;
+    background: linear-gradient(160deg, #2d1b4e 0%, #1a1035 40%, #0f0a1f 100%);
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+  
+  /* 顶部光晕 */
+  .quote-poster::before {
+    content: '';
+    position: absolute;
+    top: -120px;
+    right: -80px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(147, 100, 220, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  
+  /* 底部光晕 */
+  .quote-poster::after {
+    content: '';
+    position: absolute;
+    bottom: -80px;
+    left: -60px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(100, 60, 180, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  
+  .quote-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 60px 50px;
+  }
+  
+  .quote-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 60px;
+  }
+  
+  .quote-brand {
+    font-size: 18px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 3px;
+  }
+  
+  .quote-number {
+    font-size: 14px;
+    color: rgba(147, 100, 220, 0.8);
+    letter-spacing: 2px;
+    font-weight: 400;
+  }
+  
+  .quote-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .quote-mark {
+    font-size: 80px;
+    line-height: 1;
+    color: rgba(147, 100, 220, 0.4);
+    font-family: Georgia, serif;
+    margin-bottom: 20px;
+  }
+  
+  .quote-text {
+    font-size: 32px;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.92);
+    font-weight: 300;
+    letter-spacing: 1px;
+  }
+  
+  .quote-text em {
+    font-style: normal;
+    color: rgba(200, 170, 255, 0.95);
+    font-weight: 400;
+  }
+  
+  .quote-divider {
+    width: 40px;
+    height: 2px;
+    background: rgba(147, 100, 220, 0.5);
+    margin: 40px 0;
+  }
+  
+  .quote-author {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 400;
+    letter-spacing: 1px;
+  }
+  
+  .quote-author-name {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+    margin-right: 8px;
+  }
+  
+  .quote-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-top: 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  
+  .quote-tagline {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.35);
+    letter-spacing: 2px;
+  }
+  
+  .quote-logo {
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 4px;
+  }
+
+
+  /* ==================== 邀请卡片 ==================== */
+  .invite-card {
+    width: 750px;
+    height: 520px;
+    background: linear-gradient(145deg, #2a1848 0%, #170e2e 50%, #0d0818 100%);
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+  
+  /* 装饰圆环 */
+  .invite-card::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    left: -60px;
+    width: 200px;
+    height: 200px;
+    border: 1px solid rgba(147, 100, 220, 0.12);
+    border-radius: 50%;
+  }
+  
+  .invite-card::after {
+    content: '';
+    position: absolute;
+    bottom: -40px;
+    right: 40px;
+    width: 160px;
+    height: 160px;
+    border: 1px solid rgba(147, 100, 220, 0.08);
+    border-radius: 50%;
+  }
+  
+  .invite-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 50px;
+    text-align: center;
+  }
+  
+  .invite-ding {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.9;
+  }
+  
+  .invite-title {
+    font-size: 30px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
+    letter-spacing: 3px;
+    margin-bottom: 24px;
+  }
+  
+  .invite-subtitle {
+    font-size: 16px;
+    color: rgba(200, 170, 255, 0.7);
+    letter-spacing: 2px;
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+  
+  .invite-rules {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 48px;
+  }
+  
+  .invite-rule-item {
+    text-align: center;
+  }
+  
+  .invite-rule-value {
+    font-size: 28px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.88);
+    margin-bottom: 6px;
+  }
+  
+  .invite-rule-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.35);
+    letter-spacing: 2px;
+  }
+  
+  .invite-rule-divider {
+    width: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    align-self: stretch;
+  }
+  
+  .invite-cta {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.3);
+    letter-spacing: 3px;
+  }
+  
+  .invite-footer {
+    position: absolute;
+    bottom: 24px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.2);
+    letter-spacing: 4px;
+  }
+
+
+  /* ==================== 碰撞笔记卡片 ==================== */
+  .note-card {
+    width: 750px;
+    height: 700px;
+    background: linear-gradient(170deg, #1e1338 0%, #140d28 50%, #0a0614 100%);
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+  
+  .note-card::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(147, 100, 220, 0.06) 0%, transparent 60%);
+    border-radius: 50%;
+  }
+  
+  .note-content {
+    position: relative;
+    z-index: 1;
+    padding: 50px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 36px;
+  }
+  
+  .note-brand {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 3px;
+  }
+  
+  .note-number {
+    font-size: 13px;
+    color: rgba(147, 100, 220, 0.7);
+    letter-spacing: 2px;
+  }
+  
+  .note-person {
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  
+  .note-person-name {
+    font-size: 22px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.88);
+    margin-bottom: 6px;
+  }
+  
+  .note-person-desc {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 1px;
+  }
+  
+  .note-section-title {
+    font-size: 12px;
+    color: rgba(147, 100, 220, 0.6);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+  
+  .note-body {
+    flex: 1;
+  }
+  
+  .note-text {
+    font-size: 16px;
+    line-height: 2;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 300;
+    letter-spacing: 0.5px;
+  }
+  
+  .note-highlight {
+    margin-top: 32px;
+    padding: 24px;
+    background: rgba(147, 100, 220, 0.08);
+    border-left: 2px solid rgba(147, 100, 220, 0.3);
+    border-radius: 0 4px 4px 0;
+  }
+  
+  .note-highlight-label {
+    font-size: 11px;
+    color: rgba(147, 100, 220, 0.6);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+  
+  .note-highlight-text {
+    font-size: 20px;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+  }
+  
+  .note-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+  
+  .note-date {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.25);
+    letter-spacing: 1px;
+    margin-right: 24px;
+  }
+  
+  .note-logo {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.35);
+    letter-spacing: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="templates">
+
+  <!-- 金句海报 -->
+  <div>
+    <p class="label">金句海报 · 对方发朋友圈用</p>
+    <div class="quote-poster">
+      <div class="quote-content">
+        <div class="quote-header">
+          <span class="quote-brand">不废话局</span>
+          <span class="quote-number">#001</span>
+        </div>
+        <div class="quote-body">
+          <div class="quote-mark">"</div>
+          <div class="quote-text">
+            做了十年设计，<br>
+            我一直以为我的壁垒是技术，<br>
+            <em>后来发现是审美，</em><br>
+            再后来发现是<em>品味</em>，<br>
+            现在觉得可能只是<em>坚持</em>。
+          </div>
+        </div>
+        <div class="quote-divider"></div>
+        <div class="quote-author">
+          <span class="quote-author-name">张小设</span>
+          独立品牌设计师
+        </div>
+        <div class="quote-footer">
+          <span class="quote-tagline">废话留给别人，真话留在这里</span>
+          <span class="quote-logo">TOPOO</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 邀请卡片 -->
+  <div>
+    <p class="label">邀请卡片 · 微信私聊发对方</p>
+    <div class="invite-card">
+      <div class="invite-content">
+        <div class="invite-ding">🔔</div>
+        <div class="invite-title">你被 Topoo 了</div>
+        <div class="invite-subtitle">不废话局 · 碰撞邀请</div>
+        <div class="invite-rules">
+          <div class="invite-rule-item">
+            <div class="invite-rule-value">20 min</div>
+            <div class="invite-rule-label">总时长</div>
+          </div>
+          <div class="invite-rule-divider"></div>
+          <div class="invite-rule-item">
+            <div class="invite-rule-value">10 + 10</div>
+            <div class="invite-rule-label">各说各的</div>
+          </div>
+          <div class="invite-rule-divider"></div>
+          <div class="invite-rule-item">
+            <div class="invite-rule-value">1</div>
+            <div class="invite-rule-label">句收尾</div>
+          </div>
+        </div>
+        <div class="invite-cta">到点就断，不废话</div>
+      </div>
+      <div class="invite-footer">TOPOO · 让小而美被世界看见</div>
+    </div>
+  </div>
+
+  <!-- 碰撞笔记 -->
+  <div>
+    <p class="label">碰撞笔记 · 内部存档 / 深度内容</p>
+    <div class="note-card">
+      <div class="note-content">
+        <div class="note-header">
+          <span class="note-brand">不废话局</span>
+          <span class="note-number">碰撞笔记 · #001</span>
+        </div>
+        <div class="note-person">
+          <div class="note-person-name">张小设</div>
+          <div class="note-person-desc">独立品牌设计师 · 南京 · 做了10年品牌设计</div>
+        </div>
+        <div class="note-body">
+          <div class="note-section-title">碰撞摘要</div>
+          <div class="note-text">
+            前十年一直接客户单，做过几十个品牌视觉，但觉得自己越来越像一个"执行工具"。去年开始想转型做自己的文创品牌，发现从"替别人想"到"替自己想"是完全不同的能力。最大的卡点不是设计能力，而是不知道用户到底要什么。目前在摸索阶段，试过小红书发内容，数据不好，心态有点崩。
+          </div>
+          <div class="note-highlight">
+            <div class="note-highlight-label">收句话</div>
+            <div class="note-highlight-text">
+              "我以为我会设计就够了，后来发现我缺的不是手，是眼——看市场的眼。"
+            </div>
+          </div>
+        </div>
+        <div class="note-footer">
+          <span class="note-date">2026.04.20</span>
+          <span class="note-logo">TOPOO</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

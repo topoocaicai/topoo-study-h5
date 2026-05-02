@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素星球宇宙 - Pixel Planet</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a0f;
+  overflow: hidden;
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+  cursor: crosshair;
+}
+canvas {
+  display: block;
+}
+.info-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  z-index: 10;
+}
+.info-bar .stat {
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+.info-bar .stat span {
+  color: #e8c547;
+  font-weight: 600;
+}
+.title-overlay {
+  position: fixed;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 10;
+  pointer-events: none;
+}
+.title-overlay h1 {
+  font-size: 18px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 8px;
+  text-transform: uppercase;
+}
+.title-overlay p {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  margin-top: 6px;
+  letter-spacing: 3px;
+}
+.hint {
+  position: fixed;
+  bottom: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255,255,255,0.25);
+  font-size: 11px;
+  letter-spacing: 2px;
+  z-index: 10;
+  pointer-events: none;
+  animation: fadeInOut 3s ease-in-out infinite;
+}
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div class="title-overlay">
+  <h1>PIXEL PLANET</h1>
+  <p>每个像素，都是一个人</p>
+</div>
+<div class="hint">移动鼠标探索 · 点击点亮新像素</div>
+<div class="info-bar">
+  <div class="stat">已点亮 <span id="litCount">0</span></div>
+  <div class="stat">活跃像素 <span id="activeCount">0</span></div>
+</div>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let W, H;
+let mouse = { x: -1000, y: -1000 };
+let litPixels = 0;
+let time = 0;
+
+// Stars background
+const stars = [];
+for (let i = 0; i < 300; i++) {
+  stars.push({
+    x: Math.random(),
+    y: Math.random(),
+    r: Math.random() * 1.2 + 0.3,
+    twinkle: Math.random() * Math.PI * 2,
+    speed: Math.random() * 0.005 + 0.002
+  });
+}
+
+// Planet definitions
+const planets = [
+  {
+    cx: 0.28, cy: 0.38,
+    radius: 120,
+    color: '#e8c547',
+    glowColor: 'rgba(232,197,71,',
+    name: '金陵圈',
+    pixelSize: 5,
+    density: 0.75,
+    pixels: [],
+    rotation: 0,
+    rotSpeed: 0.0003
+  },
+  {
+    cx: 0.72, cy: 0.32,
+    radius: 90,
+    color: '#ff6b6b',
+    glowColor: 'rgba(255,107,107,',
+    name: '创意圈',
+    pixelSize: 4.5,
+    density: 0.65,
+    pixels: [],
+    rotation: 0,
+    rotSpeed: -0.0005
+  },
+  {
+    cx: 0.55, cy: 0.68,
+    radius: 70,
+    color: '#6bffb8',
+    glowColor: 'rgba(107,255,184,',
+    name: '新手圈',
+    pixelSize: 4,
+    density: 0.5,
+    pixels: [],
+    rotation: 0,
+    rotSpeed: 0.0004
+  },
+  {
+    cx: 0.15, cy: 0.72,
+    radius: 50,
+    color: '#a78bfa',
+    glowColor: 'rgba(167,139,250,',
+    name: '试验田',
+    pixelSize: 3.5,
+    density: 0.4,
+    pixels: [],
+    rotation: 0,
+    rotSpeed: -0.0006
+  }
+];
+
+// Floating debris pixels
+const debris = [];
+for (let i = 0; i < 60; i++) {
+  debris.push({
+    x: Math.random(),
+    y: Math.random(),
+    vx: (Math.random() - 0.5) * 0.0003,
+    vy: (Math.random() - 0.5) * 0.0003,
+    size: Math.random() * 3 + 1.5,
+    brightness: Math.random() * 0.4 + 0.1,
+    twinkle: Math.random() * Math.PI * 2
+  });
+}
+
+// Pulse waves
+const pulses = [];
+
+function initPlanets() {
+  planets.forEach(p => {
+    p.pixels = [];
+    // Generate pixels on sphere surface
+    const count = Math.floor(p.density * 2500 / (p.pixelSize * p.pixelSize) * 4);
+    
+    for (let i = 0; i < count; i++) {
+      // Random point on sphere
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = p.radius * (0.92 + Math.random() * 0.08);
+      
+      const x = r * Math.sin(phi) * Math.cos(theta);
+      const y = r * Math.sin(phi) * Math.sin(theta);
+      const z = r * Math.cos(phi);
+      
+      p.pixels.push({
+        lx: x, ly: y, lz: z,
+        brightness: Math.random(),
+        targetBrightness: Math.random() * 0.6 + 0.4,
+        pulse: Math.random() * Math.PI * 2,
+        pulseSpeed: Math.random() * 0.02 + 0.005,
+        hue: Math.random() * 20 - 10
+      });
+    }
+    litPixels += p.pixels.length;
+  });
+  document.getElementById('litCount').textContent = litPixels;
+  document.getElementById('activeCount').textContent = Math.floor(litPixels * 0.7);
+}
+
+function rotatePoint(x, y, z, angle) {
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  return {
+    x: x * cos - z * sin,
+    y: y,
+    z: x * sin + z * cos
+  };
+}
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function drawStars() {
+  stars.forEach(s => {
+    s.twinkle += s.speed;
+    const alpha = 0.3 + Math.sin(s.twinkle) * 0.25;
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.fillRect(s.x * W, s.y * H, s.r, s.r);
+  });
+}
+
+function drawPlanet(p) {
+  const cx = p.cx * W;
+  const cy = p.cy * H;
+  
+  // Subtle glow behind
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, p.radius * 1.8);
+  grad.addColorStop(0, p.glowColor + '0.06)');
+  grad.addColorStop(0.5, p.glowColor + '0.02)');
+  grad.addColorStop(1, 'transparent');
+  ctx.fillStyle = grad;
+  ctx.fillRect(cx - p.radius * 2, cy - p.radius * 2, p.radius * 4, p.radius * 4);
+  
+  // Name label
+  ctx.save();
+  ctx.font = '11px -apple-system, "PingFang SC", sans-serif';
+  ctx.fillStyle = p.glowColor + '0.4)';
+  ctx.textAlign = 'center';
+  ctx.fillText(p.name, cx, cy - p.radius - 16);
+  ctx.restore();
+  
+  // Sort pixels by z for painter's algorithm
+  const rotated = p.pixels.map(px => {
+    const rp = rotatePoint(px.lx, px.ly, px.lz, p.rotation);
+    return { ...px, rx: rp.x, ry: rp.y, rz: rp.z };
+  });
+  rotated.sort((a, b) => a.rz - b.rz);
+  
+  // Draw pixels
+  rotated.forEach(px => {
+    const screenX = cx + px.rx;
+    const screenY = cy + px.ry;
+    
+    // Depth-based brightness
+    const depthFactor = (px.rz + p.radius) / (2 * p.radius);
+    const baseAlpha = depthFactor * 0.4 + 0.1;
+    
+    // Pulse
+    px.pulse += px.pulseSpeed;
+    const pulseVal = Math.sin(px.pulse) * 0.15;
+    
+    // Mouse proximity boost
+    const dx = screenX - mouse.x;
+    const dy = screenY - mouse.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const mouseBoost = dist < 80 ? (1 - dist / 80) * 0.5 : 0;
+    
+    const alpha = Math.min(1, baseAlpha + pulseVal + mouseBoost);
+    
+    if (alpha > 0.05) {
+      const size = p.pixelSize * (0.7 + depthFactor * 0.3);
+      
+      // Pixel glow
+      if (alpha > 0.3) {
+        ctx.fillStyle = p.glowColor + (alpha * 0.15).toFixed(2) + ')';
+        ctx.fillRect(screenX - size * 0.8, screenY - size * 0.8, size * 1.6, size * 1.6);
+      }
+      
+      // Pixel block
+      ctx.fillStyle = p.glowColor + alpha.toFixed(2) + ')';
+      ctx.fillRect(screenX - size / 2, screenY - size / 2, size, size);
+      
+      // Bright pixel gets a white core
+      if (alpha > 0.6) {
+        ctx.fillStyle = `rgba(255,255,255,${(alpha - 0.4) * 0.5})`;
+        ctx.fillRect(screenX - size / 4, screenY - size / 4, size / 2, size / 2);
+      }
+    }
+  });
+  
+  // Connection lines between nearby visible pixels (sparse, only front-facing)
+  const visible = rotated.filter(px => (px.rz + p.radius) / (2 * p.radius) > 0.55 && Math.random() < 0.02);
+  ctx.strokeStyle = p.glowColor + '0.08)';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i < visible.length; i++) {
+    for (let j = i + 1; j < visible.length; j++) {
+      const dx = visible[i].rx - visible[j].rx;
+      const dy = visible[i].ry - visible[j].ry;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 25) {
+        ctx.beginPath();
+        ctx.moveTo(cx + visible[i].rx, cy + visible[i].ry);
+        ctx.lineTo(cx + visible[j].rx, cy + visible[j].ry);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function drawDebris() {
+  debris.forEach(d => {
+    d.x += d.vx;
+    d.y += d.vy;
+    d.twinkle += 0.01;
+    
+    // Wrap
+    if (d.x < -0.05) d.x = 1.05;
+    if (d.x > 1.05) d.x = -0.05;
+    if (d.y < -0.05) d.y = 1.05;
+    if (d.y > 1.05) d.y = -0.05;
+    
+    const alpha = d.brightness * (0.5 + Math.sin(d.twinkle) * 0.3);
+    ctx.fillStyle = `rgba(232,197,71,${alpha.toFixed(2)})`;
+    ctx.fillRect(d.x * W, d.y * H, d.size, d.size);
+  });
+}
+
+function drawPulses() {
+  for (let i = pulses.length - 1; i >= 0; i--) {
+    const p = pulses[i];
+    p.radius += 3;
+    p.alpha -= 0.008;
+    
+    if (p.alpha <= 0) {
+      pulses.splice(i, 1);
+      continue;
+    }
+    
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(232,197,71,${p.alpha.toFixed(2)})`;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    
+    // Light up pixels near the pulse ring
+    planets.forEach(planet => {
+      const pcx = planet.cx * W;
+      const pcy = planet.cy * H;
+      planet.pixels.forEach(px => {
+        const rp = rotatePoint(px.lx, px.ly, px.lz, planet.rotation);
+        const sx = pcx + rp.x;
+        const sy = pcy + rp.y;
+        const d = Math.sqrt((sx - p.x) ** 2 + (sy - p.y) ** 2);
+        if (Math.abs(d - p.radius) < 8) {
+          px.targetBrightness = 1;
+          setTimeout(() => { px.targetBrightness = Math.random() * 0.6 + 0.4; }, 500);
+        }
+      });
+    });
+  }
+}
+
+function drawConnections() {
+  // Draw faint connections between planets
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i < planets.length; i++) {
+    for (let j = i + 1; j < planets.length; j++) {
+      const a = { x: planets[i].cx * W, y: planets[i].cy * H };
+      const b = { x: planets[j].cx * W, y: planets[j].cy * H };
+      
+      // Animated dashed line
+      const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+      grad.addColorStop(0, 'rgba(255,255,255,0.04)');
+      grad.addColorStop(0.5, 'rgba(255,255,255,0.06)');
+      grad.addColorStop(1, 'rgba(255,255,255,0.04)');
+      ctx.strokeStyle = grad;
+      ctx.setLineDash([4, 12]);
+      ctx.lineDashOffset = -time * 0.3;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+}
+
+function animate() {
+  time++;
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(0, 0, W, H);
+  
+  drawStars();
+  drawConnections();
+  
+  planets.forEach(p => {
+    p.rotation += p.rotSpeed;
+    drawPlanet(p);
+  });
+  
+  drawDebris();
+  drawPulses();
+  
+  requestAnimationFrame(animate);
+}
+
+// Events
+window.addEventListener('resize', resize);
+canvas.addEventListener('mousemove', e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  mouse.x = e.touches[0].clientX;
+  mouse.y = e.touches[0].clientY;
+}, { passive: false });
+
+canvas.addEventListener('click', e => {
+  pulses.push({
+    x: e.clientX,
+    y: e.clientY,
+    radius: 0,
+    alpha: 0.4
+  });
+  
+  // Spawn new debris pixel
+  debris.push({
+    x: e.clientX / W,
+    y: e.clientY / H,
+    vx: (Math.random() - 0.5) * 0.001,
+    vy: -Math.random() * 0.001 - 0.0005,
+    size: Math.random() * 2 + 2,
+    brightness: 0.8,
+    twinkle: 0
+  });
+});
+
+canvas.addEventListener('touchstart', e => {
+  mouse.x = e.touches[0].clientX;
+  mouse.y = e.touches[0].clientY;
+  pulses.push({
+    x: e.touches[0].clientX,
+    y: e.touches[0].clientY,
+    radius: 0,
+    alpha: 0.4
+  });
+});
+
+resize();
+initPlanets();
+animate();
+</script>
+</body>
+</html>

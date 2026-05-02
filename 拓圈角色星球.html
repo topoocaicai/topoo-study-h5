@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>拓圈 · 角色星球</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+    background: #f5f3ef;
+    color: #2d2d2d;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .brand-tag {
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: #aaa;
+    margin-bottom: 16px;
+  }
+
+  .title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: 2px;
+    line-height: 1.5;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: #999;
+    margin-top: 8px;
+    font-weight: 300;
+    line-height: 1.6;
+  }
+
+  .role-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* 角色卡片 */
+  .role-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 12px rgba(0,0,0,0.04);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .role-card:active {
+    transform: scale(0.98);
+  }
+
+  .role-card-inner {
+    display: flex;
+    align-items: center;
+    padding: 18px 20px;
+    gap: 16px;
+  }
+
+  /* 角色头像 - 圆形裁切放大 */
+  .role-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: #f8f7f4;
+  }
+
+  .role-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 0;
+  }
+
+  /* 每个角色的裁切位置 */
+  .avatar-seeker img { object-position: 45% 50%; }
+  .avatar-creator img { object-position: 35% 45%; }
+  .avatar-worker img { object-position: 50% 40%; }
+  .avatar-linker img { object-position: 50% 45%; }
+
+  .role-avatar.empty {
+    background: #f0eeeb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .role-avatar.empty::after {
+    content: '?';
+    font-size: 26px;
+    color: #ccc;
+    font-weight: 300;
+  }
+
+  .role-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .role-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .role-name-en {
+    font-size: 11px;
+    color: #bbb;
+    font-weight: 300;
+    letter-spacing: 0;
+  }
+
+  .role-desc {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+    line-height: 1.5;
+    font-weight: 300;
+  }
+
+  .role-tag {
+    display: inline-block;
+    font-size: 10px;
+    color: #aaa;
+    border: 1px solid #e8e5e0;
+    border-radius: 20px;
+    padding: 2px 10px;
+    margin-top: 6px;
+    letter-spacing: 1px;
+  }
+
+  .role-arrow {
+    color: #ddd;
+    font-size: 16px;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+  }
+
+  /* Originator 特殊卡片 */
+  .role-card.originator-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    margin-top: 4px;
+  }
+
+  .originator-card .role-name { color: #fff; }
+  .originator-card .role-name-en { color: #666; }
+  .originator-card .role-desc { color: #888; }
+  .originator-card .role-tag { color: #666; border-color: #444; }
+  .originator-card .role-arrow { color: #555; }
+
+  .originator-badge {
+    display: inline-block;
+    font-size: 9px;
+    background: rgba(255,255,255,0.08);
+    color: #999;
+    padding: 2px 8px;
+    border-radius: 10px;
+    letter-spacing: 2px;
+    margin-left: 4px;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0;
+  }
+
+  .divider-line {
+    width: 30px;
+    height: 1px;
+    background: #ddd;
+  }
+
+  /* 展开详情 */
+  .role-detail {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+    background: #faf9f7;
+    border-top: 1px solid transparent;
+  }
+
+  .role-detail.open {
+    max-height: 800px;
+    border-top-color: #f0eeeb;
+  }
+
+  .role-detail-content {
+    padding: 20px 24px 24px;
+  }
+
+  .detail-section {
+    margin-bottom: 16px;
+  }
+
+  .detail-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .detail-section-title {
+    font-size: 10px;
+    color: #bbb;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .detail-text {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  .detail-text strong {
+    color: #2d2d2d;
+    font-weight: 500;
+  }
+
+  .detail-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .detail-list li {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.9;
+    font-weight: 300;
+    padding-left: 14px;
+    position: relative;
+  }
+
+  .detail-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 11px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #ccc;
+  }
+
+  .detail-highlight {
+    background: #f0eeeb;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 4px;
+  }
+
+  .detail-highlight .detail-text {
+    color: #666;
+    font-size: 12px;
+  }
+
+  /* Originator 详情样式 */
+  .originator-card .role-detail {
+    background: rgba(255,255,255,0.03);
+  }
+  .originator-card .role-detail.open { border-top-color: #333; }
+  .originator-card .detail-section-title { color: #555; }
+  .originator-card .detail-text { color: #777; }
+  .originator-card .detail-text strong { color: #ccc; }
+  .originator-card .detail-list li { color: #777; }
+  .originator-card .detail-list li::before { background: #444; }
+  .originator-card .detail-highlight { background: rgba(255,255,255,0.04); }
+  .originator-card .detail-highlight .detail-text { color: #888; }
+
+  /* 底部 */
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid #eae8e4;
+  }
+
+  .footer-text {
+    font-size: 12px;
+    color: #bbb;
+    letter-spacing: 1px;
+    font-weight: 300;
+  }
+
+  .brand-mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .logo-circle {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid #ccc;
+    border-radius: 50%;
+    position: relative;
+  }
+
+  .logo-circle::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border: 1.5px solid #ccc;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .logo-text {
+    font-size: 11px;
+    color: #ccc;
+    letter-spacing: 2px;
+    font-weight: 300;
+  }
+
+  /* 入场动画 */
+  .role-card {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: fadeIn 0.5s ease forwards;
+  }
+
+  .role-card:nth-child(1) { animation-delay: 0.05s; }
+  .role-card:nth-child(2) { animation-delay: 0.1s; }
+  .role-card:nth-child(3) { animation-delay: 0.15s; }
+  .role-card:nth-child(4) { animation-delay: 0.2s; }
+  .role-card:nth-child(5) { animation-delay: 0.25s; }
+  .role-card:nth-child(6) { animation-delay: 0.3s; }
+  .role-card:nth-child(7) { animation-delay: 0.35s; }
+  .role-card:nth-child(8) { animation-delay: 0.4s; }
+  .role-card:nth-child(9) { animation-delay: 0.45s; }
+
+  @keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="header">
+    <div class="brand-tag">TOPOO · ROLES</div>
+    <div class="title">每一个角色</div>
+    <div class="subtitle">都是星球不可或缺的存在</div>
+  </div>
+
+  <div class="role-list">
+
+    <!-- 漫游者 -->
+    <div class="role-card" onclick="toggleDetail(this)">
+      <div class="role-card-inner">
+        <div class="role-avatar empty"></div>
+        <div class="role-info">
+          <div class="role-name">漫游者 <span class="role-name-en">Wanderer</span></div>
+          <div class="role-desc">路过星空的旅人，正在张望</div>
+          <span class="role-tag">免费 · 入门</span>
+        </div>
+        <span class="role-arrow">›</span>
+      </div>
+      <div class="role-detail">
+        <div class="role-detail-content">
+          <div class="detail-section">
+            <div class="detail-section-title">WHO</div>
+            <div class="detail-text">已经注意到拓圈，开始了解和初步参与，但还没正式付费加入。身份卡就是星际护照——"我是第 XXXXX 位拓圈漫游者"，带编号，可分享朋友圈。</div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">WHY</div>
+            <div class="detail-text">漫游者的存在是为了<strong>降低门槛</strong>。不需要花钱，不需要承诺，你只需要有好奇心。从漫游到寻找，从寻找到留下，每一步都是自己的选择。</div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">NEXT</div>
+            <div class="detail-text">漫游者 → 探索者。从"闲逛"到"有意图地寻找方向"。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 探索者 -->
+    <div class="role-card" onclick="toggleDetail(this)">
+      <div class="role-card-inner">
+        <div class="role-avatar avatar-seeker">
+          <img src="role-images/seeker.jpg" alt="Seeker">
+        </div>
+        <div class="role-info">
+          <div class="role-name">探索者 <span class="role-name-en">Seeker</span></div>
+          <div class="role-desc">有了编号，开始认真寻找方向</div>
+          <span class="role-tag">付费 · 探索</span>
+        </div>
+        <span class="role-arrow">›</span>
+      </div>
+      <div class="role-detail">
+        <div class="role-detail-content">
+          <div class="detail-section">
+            <div class="detail-section-title">WHO</div>
+            <div class="detail-text">已付费加入拓圈，拥有专属编号。在星球间穿梭，感受不同星球的气质，找到想留下的地方。</div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">GROWTH PATH</div>
+            <div class="detail-text">三条升级路径可混搭：</div>
+            <ul class="detail-list">
+              <li><strong>任务线</strong>——免费攒经验，做任务升级</li>
+              <li><strong>付费线</strong>——花钱加速，买时间</li>
+              <li><strong>积分线</strong>——日常活跃，稳步成长</li>
+            </ul>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">NEXT</div>
+            <div class="detail-text">探索者毕业 → 选择成为创造者 / 工作者 / 链接者。毕业时做角色意向测试，系统推荐 + 自己决定。</div>
+          </div>
+          <div class="detail-highlight">
+            <div class="detail-text">种子期 ¥365 一次性买断（限量1000人），以后永不再交年费。每季度可能拿到平台集体分红 50-100 元，交的不是费，是入场券。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 创造者 -->
+    <div class="role-card" onclick="toggleDetail(this)">
+      <div class="role-card-inner">
+        <div class="role-avatar avatar-creator">
+          <img src="role-images/creator.jpg" alt="Creator">
+        </div>
+        <div class="role-info">
+          <div class="role-name">创造者 <span class="role-name-en">Creator</span></div>
+          <div class="role-desc">他有一个东西，要卖给全世界</div>
+          <span class="role-tag">创造 · 变现</span>
+        </div>
+        <span class="role-arrow">›</span>
+      </div>
+      <div class="role-detail">
+        <div class="role-detail-content">
+          <div class="detail-section">
+            <div class="detail-section-title">WHO</div>
+            <div class="detail-text">做产品、做内容、做IP、做服务、做活动——本质只有一个：<strong>他有一个东西要卖</strong>。创造者是星球的核心，是球体的建筑材料。</div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">FIVE TYPES</div>
+            <ul class="detail-list">
+              <li><strong>火 · 门店型</strong>——咖啡店、茶叶店、手作店，用拓圈流量引流到店</li>
+              <li><strong>水 · 内容型</strong>——拍视频、做IP，内容就是产品，流动即传播</li>
+              <li><strong>木 · 产品型</strong>——实体商品/线上产品，从种子到果实，需要水（内容）和阳光（流量）</li>
+              <li><strong>金 · 服务型</strong>——设计、策划、咨询、创意类，精准切割需求，高价值硬通货</li>
+              <li><strong>土 · 活动型</strong>——展览、市集、活动，承载万物，是所有创造类型的场地和地基</li>
+            </ul>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">CORE</div>
+            <div class="detail-text">灵魂 → 外挂大脑（AI）→ 拓圈（落地）→ 共鸣。创造者拥有灵魂（唯一不可替代），AI是外挂大脑，拓圈帮想法在现实中落地站稳。<strong>共鸣是因，交换是果</strong>。</div>
+          </div>
+          <div class="detail-highlight">
+            <div class="detail-text">种子期保证金 ¥2000（可退，免年费）。一个星球内创造者品类互不重叠——只有一个卖茶的、只有一个做内容的，圈内零内耗。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 工作者 -->
+    <div class="role-card" onclick="toggleDetail(this)">
+      <div class="role-card-inner">
+        <div class="role-avatar avatar-worker">
+          <img src="role-images/worker.jpg" alt="Worker">
+        </div>
+        <div class="role-info">
+          <div class="role-name">工作者 <span class="role-name-en">Worker</span></div>
+          <div class="role-desc">沉默的支撑者，让创造者发光</div>
+          <span class="role-tag">辅助 · 执行</span>
+        </div>
+        <span class="role-arrow">›</span>
+      </div>
+      <div class="role-detail">
+        <div class="role-detail-content">
+          <div class="detail-section">
+            <div class="detail-section-title">WHO</div>
+            <div class="detail-text">辅助创造者完成落地的人。格子衫、圆框眼镜、靠谱实干。可组成工作室团队接活，有分工有协作。</div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">TWO SYSTEMS</div>
+            <ul class="detail-list">
+              <li><strong>碳基工作者</strong>——真人，用货币结算</li>
+              <li><strong>硅基工作者</strong>——AI，用token结算</li>
+            </ul>
+            <div class="detail-text" style="margin-top:8px">两套经济体系并行，AI不是替代而是70%的效率放大器。碳基负责创意、判断、关系（30%），硅基负责执行、生成、数据（70%）。</div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">ENTRY</div>
+            <div class="detail-text">从 Seeker 毕业选 Worker，<strong>0元进入</strong>。参考抖店0元开店模式，从任务收入中逐步扣质量保证金 999 元，扣满后正常发放，退出时可退。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 链接者 -->
+    <div class="role-card" onclick="toggleDetail(this)">
+      <div class="role-card-inner">
+        <div class="role-avatar avatar-linker">
+          <img src="role-images/linker.jpg" alt="Linker">
+        </div>
+        <div class="role-info">
+          <div class="role-name">链接者 <span class="role-name-en">Linker</span></div>
+          <div class="role-desc">始终微笑着，连接一切</div>
+          <span class="role-tag">搭桥 · 撮合</span>
+        </div>
+        <span class="role-arrow">›</span>
+      </div>
+      <div class="role-detail">
+        <div class="role-detail-content">
+          <div class="detail-section">
+            <div class="detail-section-title">WHO</div>
+            <div class="detail-text">戴墨镜、始终微笑的社交达人。搭桥、推广、撮合的独立角色。介绍客户、对接资源、促成合作，是星球与星球之间的桥梁。</div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">WHY</div>
+            <div class="detail-text">创造者专注产品，工作者专注执行，但<strong>谁把他们连起来？</strong>链接者就是那条线——白色的线段形象，把分散的人和资源串联成网。</div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">ENTRY</div>
+            <div class="detail-text">从 Seeker 毕业选 Linker，<strong>0元进入</strong>。从分润中逐步扣保证金 1200 元，退出时可退。收入来源：介绍客户交易额 1-2% 分成。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div></div>
+
+    <!-- 开拓者 -->
+    <div class="role-card" onclick="toggleDetail(this)">
+      <div class="role-card-inner">
+        <div class="role-avatar empty"></div>
+        <div class="role-info">
+          <div class="role-name">开拓者 <span class="role-name-en">Pioneer</span></div>
+          <div class="role-desc">满级玩家，可以建造自己的星球</div>
+          <span class="role-tag">满级 · 建星</span>
+        </div>
+        <span class="role-arrow">›</span>
+      </div>
+      <div class="role-detail">
+        <div class="role-detail-content">
+          <div class="detail-section">
+            <div class="detail-section-title">WHO</div>
+            <div class="detail-text">从其他角色成长到满级后可晋升为开拓者。开拓者拥有自己的星球、自己的圈，是拓圈宇宙的共建者。</div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">WHAT THEY DO</div>
+            <ul class="detail-list">
+              <li>建造并运营一颗属于自己的星球</li>
+              <li>定义星球的气质、价值观和规则</li>
+              <li>招募创造者、探索者加入自己的圈</li>
+              <li>成为拓圈宇宙的独立节点</li>
+            </ul>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">AVATAR</div>
+            <div class="detail-text">形象设计中——黑白融合体（黑球+白线段），毛茸茸的，头顶悬浮一颗小星球。创造者与链接者的融合，既有产品力又有连接力。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 拓荒者 -->
+    <div class="role-card originator-card" onclick="toggleDetail(this)">
+      <div class="role-card-inner">
+        <div class="role-avatar empty" style="background:rgba(255,255,255,0.05);"></div>
+        <div class="role-info">
+          <div class="role-name">拓荒者 <span class="role-name-en">Originator</span> <span class="originator-badge">THE ONE</span></div>
+          <div class="role-desc">从0到满级，全局唯一</div>
+          <span class="role-tag">唯一 · 原点</span>
+        </div>
+        <span class="role-arrow">›</span>
+      </div>
+      <div class="role-detail">
+        <div class="role-detail-content">
+          <div class="detail-section">
+            <div class="detail-section-title">WHO</div>
+            <div class="detail-text">拓圈的第一人、原点、起源。<strong>Originator 里的 O 对应拓圈双圈符号 ♾️</strong>，是从0到满级的完成者。</div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">NOT A CEO</div>
+            <div class="detail-text">不是CEO，不是创始人。是满级属性的幕后人物——每一个角色都经历过，每一种碰撞都参与过，然后站在背后推动整个拓圈运转。</div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-section-title">MEANING</div>
+            <div class="detail-text">Origin = 起源。路已经被踩出来了，后面的人踩着这条路往前延伸，成为开拓者 Pioneer。但第一个踏入荒地的人，永远只有一个。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <div class="footer-text">找到你的角色，开始你的旅程</div>
+    <div class="brand-mark">
+      <div class="logo-circle"></div>
+      <span class="logo-text">TOPOO</span>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleDetail(card) {
+  const detail = card.querySelector('.role-detail');
+  const arrow = card.querySelector('.role-arrow');
+  const isOpen = detail.classList.contains('open');
+  
+  document.querySelectorAll('.role-detail.open').forEach(d => {
+    d.classList.remove('open');
+    d.closest('.role-card').querySelector('.role-arrow').style.transform = 'rotate(0deg)';
+  });
+  
+  if (!isOpen) {
+    detail.classList.add('open');
+    arrow.style.transform = 'rotate(90deg)';
+  }
+}
+</script>
+
+</body>
+</html>

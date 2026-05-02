@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拓圈·南京星球 - ADE完整版</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#fff;font-family:'Microsoft YaHei','PingFang SC',sans-serif;overflow-x:hidden}
+.tab-bar{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;background:rgba(8,8,14,0.96);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.08);padding:0}
+.tab-btn{flex:1;padding:14px 6px;background:none;border:none;color:rgba(255,255,255,0.35);font-size:13px;cursor:pointer;transition:all .3s;font-family:inherit;border-bottom:2px solid transparent;letter-spacing:1px}
+.tab-btn:hover{color:rgba(255,255,255,0.6)}
+.tab-btn.active{color:#fff}
+.tab-btn span{display:block;font-size:9px;opacity:.4;margin-top:3px;letter-spacing:2px}
+.panel{display:none;width:100%;height:100vh;position:relative}
+.panel.active{display:block}
+canvas{display:block}
+</style>
+</head>
+<body>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('A')">A 数据仪表盘<span>DATA DASHBOARD</span></button>
+  <button class="tab-btn" onclick="switchTab('D')">D 游戏大陆地图<span>GAME WORLD MAP</span></button>
+  <button class="tab-btn" onclick="switchTab('E')">E 漫画分格<span>STORYBOARD</span></button>
+</div>
+
+<!-- ========== PANEL A: DATA DASHBOARD ========== -->
+<div id="panelA" class="panel active">
+  <canvas id="canvasA"></canvas>
+</div>
+
+<!-- ========== PANEL D: GAME MAP ========== -->
+<div id="panelD" class="panel">
+  <canvas id="canvasD"></canvas>
+</div>
+
+<!-- ========== PANEL E: COMIC ========== -->
+<div id="panelE" class="panel">
+  <div id="ePage" style="overflow-y:auto;height:calc(100vh - 50px);-webkit-overflow-scrolling:touch"></div>
+</div>
+
+<script>
+// ==================== SHARED DATA ====================
+const creators=[
+  {name:'茶语时光',cat:'产品型',color:'#e8b44c',icon:'🍵',desc:'百年茶文化传承，每杯茶都有故事'},
+  {name:'光影手作',cat:'产品型',color:'#d96b6b',icon:'🎨',desc:'手工光影艺术，每一件都是孤品'},
+  {name:'城市漫步',cat:'内容型',color:'#5a9fd4',icon:'📱',desc:'用镜头捕捉城市每个隐秘角落'},
+  {name:'味觉实验室',cat:'产品型',color:'#5ba875',icon:'🍰',desc:'探索味觉的无限可能'},
+  {name:'声音工坊',cat:'内容型',color:'#9b7bbf',icon:'🎵',desc:'用声音编织故事，让耳朵去旅行'},
+  {name:'陶说匠心',cat:'产品型',color:'#e07b4c',icon:'🏺',desc:'泥土与火焰的艺术，手作温度'},
+  {name:'独立杂志',cat:'内容型',color:'#d4a574',icon:'📖',desc:'独立出版，记录不被看见的人'},
+  {name:'花艺日记',cat:'服务型',color:'#e8a0bf',icon:'💐',desc:'用花语诉说每一天的心情'},
+  {name:'咖啡地图',cat:'服务型',color:'#8b6f47',icon:'☕',desc:'每杯咖啡都是一段旅程'},
+  {name:'像素宇宙',cat:'内容型',color:'#4ecdc4',icon:'🎮',desc:'在像素世界里创造无限可能'},
+  {name:'手账美学',cat:'产品型',color:'#f7dc6f',icon:'📝',desc:'记录生活之美，一本手账一个世界'},
+  {name:'素食主义',cat:'产品型',color:'#82c785',icon:'🥗',desc:'素食不止饮食，是一种生活态度'}
+];
+const seekers=[];
+for(let i=0;i<50;i++) seekers.push('探索者'+(i+1));
+
+// ==================== TAB ====================
+let currentTab='A', animId={};
+function switchTab(id){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['A','D','E'][i]===id));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel'+id).classList.add('active');
+  if(animId[currentTab]) cancelAnimationFrame(animId[currentTab]);
+  currentTab=id;
+  if(id==='A') initA();
+  if(id==='D') initD();
+  if(id==='E') initE();
+}
+
+// =====================================================================
+//  SCHEME A — FULL DATA DASHBOARD
+// =====================================================================
+let cA,xA,nodesA,edgesA,hoverA=-1,selectedA=-1,dataParticles=[];
+
+function initA(){
+  cA=document.getElementById('canvasA');
+  xA=cA.getContext('2d');
+  cA.width=window.innerWidth; cA.height=window.innerHeight-50;
+  nodesA=[]; edgesA=[]; dataParticles=[];
+  const W=cA.width, H=cA.height, cx=W*0.45, cy=H*0.5;
+
+  // Creator nodes
+  creators.forEach((c,i)=>{
+    const a=(i/creators.length)*Math.PI*2-Math.PI/2;
+    const r=H*0.28+Math.random()*40;
+    nodesA.push({x:cx+Math.cos(a)*r, y:cy+Math.sin(a)*r,
+      vx:0,vy:0, r:24+Math.random()*6,
+      name:c.name, cat:c.cat, color:c.color, icon:c.icon, desc:c.desc,
+      isCreator:true, pulse:Math.random()*6.28, energy:.7+Math.random()*.3,
+      connCount:0, traffic:Math.floor(Math.random()*500+100),
+      level:['Lv.1','Lv.2','Lv.3','Lv.4','Lv.5'][Math.floor(Math.random()*5)]
+    });
+  });
+  // Seeker nodes
+  seekers.forEach((s,i)=>{
+    const a=(i/seekers.length)*Math.PI*2;
+    const r=30+Math.random()*H*0.45;
+    nodesA.push({x:cx+Math.cos(a)*r, y:cy+Math.sin(a)*r,
+      vx:0,vy:0, r:2+Math.random()*1.5,
+      name:s, cat:'探索者', color:'#00f0ff', icon:'',
+      isCreator:false, pulse:Math.random()*6.28, energy:.2+Math.random()*.3,
+      connCount:0, traffic:0, level:''
+    });
+  });
+  // Edges: creator-creator
+  for(let i=0;i<creators.length;i++)
+    for(let j=i+1;j<creators.length;j++)
+      if(Math.random()<0.4){edgesA.push({a:i,b:j,w:.3+Math.random()*.7}); nodesA[i].connCount++; nodesA[j].connCount++;}
+  // Edges: seeker-creator
+  seekers.forEach((s,i)=>{
+    const ci=Math.floor(Math.random()*creators.length);
+    edgesA.push({a:creators.length+i, b:ci, w:.05+Math.random()*.2});
+    nodesA[creators.length+i].connCount=1;
+  });
+  // Data flow particles
+  edgesA.forEach((e,ei)=>{
+    for(let p=0;p<Math.ceil(e.w*3);p++)
+      dataParticles.push({edge:ei, t:Math.random(), speed:.002+Math.random()*.004});
+  });
+
+  cA.onmousemove=ev=>{
+    const mx=ev.clientX, my=ev.clientY-50;
+    hoverA=-1;
+    nodesA.forEach((n,i)=>{if(n.isCreator){const d=Math.hypot(mx-n.x,my-n.y);if(d<n.r+10)hoverA=i;}});
+    cA.style.cursor=hoverA>=0?'pointer':'default';
+  };
+  cA.onclick=()=>{if(hoverA>=0) selectedA=selectedA===hoverA?-1:hoverA; else selectedA=-1;};
+  drawA();
+}
+
+function drawA(){
+  const t=Date.now()/1000, W=cA.width, H=cA.height;
+  // Trail fade
+  xA.fillStyle='rgba(8,8,16,0.18)';
+  xA.fillRect(0,0,W,H);
+
+  // Grid
+  xA.strokeStyle='rgba(0,240,255,0.025)'; xA.lineWidth=1;
+  for(let x=0;x<W;x+=50){xA.beginPath();xA.moveTo(x,0);xA.lineTo(x,H);xA.stroke();}
+  for(let y=0;y<H;y+=50){xA.beginPath();xA.moveTo(0,y);xA.lineTo(W,y);xA.stroke();}
+
+  // Scan line
+  const scanY=(t*50)%H;
+  const sg=xA.createLinearGradient(0,scanY-20,0,scanY+20);
+  sg.addColorStop(0,'transparent'); sg.addColorStop(0.5,'rgba(0,240,255,0.04)'); sg.addColorStop(1,'transparent');
+  xA.fillStyle=sg; xA.fillRect(0,scanY-20,W,40);
+
+  // Edges
+  edgesA.forEach(e=>{
+    const na=nodesA[e.a], nb=nodesA[e.b]; if(!na||!nb) return;
+    const isCC=na.isCreator&&nb.isCreator;
+    const alpha=e.w*(isCC?0.3:0.08);
+    xA.strokeStyle=`rgba(0,240,255,${alpha})`;
+    xA.lineWidth=e.w*(isCC?1.8:0.6);
+    xA.beginPath();xA.moveTo(na.x,na.y);xA.lineTo(nb.x,nb.y);xA.stroke();
+  });
+
+  // Data particles
+  dataParticles.forEach(p=>{
+    p.t+=p.speed; if(p.t>1)p.t-=1;
+    const e=edgesA[p.edge], na=nodesA[e.a], nb=nodesA[e.b];
+    if(!na||!nb)return;
+    const px=na.x+(nb.x-na.x)*p.t, py=na.y+(nb.y-na.y)*p.t;
+    const a=e.w*0.8;
+    xA.fillStyle=`rgba(0,240,255,${a})`;
+    xA.beginPath();xA.arc(px,py,1.5,0,6.28);xA.fill();
+  });
+
+  // Nodes
+  nodesA.forEach((n,i)=>{
+    n.pulse+=0.025;
+    if(n.isCreator){
+      const pr=n.r+Math.sin(n.pulse)*2;
+      const isHov=hoverA===i, isSel=selectedA===i;
+
+      // Outer glow
+      const g1=xA.createRadialGradient(n.x,n.y,0,n.x,n.y,pr*2.8);
+      g1.addColorStop(0,n.color+'25'); g1.addColorStop(1,'transparent');
+      xA.fillStyle=g1; xA.beginPath(); xA.arc(n.x,n.y,pr*2.8,0,6.28); xA.fill();
+
+      // Orbit ring
+      xA.save(); xA.translate(n.x,n.y); xA.rotate(t*0.5+i);
+      xA.strokeStyle=n.color+'30'; xA.lineWidth=0.5;
+      xA.beginPath(); xA.ellipse(0,0,pr*2,pr*1.2,0,0,6.28); xA.stroke();
+      // Orbit dot
+      xA.fillStyle='#00f0ff';
+      xA.beginPath(); xA.arc(pr*2,0,2,0,6.28); xA.fill();
+      xA.restore();
+
+      // Hex border
+      xA.strokeStyle=isHov||isSel?'#00f0ff':n.color+'50';
+      xA.lineWidth=isHov?2:1;
+      drawHex(xA,n.x,n.y,pr+5); xA.stroke();
+
+      // Core circle
+      const g2=xA.createRadialGradient(n.x-pr*0.2,n.y-pr*0.2,0,n.x,n.y,pr);
+      g2.addColorStop(0,lighten(n.color,30)); g2.addColorStop(1,n.color);
+      xA.fillStyle=g2; xA.beginPath(); xA.arc(n.x,n.y,pr,0,6.28); xA.fill();
+
+      // Icon
+      xA.font=`${pr*0.9}px serif`; xA.textAlign='center'; xA.textBaseline='middle';
+      xA.fillText(n.icon,n.x,n.y+1);
+
+      // Name
+      xA.fillStyle=isHov?'#fff':'rgba(255,255,255,0.8)';
+      xA.font='bold 11px Microsoft YaHei'; xA.textAlign='center';
+      xA.fillText(n.name,n.x,n.y+pr+18);
+      // Cat tag
+      xA.fillStyle='rgba(0,240,255,0.4)'; xA.font='8px monospace';
+      xA.fillText(n.cat.toUpperCase(),n.x,n.y+pr+30);
+      // Level badge
+      xA.fillStyle=n.color; xA.font='bold 7px monospace';
+      xA.fillText(n.level,n.x+pr+10,n.y-pr+4);
+
+      // Detail panel on hover/select
+      if(isHov||isSel){
+        const px=n.x+pr+15, py=n.y-pr-10, pw=170, ph=100;
+        xA.fillStyle='rgba(0,12,24,0.92)';
+        xA.strokeStyle='rgba(0,240,255,0.3)'; xA.lineWidth=1;
+        roundR(xA,px,py,pw,ph,4); xA.fill(); roundR(xA,px,py,pw,ph,4); xA.stroke();
+        // Corner accents
+        xA.strokeStyle='#00f0ff'; xA.lineWidth=2;
+        [[px,py,1,1],[px+pw,py,-1,1],[px,py+ph,1,-1],[px+pw,py+ph,-1,-1]].forEach(([cx,cy,dx,dy])=>{
+          xA.beginPath();xA.moveTo(cx,cy+dy*10);xA.lineTo(cx,cy);xA.lineTo(cx+dx*10,cy);xA.stroke();
+        });
+        xA.fillStyle='#00f0ff'; xA.font='bold 12px Microsoft YaHei'; xA.textAlign='left';
+        xA.fillText(n.icon+' '+n.name,px+10,py+22);
+        xA.fillStyle='rgba(0,240,255,0.5)'; xA.font='9px monospace';
+        xA.fillText('TYPE: '+n.cat.toUpperCase(),px+10,py+38);
+        xA.fillText('CONN: '+n.connCount+'  LVL: '+n.level,px+10,py+52);
+        xA.fillText('TRAFFIC: '+n.traffic+'/day',px+10,py+66);
+        xA.fillStyle='rgba(255,255,255,0.4)'; xA.font='9px Microsoft YaHei';
+        wrapText(xA,n.desc,px+10,py+82,pw-20,12);
+      }
+    } else {
+      xA.fillStyle='rgba(0,240,255,0.35)';
+      xA.beginPath();xA.arc(n.x,n.y,n.r,0,6.28);xA.fill();
+    }
+    n.x+=(Math.random()-.5)*.2; n.y+=(Math.random()-.5)*.2;
+  });
+
+  // HUD - top left
+  xA.fillStyle='rgba(8,8,16,0.85)';
+  roundR(xA,15,55,240,50,4); xA.fill();
+  xA.strokeStyle='rgba(0,240,255,0.15)'; xA.lineWidth=1;
+  roundR(xA,15,55,240,50,4); xA.stroke();
+  xA.fillStyle='#00f0ff'; xA.font='200 18px monospace'; xA.textAlign='left';
+  xA.fillText('TOPSPACE · NANJING',25,78);
+  xA.fillStyle='rgba(0,240,255,0.35)'; xA.font='9px monospace';
+  xA.fillText('CREATOR NETWORK TOPOLOGY v2.0',25,95);
+
+  // HUD - bottom stats
+  const stats=[['ACTIVE',nodesA.length],['LINKS',edgesA.length],['HEALTH','98.7%'],['FLOW','1.2M/s']];
+  xA.fillStyle='rgba(8,8,16,0.85)';
+  roundR(xA,15,H-55,520,42,4); xA.fill();
+  xA.strokeStyle='rgba(0,240,255,0.15)'; roundR(xA,15,H-55,520,42,4); xA.stroke();
+  stats.forEach(([k,v],i)=>{
+    const sx=25+i*128;
+    xA.fillStyle='rgba(0,240,255,0.35)'; xA.font='8px monospace'; xA.textAlign='left';
+    xA.fillText(k,sx,H-36);
+    xA.fillStyle='#00f0ff'; xA.font='200 16px monospace';
+    xA.fillText(v,sx,H-22);
+    // Divider
+    if(i<3){xA.strokeStyle='rgba(0,240,255,0.1)';xA.beginPath();xA.moveTo(sx+120,H-50);xA.lineTo(sx+120,H-18);xA.stroke();}
+  });
+
+  // HUD - right sidebar: creator list
+  const sbW=175, sbH=creators.length*26+35;
+  xA.fillStyle='rgba(8,8,16,0.88)';
+  roundR(xA,W-sbW-15,55,sbW,sbH,4); xA.fill();
+  xA.strokeStyle='rgba(0,240,255,0.12)'; roundR(xA,W-sbW-15,55,sbW,sbH,4); xA.stroke();
+  xA.fillStyle='rgba(0,240,255,0.5)'; xA.font='8px monospace'; xA.textAlign='left';
+  xA.fillText('CREATOR INDEX',W-sbW-5,74);
+  creators.forEach((c,i)=>{
+    const ly=92+i*26;
+    const isHov=hoverA===i;
+    xA.fillStyle=isHov?'rgba(0,240,255,0.1)':'transparent';
+    if(isHov){xA.fillRect(W-sbW-10,ly-8,sbW-10,22);}
+    xA.fillStyle=c.color;
+    xA.beginPath(); xA.arc(W-sbW,ly,4,0,6.28); xA.fill();
+    xA.fillStyle=isHov?'#fff':'rgba(0,240,255,0.6)'; xA.font='10px Microsoft YaHei';
+    xA.fillText(c.icon+' '+c.name,W-sbW+10,ly+4);
+    xA.fillStyle='rgba(0,240,255,0.25)'; xA.font='8px monospace';
+    xA.fillText(c.cat,W-sbW+90,ly+4);
+  });
+
+  // Topology chart mini - bottom right
+  const tcW=140, tcH=100, tcX=W-tcW-15, tcY=H-tcH-15;
+  xA.fillStyle='rgba(8,8,16,0.85)';
+  roundR(xA,tcX,tcY,tcW,tcH,4); xA.fill();
+  xA.strokeStyle='rgba(0,240,255,0.12)'; roundR(xA,tcX,tcY,tcW,tcH,4); xA.stroke();
+  xA.fillStyle='rgba(0,240,255,0.3)'; xA.font='7px monospace'; xA.textAlign='left';
+  xA.fillText('ACTIVITY 24H',tcX+8,tcY+14);
+  // Mini chart bars
+  const bars=[30,45,25,60,80,55,70,90,65,40,85,50];
+  const barW=(tcW-20)/bars.length;
+  bars.forEach((v,i)=>{
+    const bh=v/100*(tcH-30);
+    xA.fillStyle=`rgba(0,240,255,${0.3+v/200})`;
+    xA.fillRect(tcX+10+i*barW,tcY+tcH-8-bh,barW-2,bh);
+  });
+
+  animId.A=requestAnimationFrame(drawA);
+}
+
+function drawHex(ctx,x,y,r){
+  ctx.beginPath();
+  for(let i=0;i<6;i++){const a=Math.PI/3*i-Math.PI/6;const px=x+r*Math.cos(a),py=y+r*Math.sin(a);i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+  ctx.closePath();
+}
+function roundR(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+function wrapText(ctx,text,x,y,maxW,lh){
+  let line='';for(let i=0;i<text.length;i++){const test=line+text[i];if(ctx.measureText(test).width>maxW){ctx.fillText(line,x,y);line=text[i];y+=lh;}else line=test;}ctx.fillText(line,x,y);
+}
+function lighten(hex,amt){
+  let c=hex.replace('#','');if(c.length===3)c=c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+  let r=Math.min(255,parseInt(c.substr(0,2),16)+amt);
+  let g=Math.min(255,parseInt(c.substr(2,2),16)+amt);
+  let b=Math.min(255,parseInt(c.substr(4,2),16)+amt);
+  return `rgb(${r},${g},${b})`;
+}
+
+// =====================================================================
+//  SCHEME D — FULL GAME WORLD MAP
+// =====================================================================
+let cD,xD,locsD=[],hoveredD=-1,selectedD=-1,dRegion='all',dParticles=[];
+
+function initD(){
+  cD=document.getElementById('canvasD');
+  xD=cD.getContext('2d');
+  cD.width=window.innerWidth; cD.height=window.innerHeight-50;
+  locsD=[
+    {name:'茶语时光',cat:'product',icon:'🍵',color:'#e8b44c',desc:'百年茶文化传承，在古朴的茶室里品一壶好茶，听一段故事。据说这里的茶能让人忘记时间。',x:0,y:0,connections:[1,3]},
+    {name:'光影手作',cat:'product',icon:'🎨',color:'#d96b6b',desc:'手工作坊里光影交错，每一件作品都是匠人心血的凝结。来这间工坊，亲手创造一件属于你的艺术品。',x:0,y:0,connections:[0,2,4]},
+    {name:'城市漫步',cat:'content',icon:'📱',color:'#5a9fd4',desc:'站在城市最高处，用镜头记录这座城市的呼吸。每个角落都有故事，每次快门都是一次对话。',x:0,y:0,connections:[1,6]},
+    {name:'味觉实验室',cat:'product',icon:'🍰',color:'#5ba875',desc:'这不是普通的厨房，这是味觉的实验室。厨师在这里做各种大胆的尝试，颠覆你对食物的认知。',x:0,y:0,connections:[0,4,8]},
+    {name:'声音工坊',cat:'content',icon:'🎵',color:'#9b7bbf',desc:'推开这扇门，世界安静了。在这里用声音编织故事，用旋律勾勒画面。戴上耳机，开始你的声音之旅。',x:0,y:0,connections:[1,3,5]},
+    {name:'陶说匠心',cat:'product',icon:'🏺',color:'#e07b4c',desc:'泥土在指尖旋转，火焰赋予它生命。在这间窑炉旁，时间变得很慢很慢。触摸陶器的温度，感受匠心的重量。',x:0,y:0,connections:[4,6,9]},
+    {name:'独立杂志',cat:'content',icon:'📖',color:'#d4a574',desc:'一间不起眼的编辑部，却记录着这座城市最真实的故事。每期杂志都像一封写给读者的情书。',x:0,y:0,connections:[2,5,7]},
+    {name:'花艺日记',cat:'service',icon:'💐',color:'#e8a0bf',desc:'推门进去就是一片花海。老板娘会根据你的心情搭配一束专属花束，每天都是不同的惊喜。',x:0,y:0,connections:[6,8]},
+    {name:'咖啡地图',cat:'service',icon:'☕',color:'#8b6f47',desc:'这间咖啡馆藏在巷子深处，地图上找不到。但每个走进来的人都会成为常客。老板的拉花是一绝。',x:0,y:0,connections:[3,7,9,10]},
+    {name:'像素宇宙',cat:'content',icon:'🎮',color:'#4ecdc4',desc:'推开门像是穿越到了另一个世界。满墙的像素画、复古游戏机、还有一只总在睡觉的猫。这里是宅的天堂。',x:0,y:0,connections:[5,8,11]},
+    {name:'手账美学',cat:'product',icon:'📝',color:'#f7dc6f',desc:'纸和笔的气味扑面而来。架子上摆满了手账本、贴纸、胶带。坐在窗边，开始记录今天的好心情。',x:0,y:0,connections:[8,11]},
+    {name:'素食主义',cat:'product',icon:'🥗',color:'#82c785',desc:'白色的空间，原木的桌椅，植物在角落安静生长。这里的素食让你重新思考：原来植物也可以这么好吃。',x:0,y:0,connections:[9,10]}
+  ];
+
+  // Position locations in a nice layout - island clusters
+  const W=cD.width, H=cD.height, margin=80;
+  const clusters={
+    content:{cx:W*0.25,cy:H*0.35,ids:[2,4,6,9]},
+    product:{cx:W*0.6,cy:H*0.3,ids:[0,1,3,5,10,11]},
+    service:{cx:W*0.75,cy:H*0.65,ids:[7,8]}
+  };
+  Object.values(clusters).forEach(cl=>{
+    cl.ids.forEach((id,i)=>{
+      const a=(i/cl.ids.length)*Math.PI*2;
+      const r=60+cl.ids.length*18;
+      locsD[id].x=cl.cx+Math.cos(a)*r+(Math.random()-.5)*20;
+      locsD[id].y=cl.cy+Math.sin(a)*r+(Math.random()-.5)*20;
+    });
+  });
+
+  // Wanderer particles
+  dParticles=[];
+  for(let i=0;i<30;i++){
+    dParticles.push({
+      x:Math.random()*W, y:Math.random()*H,
+      target:null, speed:0.3+Math.random()*0.5,
+      trail:[]
+    });
+  }
+
+  cD.onmousemove=ev=>{
+    const mx=ev.clientX, my=ev.clientY-50;
+    hoveredD=-1;
+    locsD.forEach((l,i)=>{
+      const dx=mx-l.x, dy=my-l.y;
+      if(Math.sqrt(dx*dx+dy*dy)<45) hoveredD=i;
+    });
+    cD.style.cursor=hoveredD>=0?'pointer':'default';
+  };
+  cD.onclick=()=>{
+    if(hoveredD>=0) selectedD=selectedD===hoveredD?-1:hoveredD;
+    else selectedD=-1;
+  };
+
+  drawD();
+}
+
+function drawD(){
+  const t=Date.now()/1000, W=cD.width, H=cD.height;
+
+  // Background gradient
+  const bg=xD.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.6);
+  bg.addColorStop(0,'#1e1828'); bg.addColorStop(0.5,'#181420'); bg.addColorStop(1,'#100e18');
+  xD.fillStyle=bg; xD.fillRect(0,0,W,H);
+
+  // Subtle noise texture
+  xD.fillStyle='rgba(255,255,255,0.008)';
+  for(let i=0;i<200;i++){
+    xD.fillRect(Math.random()*W,Math.random()*H,1,1);
+  }
+
+  // ===== TERRAIN =====
+  // Water area
+  xD.fillStyle='rgba(40,60,100,0.15)';
+  xD.beginPath();
+  xD.moveTo(W*0.85,H*0.3);
+  xD.quadraticCurveTo(W*0.95,H*0.5,W*0.8,H*0.7);
+  xD.quadraticCurveTo(W*0.9,H*0.85,W*0.75,H*0.9);
+  xD.lineTo(W,H*0.9);xD.lineTo(W,H*0.2);xD.closePath();xD.fill();
+  // Water waves
+  xD.strokeStyle='rgba(80,120,180,0.08)'; xD.lineWidth=1;
+  for(let i=0;i<8;i++){
+    const wy=H*0.3+i*H*0.08;
+    xD.beginPath();
+    for(let x=W*0.75;x<W;x+=5){
+      xD.lineTo(x,wy+Math.sin(t*1.5+x*0.02+i)*3);
+    }
+    xD.stroke();
+  }
+
+  // Forest area (content zone)
+  xD.fillStyle='rgba(30,70,40,0.2)';
+  drawBlobTerrain(xD,W*0.15,H*0.2,W*0.25,H*0.35,t);
+  // Trees
+  for(let i=0;i<15;i++){
+    const tx=W*0.12+Math.random()*W*0.2, ty=H*0.15+Math.random()*H*0.4;
+    const ts=8+Math.random()*12;
+    drawTree(xD,tx,ty,ts,t+i);
+  }
+
+  // Plains area (product zone)
+  xD.fillStyle='rgba(60,55,30,0.15)';
+  drawBlobTerrain(xD,W*0.4,H*0.15,W*0.3,H*0.35,t);
+  // Grass tufts
+  for(let i=0;i<25;i++){
+    const gx=W*0.38+Math.random()*W*0.35, gy=H*0.12+Math.random()*H*0.4;
+    drawGrass(xD,gx,gy,4+Math.random()*4,t+i*0.3);
+  }
+
+  // Hills (service zone)
+  xD.fillStyle='rgba(70,50,40,0.15)';
+  drawBlobTerrain(xD,W*0.6,H*0.5,W*0.22,H*0.25,t);
+
+  // ===== REGION LABELS =====
+  xD.textAlign='center';
+  [['内容森林',W*0.25,H*0.13,'rgba(90,159,212,0.12)'],
+   ['产品平原',W*0.55,H*0.1,'rgba(232,180,76,0.12)'],
+   ['服务港湾',W*0.72,H*0.52,'rgba(232,160,191,0.12)']
+  ].forEach(([n,x,y,c])=>{
+    xD.fillStyle=c; xD.font='bold 14px Microsoft YaHei';
+    xD.fillText(n,x,y);
+  });
+
+  // ===== PATHS =====
+  locsD.forEach((l,i)=>{
+    l.connections.forEach(j=>{
+      const m=locsD[j]; if(!m)return;
+      xD.strokeStyle='rgba(255,215,0,0.06)'; xD.lineWidth=3;
+      xD.setLineDash([6,8]);
+      xD.beginPath(); xD.moveTo(l.x,l.y);
+      // Curved path
+      const mx=(l.x+m.x)/2, my=(l.y+m.y)/2+Math.sin(i+j)*20;
+      xD.quadraticCurveTo(mx,my,m.x,m.y); xD.stroke();
+      xD.setLineDash([]);
+    });
+  });
+
+  // ===== WANDERER PARTICLES =====
+  dParticles.forEach(p=>{
+    if(!p.target||Math.random()<0.01){
+      p.target=locsD[Math.floor(Math.random()*locsD.length)];
+    }
+    if(p.target){
+      const dx=p.target.x-p.x, dy=p.target.y-p.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<20){p.target=locsD[Math.floor(Math.random()*locsD.length)];}
+      else{p.x+=dx/dist*p.speed; p.y+=dy/dist*p.speed;}
+    }
+    p.trail.push({x:p.x,y:p.y});
+    if(p.trail.length>15) p.trail.shift();
+    // Trail
+    p.trail.forEach((pt,ti)=>{
+      const a=ti/p.trail.length*0.3;
+      xD.fillStyle=`rgba(255,215,0,${a})`;
+      xD.beginPath(); xD.arc(pt.x,pt.y,1,0,6.28); xD.fill();
+    });
+    // Head
+    xD.fillStyle='rgba(255,215,0,0.6)';
+    xD.beginPath(); xD.arc(p.x,p.y,2,0,6.28); xD.fill();
+  });
+
+  // ===== LOCATIONS =====
+  locsD.forEach((l,i)=>{
+    const isHov=hoveredD===i, isSel=selectedD===i;
+    if(dRegion!=='all'&&l.cat!==dRegion) xD.globalAlpha=0.3;
+
+    const bob=Math.sin(t*1.5+i*0.8)*3;
+    const bx=l.x, by=l.y+bob;
+
+    // Ground shadow
+    xD.fillStyle='rgba(0,0,0,0.25)';
+    xD.beginPath(); xD.ellipse(bx,by+30,22,6,0,0,6.28); xD.fill();
+
+    // Building body
+    const bw=36, bh=32;
+    const buildingColor=isHov||isSel?l.color:darken(l.color,25);
+    xD.fillStyle=buildingColor;
+    xD.beginPath();
+    xD.moveTo(bx-bw/2,by+bh/2);
+    xD.lineTo(bx-bw/2,by-bh/2+8);
+    xD.lineTo(bx,by-bh/2);
+    xD.lineTo(bx+bw/2,by-bh/2+8);
+    xD.lineTo(bx+bw/2,by+bh/2);
+    xD.closePath(); xD.fill();
+
+    // Roof
+    xD.fillStyle=darken(l.color,40);
+    xD.beginPath();
+    xD.moveTo(bx-bw/2-4,by-bh/2+8);
+    xD.lineTo(bx,by-bh/2-10);
+    xD.lineTo(bx+bw/2+4,by-bh/2+8);
+    xD.closePath(); xD.fill();
+
+    // Door
+    xD.fillStyle='rgba(0,0,0,0.35)';
+    xD.fillRect(bx-5,by+bh/2-12,10,12);
+    // Doorknob
+    xD.fillStyle='rgba(255,215,0,0.5)';
+    xD.beginPath(); xD.arc(bx+3,by+bh/2-6,1.5,0,6.28); xD.fill();
+
+    // Window
+    xD.fillStyle='rgba(255,230,150,0.4)';
+    xD.fillRect(bx+bw/2-8,by-bh/2+14,6,6);
+    if(isHov||isSel){
+      // Light from window
+      xD.fillStyle='rgba(255,230,150,0.08)';
+      xD.beginPath();
+      xD.moveTo(bx+bw/2-8,by-bh/2+20);
+      xD.lineTo(bx+bw/2+5,by-bh/2+20);
+      xD.lineTo(bx+bw/2+15,by+bh/2+10);
+      xD.lineTo(bx+bw/2-8,by+bh/2+10);
+      xD.fill();
+    }
+
+    // Flag pole
+    xD.strokeStyle='rgba(255,255,255,0.4)'; xD.lineWidth=1;
+    xD.beginPath(); xD.moveTo(bx+4,by-bh/2-10); xD.lineTo(bx+4,by-bh/2-28); xD.stroke();
+    // Flag
+    xD.fillStyle=l.color;
+    xD.beginPath();
+    xD.moveTo(bx+4,by-bh/2-28);
+    xD.lineTo(bx+16,by-bh/2-24+Math.sin(t*3+i)*2);
+    xD.lineTo(bx+4,by-bh/2-20);
+    xD.fill();
+
+    // Hover glow
+    if(isHov||isSel){
+      const hg=xD.createRadialGradient(bx,by,0,bx,by,50);
+      hg.addColorStop(0,l.color+'30'); hg.addColorStop(1,'transparent');
+      xD.fillStyle=hg; xD.beginPath(); xD.arc(bx,by,50,0,6.28); xD.fill();
+      // Sparkles
+      for(let s=0;s<4;s++){
+        const sx=bx+Math.cos(t*4+s*1.57)*(30+s*8);
+        const sy=by+Math.sin(t*4+s*1.57)*(25+s*5);
+        xD.fillStyle='#ffd700';
+        drawStarShape(xD,sx,sy,3,4);
+      }
+    }
+
+    // Name plate
+    const pw=xD.measureText(l.name).width+16;
+    xD.fillStyle='rgba(0,0,0,0.7)';
+    roundR(xD,bx-pw/2,by+34,pw,18,3); xD.fill();
+    xD.strokeStyle='rgba(255,215,0,0.25)'; xD.lineWidth=0.5;
+    roundR(xD,bx-pw/2,by+34,pw,18,3); xD.stroke();
+    xD.fillStyle=isHov?'#ffd700':'rgba(255,255,255,0.7)';
+    xD.font='bold 10px Microsoft YaHei'; xD.textAlign='center';
+    xD.fillText(l.name,bx,by+47);
+
+    // Category tag
+    const catColors={product:'#e8b44c',content:'#5a9fd4',service:'#e8a0bf'};
+    xD.fillStyle=(catColors[l.cat]||'#888')+'60';
+    const tagW=36, tagH=12;
+    roundR(xD,bx-tagW/2,by+54,tagW,tagH,2); xD.fill();
+    xD.fillStyle='rgba(0,0,0,0.5)'; xD.font='7px monospace';
+    xD.fillText(l.cat==='product'?'产品':l.cat==='content'?'内容':'服务',bx,by+63);
+
+    // Icon
+    xD.font='16px serif'; xD.textAlign='center'; xD.textBaseline='middle';
+    xD.fillText(l.icon,bx,by+bh*0.15); xD.textBaseline='alphabetic';
+
+    // Selection detail card
+    if(isSel){
+      const cx=bx+55, cy=Math.max(by-60,60), cw=200, ch=130;
+      // Card background
+      xD.fillStyle='rgba(10,8,20,0.92)';
+      roundR(xD,cx,cy,cw,ch,6); xD.fill();
+      xD.strokeStyle=l.color+'60'; xD.lineWidth=1.5;
+      roundR(xD,cx,cy,cw,ch,6); xD.stroke();
+      // Top accent bar
+      xD.fillStyle=l.color;
+      xD.fillRect(cx,cy,cw,3);
+
+      // Title
+      xD.fillStyle='#fff'; xD.font='bold 14px Microsoft YaHei'; xD.textAlign='left';
+      xD.fillText(l.icon+' '+l.name,cx+12,cy+24);
+      // Type badge
+      const typeBg={product:'rgba(232,180,76,0.15)',content:'rgba(90,159,212,0.15)',service:'rgba(232,160,191,0.15)'};
+      const typeTx={product:'产品型创造者',content:'内容型创造者',service:'服务型创造者'};
+      xD.fillStyle=typeBg[l.cat];
+      roundR(xD,cx+12,cy+32,72,16,8); xD.fill();
+      xD.fillStyle=catColors[l.cat]; xD.font='8px Microsoft YaHei';
+      xD.fillText(typeTx[l.cat],cx+20,cy+44);
+
+      // Desc
+      xD.fillStyle='rgba(255,255,255,0.55)'; xD.font='10px Microsoft YaHei';
+      wrapText(xD,l.desc,cx+12,cy+62,cw-24,14);
+
+      // Stats row
+      xD.fillStyle='rgba(255,215,0,0.4)'; xD.font='8px monospace';
+      xD.fillText('连接: '+l.connections.length+'个据点',cx+12,cy+ch-12);
+    }
+
+    xD.globalAlpha=1;
+  });
+
+  // ===== UI FRAME =====
+  xD.strokeStyle='rgba(255,215,0,0.15)'; xD.lineWidth=2;
+  xD.strokeRect(10,0,W-20,H);
+
+  // ===== TOP TITLE =====
+  xD.fillStyle='rgba(10,8,20,0.7)';
+  roundR(xD,W/2-130,5,260,38,0); xD.fill();
+  xD.fillStyle='#ffd700'; xD.font='900 20px Microsoft YaHei'; xD.textAlign='center';
+  xD.fillText('拓 圈 大 陆',W/2,28);
+  xD.fillStyle='rgba(255,215,0,0.35)'; xD.font='9px monospace'; xD.letterSpacing='3px';
+  xD.fillText('T O P S P A C E',W/2,40);
+
+  // ===== REGION FILTER BUTTONS =====
+  const regions=[
+    {id:'all',label:'全部据点',x:W-190},
+    {id:'content',label:'内容森林',x:W-120},
+    {id:'product',label:'产品平原',x:W-50},
+    {id:'service',label:'服务港湾',x:W+20}
+  ];
+  // (Buttons drawn static, click handled by external buttons)
+
+  // ===== MINIMAP =====
+  const mmW=130,mmH=90,mmX=W-mmW-20,mmY=H-mmH-20;
+  xD.fillStyle='rgba(10,8,20,0.85)';
+  roundR(xD,mmX,mmY,mmW,mmH,4); xD.fill();
+  xD.strokeStyle='rgba(255,215,0,0.2)'; roundR(xD,mmX,mmY,mmW,mmH,4); xD.stroke();
+  xD.fillStyle='rgba(255,215,0,0.3)'; xD.font='7px monospace'; xD.textAlign='left';
+  xD.fillText('MAP',mmX+5,mmY+10);
+  // Mini dots
+  locsD.forEach(l=>{
+    const mx=mmX+5+(l.x/W)*(mmW-10);
+    const my=mmY+14+(l.y/H)*(mmH-20);
+    xD.fillStyle=l.color;
+    xD.beginPath(); xD.arc(mx,my,2,0,6.28); xD.fill();
+  });
+
+  // ===== BOTTOM INFO BAR =====
+  xD.fillStyle='rgba(10,8,20,0.75)';
+  roundR(xD,20,H-45,W-260,32,4); xD.fill();
+  xD.strokeStyle='rgba(255,215,0,0.12)'; roundR(xD,20,H-45,W-260,32,4); xD.stroke();
+  xD.fillStyle='rgba(255,215,0,0.5)'; xD.font='10px Microsoft YaHei'; xD.textAlign='left';
+  xD.fillText('🗺 南京大陆 · 共'+locsD.length+'个据点 · 3个区域 · 点击据点查看详情',35,H-24);
+  xD.fillStyle='rgba(255,215,0,0.3)'; xD.font='8px monospace';
+  xD.fillText('WANDERERS ACTIVE: '+dParticles.length,35,H-14);
+
+  // ===== DECORATIVE: COMPASS =====
+  const compassX=W-70, compassY=H-70;
+  xD.save(); xD.translate(compassX,compassY);
+  xD.strokeStyle='rgba(255,215,0,0.15)'; xD.lineWidth=1;
+  xD.beginPath(); xD.arc(0,0,20,0,6.28); xD.stroke();
+  // N arrow
+  xD.fillStyle='#ffd700'; xD.beginPath();
+  xD.moveTo(0,-18); xD.lineTo(-4,-6); xD.lineTo(4,-6); xD.closePath(); xD.fill();
+  // S
+  xD.fillStyle='rgba(255,215,0,0.3)'; xD.beginPath();
+  xD.moveTo(0,18); xD.lineTo(-4,6); xD.lineTo(4,6); xD.closePath(); xD.fill();
+  xD.fillStyle='#ffd700'; xD.font='bold 7px monospace'; xD.textAlign='center';
+  xD.fillText('N',0,-22);
+  xD.restore();
+
+  animId.D=requestAnimationFrame(drawD);
+}
+
+// D helper functions
+function drawBlobTerrain(ctx,x,y,w,h,t){
+  ctx.beginPath();
+  const pts=10;
+  for(let i=0;i<=pts;i++){
+    const a=(i/pts)*Math.PI*2;
+    const rx=w/2+Math.sin(a*3+t*0.1)*w*0.15;
+    const ry=h/2+Math.cos(a*2+t*0.1)*h*0.15;
+    const px=x+Math.cos(a)*rx, py=y+Math.sin(a)*ry;
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  }
+  ctx.closePath(); ctx.fill();
+}
+function drawTree(ctx,x,y,s,t){
+  ctx.fillStyle='rgba(30,60,30,0.5)';
+  ctx.beginPath(); ctx.arc(x,y-s*0.6,s*0.6,0,6.28); ctx.fill();
+  ctx.fillStyle='rgba(60,40,20,0.4)';
+  ctx.fillRect(x-2,y-s*0.3,4,s*0.5);
+}
+function drawGrass(ctx,x,y,h,t){
+  ctx.strokeStyle='rgba(60,80,30,0.3)'; ctx.lineWidth=1;
+  for(let i=-1;i<=1;i++){
+    ctx.beginPath(); ctx.moveTo(x+i*2,y);
+    ctx.quadraticCurveTo(x+i*2+Math.sin(t+i)*3,y-h,x+i*2+Math.sin(t+i)*2,y-h);
+    ctx.stroke();
+  }
+}
+function drawStarShape(ctx,x,y,r,pts){
+  ctx.beginPath();
+  for(let i=0;i<pts*2;i++){
+    const a=(i/(pts*2))*Math.PI*2-Math.PI/2;
+    const rr=i%2===0?r:r*0.4;
+    i===0?ctx.moveTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr):ctx.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr);
+  }
+  ctx.closePath(); ctx.fill();
+}
+function darken(hex,amt){
+  let c=hex.replace('#','');if(c.length===3)c=c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+  let r=Math.max(0,parseInt(c.substr(0,2),16)-amt);
+  let g=Math.max(0,parseInt(c.substr(2,2),16)-amt);
+  let b=Math.max(0,parseInt(c.substr(4,2),16)-amt);
+  return `rgb(${r},${g},${b})`;
+}
+
+// =====================================================================
+//  SCHEME E — FULL COMIC STORYBOARD
+// =====================================================================
+function initE(){
+  const page=document.getElementById('ePage');
+  page.innerHTML='';
+
+  // Page bg
+  page.style.background='#f5f0e0';
+  page.style.backgroundImage='url("data:image/svg+xml,%3Csvg width=\'4\' height=\'4\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'1\' height=\'1\' fill=\'rgba(0,0,0,0.015)\'/%3E%3C/svg%3E")';
+  page.style.padding='60px 24px 60px';
+  page.style.maxWidth='880px';
+  page.style.margin='0 auto';
+
+  // Title block
+  page.innerHTML+=`
+    <div style="text-align:center;border:4px solid #2a2a2a;padding:30px 20px;margin-bottom:30px;position:relative;background:#fff">
+      <div style="font-size:36px;font-weight:900;color:#2a2a2a;letter-spacing:8px">拓圈·南京</div>
+      <div style="font-size:10px;color:#999;letter-spacing:4px;margin-top:6px">TOPSPACE NANJING — 创造者图鉴 Vol.01</div>
+      <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#f5f0e0;padding:0 16px">
+        <span style="font-size:10px;color:#d96b6b;letter-spacing:2px">— 故事从这里开始 —</span>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:12px;color:#888;font-style:italic;margin-bottom:35px;line-height:2;padding:0 20px">
+      在南京这座城市的某个角落<br>有一群人正在用自己的方式创造着什么<br>他们叫——创造者<br>这是他们的第一话
+    </div>
+  `;
+
+  // Build comic pages
+  const comicData=[
+    // Page 1: Title spread + first 3 creators
+    {panels:[
+      {type:'full',creator:creators[0],sfx:'',bubble:'每一杯茶里都藏着一个故事',caption:'第一章 · 茶语时光'},
+      {type:'half',creator:creators[1],sfx:'✦',bubble:''},
+      {type:'half',creator:creators[2],sfx:'',bubble:'咔嚓!',caption:'第三章 · 城市漫步'},
+    ]},
+    // Page 2
+    {panels:[
+      {type:'third',creator:creators[3],sfx:'',bubble:'好吃到犯规'},
+      {type:'third',creator:creators[4],sfx:'♪',bubble:''},
+      {type:'third',creator:creators[5],sfx:'',bubble:'泥土会记住所有温度'},
+      {type:'wide',creator:creators[6],sfx:'',bubble:'每期都是一封情书',caption:'第四章 · 独立杂志'},
+    ]},
+    // Page 3
+    {panels:[
+      {type:'twothird',creator:creators[7],sfx:'',bubble:'今天的心情是粉色的',caption:'第五章 · 花艺日记'},
+      {type:'onethird',creator:creators[8],sfx:'',bubble:''},
+      {type:'half',creator:creators[9],sfx:'GAME START',bubble:''},
+      {type:'half',creator:creators[10],sfx:'',bubble:'一笔一划都是好心情'},
+    ]},
+    // Page 4: Finale
+    {panels:[
+      {type:'half',creator:creators[11],sfx:'',bubble:'素食也可以很好吃'},
+      {type:'wide',creator:null,sfx:'',bubble:'',caption:'',isFinale:true},
+    ]}
+  ];
+
+  comicData.forEach((pg,pi)=>{
+    const grid=document.createElement('div');
+    grid.style.cssText='display:grid;gap:5px;margin-bottom:35px;';
+
+    // Determine grid layout based on panel types
+    const types=pg.panels.map(p=>p.type);
+    if(types.includes('full')){
+      grid.style.gridTemplateColumns='1fr';
+      grid.style.gridTemplateRows='auto';
+    } else if(types.includes('twothird')){
+      grid.style.gridTemplateColumns='2fr 1fr';
+      grid.style.gridTemplateRows='1fr 1fr';
+    } else {
+      grid.style.gridTemplateColumns='repeat(2,1fr)';
+      grid.style.gridTemplateRows='auto';
+    }
+
+    pg.panels.forEach((panel,panelIdx)=>{
+      const div=document.createElement('div');
+      div.style.cssText='border:3px solid #2a2a2a;background:#fff;position:relative;overflow:hidden;min-height:220px;';
+
+      if(panel.type==='full') div.style.minHeight='380px';
+      if(panel.type==='wide'||panel.type==='twothird'){
+        if(types.includes('twothird')){
+          if(panel.type==='twothird') div.style.gridRow='span 2';
+        } else {
+          div.style.gridColumn='span 2';
+        }
+      }
+      if(panel.type==='onethird') div.style.gridRow='span 2';
+
+      const canvas=document.createElement('canvas');
+      canvas.width=div.style.minHeight==='380px'?800:400;
+      canvas.height=div.style.minHeight==='380px'?350:200;
+      canvas.style.width='100%'; canvas.style.height='100%';
+      canvas.style.display='block';
+      div.appendChild(canvas);
+
+      if(panel.creator){
+        const c=panel.creator;
+        const hue=(creators.indexOf(c)*37)%360;
+        drawComicArt(canvas.getContext('2d'),canvas.width,canvas.height,c,hue,panel.type==='full'||panel.type==='twothird');
+
+        // Header
+        div.innerHTML+=`
+          <div style="position:absolute;top:0;left:0;right:0;padding:8px 14px;background:rgba(0,0,0,0.8);z-index:2">
+            <div style="font-size:13px;color:#fff;font-weight:700">${c.icon} ${c.name}</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.5)">${c.cat}创造者</div>
+          </div>
+        `;
+        // Bubble
+        if(panel.bubble){
+          div.innerHTML+=`
+            <div style="position:absolute;top:50px;right:10px;background:#fff;border:2px solid #2a2a2a;border-radius:14px;padding:8px 12px;font-size:10px;color:#2a2a2a;max-width:130px;z-index:4;box-shadow:2px 2px 0 rgba(0,0,0,0.08)">
+              ${panel.bubble}
+              <div style="position:absolute;bottom:-7px;right:15px;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid #fff"></div>
+            </div>
+          `;
+        }
+        // SFX
+        if(panel.sfx){
+          div.innerHTML+=`<div style="position:absolute;top:40px;left:10px;font-size:28px;font-weight:900;color:${c.color};z-index:5;letter-spacing:1px">${panel.sfx}</div>`;
+        }
+      } else if(panel.isFinale){
+        // Finale panel
+        const ctx=canvas.getContext('2d');
+        const w=canvas.width, h=canvas.height;
+        ctx.fillStyle='#f5f0e0'; ctx.fillRect(0,0,w,h);
+        // Stars
+        for(let i=0;i<50;i++){
+          ctx.fillStyle=`rgba(42,42,42,${0.1+Math.random()*0.2})`;
+          ctx.beginPath();ctx.arc(Math.random()*w,Math.random()*h,1+Math.random()*2,0,6.28);ctx.fill();
+        }
+        // 12 creator icons arranged in circle
+        const cx=w/2, cy=h/2, r=Math.min(w,h)*0.3;
+        creators.forEach((c,i)=>{
+          const a=(i/12)*Math.PI*2-Math.PI/2;
+          const ix=cx+Math.cos(a)*r, iy=cy+Math.sin(a)*r;
+          ctx.font='20px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.fillText(c.icon,ix,iy);
+          // Connection lines
+          const next=(i+1)%12;
+          const na=(next/12)*Math.PI*2-Math.PI/2;
+          ctx.strokeStyle='rgba(42,42,42,0.08)'; ctx.lineWidth=1;
+          ctx.beginPath();ctx.moveTo(ix,iy);ctx.lineTo(cx+Math.cos(na)*r,cy+Math.sin(na)*r);ctx.stroke();
+        });
+        // Center text
+        ctx.fillStyle='#2a2a2a'; ctx.font='bold 16px Microsoft YaHei'; ctx.textAlign='center';
+        ctx.fillText('你的星球，在这里等你',cx,cy);
+        ctx.font='10px Microsoft YaHei'; ctx.fillStyle='#999';
+        ctx.fillText('拓圈·南京 —— 12位创造者，等你加入',cx,cy+20);
+        ctx.textBaseline='alphabetic';
+      }
+
+      // Caption
+      if(panel.caption){
+        div.innerHTML+=`<div style="position:absolute;bottom:-24px;left:0;right:0;text-align:center;font-size:10px;color:#888;font-style:italic">${panel.caption}</div>`;
+      }
+
+      grid.appendChild(div);
+    });
+
+    // Page number
+    const pageNum=document.createElement('div');
+    pageNum.style.cssText='text-align:center;font-size:10px;color:#ccc;padding:15px 0;letter-spacing:3px;border-top:1px solid rgba(0,0,0,0.08);margin-top:10px';
+    pageNum.textContent=pi<comicData.length-1?`— ${pi+1} / ${comicData.length} —`:'— TO BE CONTINUED —';
+    page.appendChild(grid);
+    page.appendChild(pageNum);
+  });
+
+  // Final CTA
+  page.innerHTML+=`
+    <div style="text-align:center;padding:40px 20px;border:3px solid #2a2a2a;background:#fff;margin-top:20px">
+      <div style="font-size:11px;color:#d96b6b;letter-spacing:3px;margin-bottom:10px">NEXT ISSUE</div>
+      <div style="font-size:18px;font-weight:900;color:#2a2a2a;letter-spacing:4px">下期预告</div>
+      <div style="font-size:12px;color:#888;margin-top:12px;line-height:2">
+        更多创造者即将登场<br>
+        探索者们的故事也会被记录<br>
+        敬请期待 · 拓圈·南京 Vol.02
+      </div>
+      <div style="margin-top:20px;display:inline-block;border:2px solid #2a2a2a;padding:8px 24px;font-size:11px;color:#2a2a2a;letter-spacing:3px;cursor:pointer">
+        加 入 拓 圈
+      </div>
+    </div>
+    <div style="text-align:center;font-size:9px;color:#ccc;padding:20px;letter-spacing:2px">
+      © 2026 TOPSPACE · 拓圈 · ALL RIGHTS RESERVED
+    </div>
+  `;
+}
+
+function drawComicArt(ctx,w,h,creator,hue,isLarge){
+  // Background fill
+  ctx.fillStyle=`hsl(${hue},18%,93%)`;
+  ctx.fillRect(0,0,w,h);
+
+  // Halftone dots
+  ctx.fillStyle=`hsla(${hue},25%,80%,0.25)`;
+  for(let x=0;x<w;x+=10){
+    for(let y=0;y<h;y+=10){
+      const r=0.5+Math.sin(x*0.05+y*0.05)*0.5;
+      ctx.beginPath();ctx.arc(x,y,r,0,6.28);ctx.fill();
+    }
+  }
+
+  // Background scenery based on type
+  if(creator.cat==='产品型'){
+    // Warm interior scene
+    ctx.fillStyle=`hsl(${hue},30%,87%)`;
+    ctx.fillRect(0,h*0.6,w,h*0.4);
+    // Floor line
+    ctx.strokeStyle=`hsl(${hue},20%,75%)`;ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(0,h*0.6);ctx.lineTo(w,h*0.6);ctx.stroke();
+    // Shelves
+    ctx.fillStyle=`hsl(${hue},25%,80%)`;
+    ctx.fillRect(w*0.6,h*0.2,w*0.35,6);
+    ctx.fillRect(w*0.6,h*0.35,w*0.35,6);
+    // Items on shelves (small dots)
+    for(let i=0;i<5;i++){
+      ctx.fillStyle=`hsl(${(hue+i*20)%360},40%,65%)`;
+      ctx.beginPath();ctx.arc(w*0.65+i*w*0.06,h*0.18,4,0,6.28);ctx.fill();
+      ctx.beginPath();ctx.arc(w*0.65+i*w*0.06,h*0.33,4,0,6.28);ctx.fill();
+    }
+  } else if(creator.cat==='内容型'){
+    // Outdoor/city scene
+    // Sky gradient
+    const sky=ctx.createLinearGradient(0,0,0,h*0.6);
+    sky.addColorStop(0,`hsl(${hue},25%,85%)`);sky.addColorStop(1,`hsl(${hue},18%,90%)`);
+    ctx.fillStyle=sky;ctx.fillRect(0,0,w,h*0.6);
+    // Clouds
+    ctx.fillStyle='rgba(255,255,255,0.5)';
+    [[w*0.2,h*0.15,20],[w*0.6,h*0.1,15],[w*0.8,h*0.2,18]].forEach(([cx,cy,r])=>{
+      ctx.beginPath();ctx.arc(cx,cy,r,0,6.28);ctx.fill();
+      ctx.beginPath();ctx.arc(cx+r*0.7,cy-r*0.3,r*0.7,0,6.28);ctx.fill();
+    });
+    // City silhouette
+    ctx.fillStyle=`hsl(${hue},10%,78%)`;
+    const buildings=[0.08,0.12,0.07,0.15,0.1,0.08,0.13,0.06,0.11,0.09];
+    buildings.forEach((bh,i)=>{
+      const bx=w*(i/buildings.length);
+      const bw=w/buildings.length+2;
+      ctx.fillRect(bx,h*0.6-bh*h,bw,bh*h);
+    });
+  } else {
+    // Service - cozy indoor
+    ctx.fillStyle=`hsl(${hue},22%,88%)`;
+    ctx.fillRect(0,0,w,h);
+    // Window
+    ctx.strokeStyle=`hsl(${hue},15%,75%)`;ctx.lineWidth=3;
+    ctx.strokeRect(w*0.15,h*0.1,w*0.3,h*0.35);
+    ctx.fillStyle=`hsl(${hue},20%,92%)`;
+    ctx.fillRect(w*0.15,h*0.1,w*0.3,h*0.35);
+    // Cross
+    ctx.beginPath();ctx.moveTo(w*0.3,h*0.1);ctx.lineTo(w*0.3,h*0.45);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(w*0.15,h*0.275);ctx.lineTo(w*0.45,h*0.275);ctx.stroke();
+    // Table
+    ctx.fillStyle=`hsl(${hue},20%,75%)`;
+    ctx.fillRect(w*0.5,h*0.45,w*0.4,6);
+  }
+
+  // Large creator icon (center)
+  const iconSize=isLarge?Math.min(w,h)*0.25:Math.min(w,h)*0.2;
+  ctx.font=`${iconSize}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(creator.icon,w/2,h/2+(isLarge?10:5));
+  ctx.textBaseline='alphabetic';
+
+  // Action lines
+  ctx.strokeStyle=`hsla(${hue},10%,60%,0.1)`;ctx.lineWidth=1;
+  for(let i=0;i<6;i++){
+    ctx.beginPath();ctx.moveTo(0,h*0.1+i*h*0.12);ctx.lineTo(w*0.12,h*0.1+i*h*0.12);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(w,h*0.1+i*h*0.12);ctx.lineTo(w*0.88,h*0.1+i*h*0.12);ctx.stroke();
+  }
+
+  // Speed lines radiating from center (only for large panels)
+  if(isLarge){
+    ctx.strokeStyle=`hsla(${hue},15%,50%,0.06)`;ctx.lineWidth=1.5;
+    for(let i=0;i<20;i++){
+      const a=(i/20)*Math.PI*2;
+      ctx.beginPath();
+      ctx.moveTo(w/2+Math.cos(a)*iconSize*1.2,h/2+Math.sin(a)*iconSize*1.2);
+      ctx.lineTo(w/2+Math.cos(a)*iconSize*3,h/2+Math.sin(a)*iconSize*3);
+      ctx.stroke();
+    }
+  }
+
+  // Decorative stars
+  if(!isLarge){
+    for(let i=0;i<4;i++){
+      const sx=w*(0.15+Math.random()*0.7), sy=h*(0.1+Math.random()*0.3);
+      ctx.fillStyle=`hsl(${hue},50%,60%)`;
+      ctx.font='12px serif';
+      ctx.fillText('✦',sx,sy);
+    }
+  }
+}
+
+// ==================== INIT ====================
+window.addEventListener('resize',()=>{
+  if(currentTab==='A')initA();
+  if(currentTab==='D')initD();
+  if(currentTab==='E')initE();
+});
+initA();
+</script>
+</body>
+</html>

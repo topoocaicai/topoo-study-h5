@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TOPOO · 拓圈</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --sky-dark:#0B0F1E;--sky-mid:#151B33;
+  --amber:#E8B44C;--rust:#D96B6B;--blue:#4A9EB8;
+  --purple:#9B7BBF;--green:#A0B87A;
+  --cyber-bg:rgba(10,14,30,.92);
+  --cyber-border:rgba(232,180,76,.5);
+  --cyber-glow:rgba(232,180,76,.15);
+}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;}
+body{
+  font-family:-apple-system,"PingFang SC","Noto Sans SC",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  color:#fff;
+}
+
+/* ===== 全局容器 ===== */
+#app{width:100vw;height:100vh;position:relative;overflow:hidden;}
+
+/* ===== 星空背景 ===== */
+.starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+.star{
+  position:absolute;border-radius:50%;background:#fff;
+  animation:twinkle var(--d,3s) ease-in-out infinite alternate;
+  opacity:0;
+}
+@keyframes twinkle{0%{opacity:.15;transform:scale(.7)}100%{opacity:1;transform:scale(1.3)}}
+
+/* ===== 场景系统 ===== */
+.scene{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity 1s ease;
+  z-index:1;
+}
+.scene.active{opacity:1;pointer-events:auto;}
+
+/* ===== 场景1：启动 ===== */
+#scene-boot{z-index:10;background:#000;}
+.boot-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--amber);
+  opacity:0;animation:boot-pulse 1.2s ease infinite;
+}
+@keyframes boot-pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+
+/* ===== 场景2：倒计时 ===== */
+#scene-countdown{z-index:15;background:#000;}
+.countdown-num{
+  font-family:Georgia,serif;
+  font-size:120px;font-weight:400;
+  color:var(--amber);
+  text-shadow:0 0 60px rgba(232,180,76,.4),0 0 120px rgba(232,180,76,.15);
+  opacity:0;
+  transform:scale(2);
+  transition:all .5s cubic-bezier(.23,1,.32,1);
+}
+.countdown-num.show{
+  opacity:1;
+  transform:scale(1);
+}
+.countdown-num.hide{
+  opacity:0;
+  transform:scale(.5);
+}
+.countdown-home{
+  font-family:Georgia,serif;
+  font-size:36px;letter-spacing:12px;
+  color:var(--amber);
+  text-shadow:0 0 40px rgba(232,180,76,.5);
+  opacity:0;transform:scale(.8);
+  transition:all .8s cubic-bezier(.23,1,.32,1);
+}
+.countdown-home.show{
+  opacity:1;transform:scale(1);
+}
+
+/* ===== 场景3：眼睛睁开 ===== */
+#scene-eye{z-index:14;background:#000;overflow:hidden;}
+.eye-container{
+  position:relative;width:260px;height:120px;
+  display:flex;align-items:center;justify-content:center;
+}
+.eye-outer{
+  position:absolute;width:260px;height:120px;
+  border-radius:50%;
+  border:2px solid rgba(232,180,76,.3);
+  box-shadow:0 0 40px rgba(232,180,76,.08);
+  overflow:hidden;
+}
+.eye-lid-top{
+  position:absolute;top:0;left:-2px;right:-2px;height:55%;
+  background:#000;z-index:3;
+  transition:height 1.6s cubic-bezier(.23,1,.32,1);
+  border-radius:0 0 50% 50%;
+}
+.eye-lid-bottom{
+  position:absolute;bottom:0;left:-2px;right:-2px;height:55%;
+  background:#000;z-index:3;
+  transition:height 1.6s cubic-bezier(.23,1,.32,1);
+  border-radius:50% 50% 0 0;
+}
+.eye-iris{
+  position:absolute;z-index:2;
+  width:40px;height:40px;border-radius:50%;
+  background:radial-gradient(circle,rgba(232,180,76,.9) 0%,rgba(232,180,76,.4) 50%,transparent 70%);
+  box-shadow:0 0 20px rgba(232,180,76,.3);
+  animation:iris-breathe 3s ease-in-out infinite alternate;
+}
+@keyframes iris-breathe{0%{transform:scale(.9)}100%{transform:scale(1.1)}}
+.eye-opening .eye-lid-top{height:8%;}
+.eye-opening .eye-lid-bottom{height:8%;}
+.eye-blink .eye-lid-top{height:40%;}
+.eye-blink .eye-lid-bottom{height:40%;}
+
+/* ===== 场景4：系统对话 ===== */
+#scene-dialogue .dialogue-area{
+  text-align:center;padding:0 28px;max-width:380px;
+  min-height:120px;
+}
+.sys-line{
+  font-size:15px;line-height:2.2;color:rgba(255,255,255,.85);
+  margin-bottom:2px;
+  opacity:0;transform:translateY(10px);
+  transition:all .5s ease;
+}
+.sys-line.show{opacity:1;transform:translateY(0);}
+.sys-line.highlight{color:var(--amber);}
+.typewriter-cursor{
+  display:inline-block;width:2px;height:16px;background:var(--amber);
+  vertical-align:middle;margin-left:2px;
+  animation:blink-cursor .6s step-end infinite;
+}
+@keyframes blink-cursor{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ===== 下一步按钮 ===== */
+.btn-next{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:14px 40px;border-radius:100px;
+  border:1px solid rgba(232,180,76,.35);
+  color:var(--amber);font-size:13px;letter-spacing:2px;
+  cursor:pointer;transition:all .3s ease;
+  background:transparent;margin-top:36px;
+  opacity:0;transform:translateY(15px);
+  transition:opacity .6s ease,transform .6s ease,border-color .3s,background .3s;
+  pointer-events:none;
+}
+.btn-next.show{
+  opacity:1;transform:translateY(0);pointer-events:auto;
+}
+.btn-next:active{
+  background:rgba(232,180,76,.1);
+  transform:scale(.97);
+}
+.btn-next .arrow{
+  font-size:14px;transition:transform .3s;
+}
+
+/* ===== 场景5：指纹扫描 ===== */
+#scene-fingerprint{z-index:5;}
+.fingerprint-area{
+  display:flex;flex-direction:column;align-items:center;
+  gap:28px;
+}
+.fingerprint-circle{
+  position:relative;width:160px;height:160px;
+  border-radius:50%;
+  border:2px solid rgba(232,180,76,.25);
+  background:rgba(232,180,76,.03);
+  cursor:pointer;
+  transition:all .4s ease;
+  display:flex;align-items:center;justify-content:center;
+}
+.fingerprint-circle:active,.fingerprint-circle.pressed{
+  transform:scale(.95);
+  border-color:rgba(232,180,76,.6);
+  background:rgba(232,180,76,.08);
+  box-shadow:0 0 40px rgba(232,180,76,.15);
+}
+.fingerprint-svg{
+  width:90px;height:90px;
+  opacity:.3;
+  transition:opacity .5s;
+}
+.fingerprint-circle:active .fingerprint-svg,
+.fingerprint-circle.pressed .fingerprint-svg{
+  opacity:.7;
+}
+/* 扫描线 */
+.scan-line{
+  position:absolute;top:10%;left:10%;right:10%;
+  height:2px;
+  background:linear-gradient(90deg,transparent,var(--amber),transparent);
+  opacity:0;
+  box-shadow:0 0 12px rgba(232,180,76,.5);
+  transition:opacity .3s;
+}
+.fingerprint-circle.scanning .scan-line{
+  opacity:1;
+  animation:scan-move 1.5s ease-in-out infinite;
+}
+@keyframes scan-move{
+  0%{top:10%}50%{top:85%}100%{top:10%}
+}
+/* 扫描进度环 */
+.scan-progress{
+  position:absolute;top:-4px;left:-4px;right:-4px;bottom:-4px;
+  border-radius:50%;
+  border:2px solid transparent;
+  border-top-color:var(--amber);
+  opacity:0;
+  transition:opacity .3s;
+}
+.fingerprint-circle.scanning .scan-progress{
+  opacity:1;
+  animation:scan-rotate 1.2s linear infinite;
+}
+@keyframes scan-rotate{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.fingerprint-hint{
+  font-size:13px;color:rgba(255,255,255,.4);
+  letter-spacing:1px;
+  transition:color .3s;
+}
+.fingerprint-hint.active{
+  color:var(--amber);
+}
+
+/* ===== 场景6：赛博框编号 ===== */
+#scene-cyber-card{z-index:5;}
+.cyber-frame{
+  position:relative;
+  width:min(340px,88vw);
+  padding:32px 24px;
+  background:var(--cyber-bg);
+  border:1px solid var(--cyber-border);
+  box-shadow:0 0 40px var(--cyber-glow),inset 0 0 30px rgba(0,0,0,.5);
+  backdrop-filter:blur(10px);
+}
+/* 角落装饰 */
+.cyber-frame::before,.cyber-frame::after{
+  content:'';position:absolute;
+  width:20px;height:20px;
+  border-color:var(--amber);border-style:solid;border-width:0;
+}
+.cyber-frame::before{
+  top:-1px;left:-1px;
+  border-top-width:2px;border-left-width:2px;
+}
+.cyber-frame::after{
+  top:-1px;right:-1px;
+  border-top-width:2px;border-right-width:2px;
+}
+.cyber-corner-bl,.cyber-corner-br{
+  position:absolute;width:20px;height:20px;
+  border-color:var(--amber);border-style:solid;border-width:0;
+}
+.cyber-corner-bl{
+  bottom:-1px;left:-1px;
+  border-bottom-width:2px;border-left-width:2px;
+}
+.cyber-corner-br{
+  bottom:-1px;right:-1px;
+  border-bottom-width:2px;border-right-width:2px;
+}
+/* 顶部标题栏 */
+.cyber-header{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-bottom:24px;
+  padding-bottom:14px;
+  border-bottom:1px solid rgba(232,180,76,.15);
+}
+.cyber-header-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--amber);
+  box-shadow:0 0 8px rgba(232,180,76,.5);
+  animation:dot-blink 2s ease infinite;
+}
+@keyframes dot-blink{0%,100%{opacity:.4}50%{opacity:1}}
+.cyber-header-text{
+  font-size:10px;letter-spacing:4px;color:rgba(232,180,76,.7);
+  font-family:Georgia,serif;
+}
+/* 内容区 */
+.cyber-content{
+  text-align:center;min-height:100px;
+  font-family:'Courier New',monospace;
+  font-size:14px;line-height:2;
+  color:rgba(255,255,255,.8);
+}
+.cyber-line{
+  opacity:0;
+  transition:opacity .4s ease;
+}
+.cyber-line.show{opacity:1;}
+.cyber-number{
+  font-family:Georgia,serif;
+  font-size:36px;letter-spacing:3px;
+  color:var(--amber);
+  text-shadow:0 0 20px rgba(232,180,76,.3);
+  margin:8px 0;
+}
+.cyber-label{
+  font-size:12px;color:rgba(255,255,255,.4);
+  letter-spacing:1px;
+  margin-top:4px;
+}
+/* 扫描线纹理 */
+.cyber-scanlines{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  pointer-events:none;border-radius:0;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,.08) 2px,
+    rgba(0,0,0,.08) 4px
+  );
+}
+
+/* ===== 场景7：角色选择 ===== */
+#scene-role .role-container{
+  text-align:center;padding:0 20px;max-width:400px;width:100%;
+  max-height:100vh;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding-top:40px;padding-bottom:100px;
+}
+.role-options{
+  display:flex;flex-direction:column;gap:10px;
+  width:100%;
+}
+.role-btn{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 20px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.02);
+  cursor:pointer;transition:all .3s ease;
+  text-align:left;
+}
+.role-btn:active{
+  transform:scale(.97);
+  border-color:var(--amber);
+  background:rgba(232,180,76,.06);
+}
+.role-icon{font-size:20px;flex-shrink:0;width:32px;text-align:center;}
+.role-text{font-size:14px;color:rgba(255,255,255,.85);line-height:1.4;font-weight:500;}
+.role-sub{font-size:11px;color:rgba(255,255,255,.3);margin-top:2px;line-height:1.4;}
+
+/* ===== 场景8：表单 ===== */
+#scene-form .form-container{
+  text-align:center;padding:0 20px;max-width:400px;width:100%;
+  max-height:100vh;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding-top:40px;padding-bottom:100px;
+}
+.form-card{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;padding:24px 20px;
+  margin-top:16px;text-align:left;
+}
+.form-selected-role{
+  text-align:center;font-size:13px;color:var(--amber);
+  margin-bottom:20px;padding-bottom:16px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  letter-spacing:1px;
+}
+.form-field{margin-bottom:16px;}
+.form-label{
+  display:block;font-size:12px;color:rgba(255,255,255,.5);
+  margin-bottom:8px;letter-spacing:1px;
+}
+.form-input{
+  width:100%;padding:12px 16px;border-radius:10px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.3);color:#fff;
+  font-size:14px;font-family:inherit;
+  outline:none;transition:border-color .3s ease;
+  -webkit-appearance:none;
+}
+.form-input:focus{border-color:var(--amber);}
+.form-input::placeholder{color:rgba(255,255,255,.2);}
+.form-textarea{resize:none;line-height:1.6;min-height:80px;}
+.form-submit{
+  text-align:center;padding:14px;border-radius:100px;
+  background:linear-gradient(135deg,var(--amber),var(--rust));
+  color:#fff;font-size:14px;letter-spacing:2px;
+  cursor:pointer;transition:all .3s ease;
+  margin-top:8px;font-weight:500;
+}
+.form-submit:active{transform:scale(.97);opacity:.85;}
+.form-submit.disabled{opacity:.4;pointer-events:none;}
+.form-note{
+  text-align:center;font-size:10px;color:rgba(255,255,255,.2);
+  margin-top:14px;letter-spacing:.5px;line-height:1.6;
+}
+
+/* ===== 场景9：成功 ===== */
+#scene-success .success-container{
+  text-align:center;padding:0 32px;max-width:380px;
+}
+.success-icon{
+  font-size:56px;color:var(--amber);margin-bottom:24px;
+  filter:drop-shadow(0 0 20px rgba(232,180,76,.3));
+  animation:success-glow 2s ease infinite alternate;
+}
+@keyframes success-glow{
+  0%{filter:drop-shadow(0 0 20px rgba(232,180,76,.2));transform:scale(1);}
+  100%{filter:drop-shadow(0 0 30px rgba(232,180,76,.4));transform:scale(1.05);}
+}
+
+/* ===== 进度条 ===== */
+.progress-bar{
+  position:fixed;bottom:0;left:0;width:100%;height:2px;z-index:100;
+  background:rgba(255,255,255,.05);
+}
+.progress-fill{
+  height:100%;width:0;background:linear-gradient(90deg,var(--amber),var(--rust));
+  transition:width .8s ease;
+}
+
+/* ===== 闪光效果 ===== */
+.flash{
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:50;
+  background:radial-gradient(circle,rgba(232,180,76,.15),transparent 70%);
+  opacity:0;pointer-events:none;
+  animation:flash-in .8s ease forwards;
+}
+@keyframes flash-in{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+
+/* ===== 音效按钮 ===== */
+.sound-toggle{
+  position:fixed;top:16px;right:16px;z-index:200;
+  width:36px;height:36px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.15);
+  background:rgba(0,0,0,.3);color:rgba(255,255,255,.5);
+  font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);
+}
+
+/* ===== 提示文字 ===== */
+.hint{
+  font-size:11px;color:rgba(255,255,255,.25);
+  letter-spacing:1px;margin-top:16px;
+  animation:hint-fade 2s ease infinite alternate;
+}
+@keyframes hint-fade{0%{opacity:.15}100%{opacity:.4}}
+
+/* ===== 通用按钮区 ===== */
+.scene-footer{
+  position:absolute;bottom:60px;left:0;right:0;
+  display:flex;justify-content:center;
+  z-index:10;
+}
+
+/* ===== 身份卡（保留） ===== */
+#scene-card .card-wrapper{
+  perspective:800px;width:280px;height:420px;
+}
+.id-card{
+  width:280px;height:420px;position:relative;
+  background:linear-gradient(160deg,#0d1225 0%,#151B33 40%,#1a2340 100%);
+  border-radius:16px;border:1px solid rgba(232,180,76,.25);
+  box-shadow:0 0 60px rgba(232,180,76,.08),0 20px 60px rgba(0,0,0,.5);
+  overflow:hidden;
+  transform:scale(.85) rotateY(8deg);opacity:0;
+  transition:all 1.2s cubic-bezier(.23,1,.32,1);
+}
+.id-card.reveal{
+  transform:scale(1) rotateY(0deg);opacity:1;
+}
+.card-stars{position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;border-radius:16px;}
+.card-stars .mini-star{
+  position:absolute;border-radius:50%;background:#fff;
+  animation:twinkle var(--d,2s) ease-in-out infinite alternate;
+}
+.card-inner{position:relative;z-index:2;padding:28px 24px;height:100%;display:flex;flex-direction:column;}
+.card-logo{display:flex;align-items:center;gap:8px;margin-bottom:auto;}
+.card-logo img{width:28px;height:28px;}
+.card-logo-text{
+  font-family:Georgia,serif;letter-spacing:3px;font-size:11px;
+  color:var(--amber);text-transform:uppercase;
+}
+.card-center{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.card-role-label{
+  font-size:11px;letter-spacing:4px;color:rgba(255,255,255,.4);
+  text-transform:uppercase;margin-bottom:12px;
+}
+.card-infinity{
+  font-size:48px;color:var(--amber);margin-bottom:16px;
+  opacity:.7;filter:drop-shadow(0 0 12px rgba(232,180,76,.3));
+}
+.card-number{
+  font-family:Georgia,serif;font-size:32px;font-weight:400;
+  letter-spacing:2px;color:#fff;margin-bottom:8px;
+}
+.card-number-label{font-size:12px;color:rgba(255,255,255,.35);letter-spacing:1px;}
+.card-bottom{
+  text-align:center;padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+.card-bottom-text{
+  font-size:10px;color:rgba(255,255,255,.3);letter-spacing:2px;
+}
+.card-date{font-size:9px;color:rgba(255,255,255,.2);margin-top:4px;font-family:Georgia,serif;}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- 星空背景 -->
+  <div class="starfield" id="starfield"></div>
+
+  <!-- 场景1：启动 -->
+  <div class="scene active" id="scene-boot">
+    <div class="boot-dot" id="boot-dot"></div>
+  </div>
+
+  <!-- 场景2：倒计时 -->
+  <div class="scene" id="scene-countdown">
+    <div class="countdown-num" id="cd-num">3</div>
+    <div class="countdown-home" id="cd-home">H O M E</div>
+  </div>
+
+  <!-- 场景3：眼睛睁开 -->
+  <div class="scene" id="scene-eye">
+    <div class="eye-container" id="eye-container">
+      <div class="eye-outer">
+        <div class="eye-lid-top"></div>
+        <div class="eye-lid-bottom"></div>
+        <div class="eye-iris"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 场景4：系统对话 -->
+  <div class="scene" id="scene-dialogue">
+    <div class="dialogue-area" id="dialogue-area"></div>
+    <div class="scene-footer">
+      <div class="btn-next" id="btn-dialogue" onclick="goFingerprint()">
+        <span>下一步</span>
+        <span class="arrow">→</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 场景5：指纹扫描 -->
+  <div class="scene" id="scene-fingerprint">
+    <div class="fingerprint-area">
+      <div class="fingerprint-circle" id="fp-circle">
+        <div class="scan-progress"></div>
+        <div class="scan-line"></div>
+        <svg class="fingerprint-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 10 C25 10 10 30 10 50" stroke="rgba(232,180,76,.5)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M50 15 C30 15 15 32 15 50" stroke="rgba(232,180,76,.4)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M50 20 C35 20 20 35 20 50" stroke="rgba(232,180,76,.35)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M50 25 C38 25 25 38 25 50" stroke="rgba(232,180,76,.3)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M50 30 C40 30 30 40 30 50" stroke="rgba(232,180,76,.3)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M50 35 C43 35 35 43 35 50" stroke="rgba(232,180,76,.35)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M50 42 C46 42 42 46 42 50" stroke="rgba(232,180,76,.4)" stroke-width="1.5" stroke-linecap="round"/>
+          <ellipse cx="50" cy="50" rx="3" ry="3" fill="rgba(232,180,76,.5)"/>
+          <path d="M50 90 C75 90 90 70 90 50" stroke="rgba(232,180,76,.5)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M50 85 C70 85 85 68 85 50" stroke="rgba(232,180,76,.4)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M50 80 C65 80 80 65 80 50" stroke="rgba(232,180,76,.35)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M50 75 C62 75 75 62 75 50" stroke="rgba(232,180,76,.3)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M50 70 C60 70 70 60 70 50" stroke="rgba(232,180,76,.3)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M50 65 C57 65 65 57 65 50" stroke="rgba(232,180,76,.35)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M50 58 C54 58 58 54 58 50" stroke="rgba(232,180,76,.4)" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="fingerprint-hint" id="fp-hint">将手指放在上方</div>
+    </div>
+    <div class="scene-footer">
+      <div class="btn-next" id="btn-fingerprint" onclick="goCyberCard()">
+        <span>下一步</span>
+        <span class="arrow">→</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 场景6：赛博框编号 -->
+  <div class="scene" id="scene-cyber-card">
+    <div class="cyber-frame" id="cyber-frame">
+      <div class="cyber-scanlines"></div>
+      <div class="cyber-corner-bl"></div>
+      <div class="cyber-corner-br"></div>
+      <div class="cyber-header">
+        <div class="cyber-header-dot"></div>
+        <div class="cyber-header-text">TOPPOO SYSTEM</div>
+        <div class="cyber-header-dot"></div>
+      </div>
+      <div class="cyber-content" id="cyber-content"></div>
+    </div>
+    <div class="scene-footer">
+      <div class="btn-next" id="btn-cyber" onclick="goRole()">
+        <span>下一步</span>
+        <span class="arrow">→</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 场景7：角色选择 -->
+  <div class="scene" id="scene-role">
+    <div class="role-container">
+      <div class="sys-line show" style="margin-bottom:6px;">你想在拓圈成为什么？</div>
+      <div class="sys-line show" style="font-size:12px;color:rgba(255,255,255,.35);margin-bottom:24px;">选择你最有共鸣的那个</div>
+      <div class="role-options">
+        <div class="role-btn" data-role="seeker">
+          <div class="role-icon">🅰️</div>
+          <div>
+            <div class="role-text">探索者 Seeker</div>
+            <div class="role-sub">我在找方向，想探索这里有什么</div>
+          </div>
+        </div>
+        <div class="role-btn" data-role="creator">
+          <div class="role-icon">🅱️</div>
+          <div>
+            <div class="role-text">创造者 Creator</div>
+            <div class="role-sub">我有产品/内容/技能，想让更多人看到</div>
+          </div>
+        </div>
+        <div class="role-btn" data-role="learner">
+          <div class="role-icon">🅲</div>
+          <div>
+            <div class="role-text">学习者</div>
+            <div class="role-sub">我想学点好玩的东西，边玩边成长</div>
+          </div>
+        </div>
+        <div class="role-btn" data-role="social">
+          <div class="role-icon">🅳</div>
+          <div>
+            <div class="role-text">碰撞者</div>
+            <div class="role-sub">我想认识同频的人，一起做点事</div>
+          </div>
+        </div>
+        <div class="role-btn" data-role="looker">
+          <div class="role-icon">🅴️</div>
+          <div>
+            <div class="role-text">观望者</div>
+            <div class="role-sub">我就是来看看，先了解一下</div>
+          </div>
+        </div>
+        <div class="role-btn" data-role="worker">
+          <div class="role-icon">🅵</div>
+          <div>
+            <div class="role-text">工作者 Worker</div>
+            <div class="role-sub">我能帮别人做事，拍视频/写文案/做设计</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 场景8：信息收集 -->
+  <div class="scene" id="scene-form">
+    <div class="form-container">
+      <div class="sys-line show" style="margin-bottom:4px;">最后一件事。</div>
+      <div class="sys-line show" style="margin-bottom:24px;">留下你的信息，我们会联系你。</div>
+      <div class="form-card">
+        <div class="form-selected-role" id="form-selected-role"></div>
+        <div class="form-field">
+          <label class="form-label">手机号</label>
+          <input type="tel" class="form-input" id="input-phone" placeholder="请输入手机号" maxlength="11">
+        </div>
+        <div class="form-field">
+          <label class="form-label">你的昵称 <span style="color:rgba(255,255,255,.3);">（选填）</span></label>
+          <input type="text" class="form-input" id="input-name" placeholder="你想在拓圈叫什么？" maxlength="20">
+        </div>
+        <div class="form-field">
+          <label class="form-label">简单介绍一下自己 <span style="color:rgba(255,255,255,.3);">（选填）</span></label>
+          <textarea class="form-input form-textarea" id="input-desc" placeholder="你做什么的？有什么特长？想在这里得到什么？" maxlength="200" rows="3"></textarea>
+        </div>
+        <div class="form-submit" id="form-submit">提交，等待系统联系</div>
+        <div class="form-note">你的信息将被严格保密，仅用于拓圈官方联系</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 场景9：提交成功 -->
+  <div class="scene" id="scene-success">
+    <div class="success-container">
+      <div class="success-icon">∞</div>
+      <div class="sys-line show highlight" style="font-size:18px;margin-bottom:16px;">漫游者信息已记录。</div>
+      <div class="sys-line show" style="margin-bottom:8px;">我们会尽快联系你。</div>
+      <div class="sys-line show" style="margin-bottom:32px;">在那之前——</div>
+      <div class="sys-line show" style="margin-bottom:8px;">欢迎来到拓圈。</div>
+      <div class="sys-line show">这是一切的开始。</div>
+      <div style="height:32px;"></div>
+      <div class="hint">拓圈 1.0 种子期 · 现在加入最划算</div>
+    </div>
+  </div>
+
+  <!-- 进度条 -->
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+
+  <!-- 音效开关 -->
+  <button class="sound-toggle" id="sound-toggle" onclick="toggleSound()">♪</button>
+</div>
+
+<script>
+// ===== 状态管理 =====
+const state = {
+  soundEnabled: true,
+  visitorId: null,
+  totalVisitors: 8247,
+  selectedRole: null,
+  dialogueDone: false,
+  fingerDone: false
+};
+
+// ===== 音效系统 =====
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function ensureAudio(){
+  try{if(!audioCtx)audioCtx=new AudioCtx();}catch(e){}
+}
+function playDing(freq=1200,dur=.15,vol=.12){
+  if(!state.soundEnabled)return;
+  ensureAudio();
+  try{
+    const o=audioCtx.createOscillator();
+    const g=audioCtx.createGain();
+    o.connect(g);g.connect(audioCtx.destination);
+    o.frequency.value=freq;o.type='sine';
+    g.gain.setValueAtTime(vol,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+dur);
+    o.start();o.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+function playBoot(){
+  if(!state.soundEnabled)return;
+  ensureAudio();
+  try{
+    const o=audioCtx.createOscillator();
+    const g=audioCtx.createGain();
+    o.connect(g);g.connect(audioCtx.destination);
+    o.frequency.setValueAtTime(200,audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(800,audioCtx.currentTime+.6);
+    o.type='sine';
+    g.gain.setValueAtTime(.08,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.8);
+    o.start();o.stop(audioCtx.currentTime+.8);
+  }catch(e){}
+}
+function playCountBeep(freq=600){
+  if(!state.soundEnabled)return;
+  ensureAudio();
+  try{
+    const o=audioCtx.createOscillator();
+    const g=audioCtx.createGain();
+    o.connect(g);g.connect(audioCtx.destination);
+    o.frequency.value=freq;o.type='sine';
+    g.gain.setValueAtTime(.1,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.3);
+    o.start();o.stop(audioCtx.currentTime+.3);
+  }catch(e){}
+}
+function playHome(){
+  if(!state.soundEnabled)return;
+  ensureAudio();
+  try{
+    [600,900,1200].forEach((f,i)=>{
+      setTimeout(()=>{
+        const o=audioCtx.createOscillator();
+        const g=audioCtx.createGain();
+        o.connect(g);g.connect(audioCtx.destination);
+        o.frequency.value=f;o.type='sine';
+        g.gain.setValueAtTime(.07,audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.5);
+        o.start();o.stop(audioCtx.currentTime+.5);
+      },i*100);
+    });
+  }catch(e){}
+}
+function toggleSound(){
+  state.soundEnabled=!state.soundEnabled;
+  document.getElementById('sound-toggle').textContent=state.soundEnabled?'♪':'✕';
+}
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// ===== 星空 =====
+function createStars(){
+  const sf=document.getElementById('starfield');
+  for(let i=0;i<120;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    const size=Math.random()*2+.5;
+    s.style.width=size+'px';s.style.height=size+'px';
+    s.style.setProperty('--d',(Math.random()*3+2)+'s');
+    s.style.animationDelay=Math.random()*3+'s';
+    sf.appendChild(s);
+  }
+}
+
+// ===== 场景切换 =====
+function switchScene(fromId,toId){
+  return new Promise(resolve=>{
+    const from=document.getElementById(fromId);
+    const to=document.getElementById(toId);
+    from.style.opacity='0';
+    setTimeout(()=>{
+      from.classList.remove('active');
+      from.style.opacity='';
+      to.classList.add('active');
+      setTimeout(resolve,800);
+    },800);
+  });
+}
+
+// ===== 进度条 =====
+function setProgress(pct){
+  document.getElementById('progress-fill').style.width=pct+'%';
+}
+
+// ===== 闪光 =====
+function flashEffect(){
+  const f=document.createElement('div');
+  f.className='flash';
+  document.getElementById('app').appendChild(f);
+  setTimeout(()=>f.remove(),1000);
+}
+
+// ===== 访客编号 =====
+function generateVisitorId(){
+  let stored=localStorage.getItem('topoo_visitor_id');
+  if(stored)return parseInt(stored);
+  const newId=state.totalVisitors+Math.floor(Math.random()*50)+1;
+  localStorage.setItem('topoo_visitor_id',newId);
+  return newId;
+}
+
+// ===== 打字机（赛博框专用） =====
+function cyberTypeWriter(el,text,speed=40){
+  return new Promise(resolve=>{
+    el.textContent='';
+    let i=0;
+    function type(){
+      if(i<text.length){
+        el.textContent=text.substring(0,i+1);
+        i++;
+        let pause=speed;
+        if(text[i-1]==='。'||text[i-1]=='！'||text[i-1]=='？') pause=250;
+        else if(text[i-1]==='，'||text[i-1]=='…') pause=120;
+        setTimeout(type,pause);
+      }else{
+        resolve();
+      }
+    }
+    type();
+  });
+}
+
+// ===== 倒计时场景 =====
+async function runCountdown(){
+  const numEl=document.getElementById('cd-num');
+  const homeEl=document.getElementById('cd-home');
+
+  // 3
+  numEl.textContent='3';numEl.className='countdown-num show';
+  playCountBeep(500);
+  await delay(900);
+  numEl.className='countdown-num hide';
+  await delay(400);
+
+  // 2
+  numEl.textContent='2';numEl.className='countdown-num show';
+  playCountBeep(600);
+  await delay(900);
+  numEl.className='countdown-num hide';
+  await delay(400);
+
+  // 1
+  numEl.textContent='1';numEl.className='countdown-num show';
+  playCountBeep(700);
+  await delay(900);
+  numEl.className='countdown-num hide';
+  await delay(400);
+
+  // HOME
+  numEl.style.display='none';
+  homeEl.classList.add('show');
+  playHome();
+  await delay(1500);
+}
+
+// ===== 眼睛睁开场景 =====
+async function runEyeOpen(){
+  const container=document.getElementById('eye-container');
+  const outer=container.querySelector('.eye-outer');
+
+  await delay(500);
+  // 第一次睁眼
+  outer.classList.add('eye-opening');
+  try{playDing(800,.4,.06);}catch(e){}
+  await delay(1800);
+  // 眨眼
+  outer.classList.remove('eye-opening');
+  outer.classList.add('eye-blink');
+  await delay(400);
+  // 再睁开
+  outer.classList.remove('eye-blink');
+  outer.classList.add('eye-opening');
+  await delay(1200);
+  // 再眨一下
+  outer.classList.remove('eye-opening');
+  outer.classList.add('eye-blink');
+  await delay(300);
+  outer.classList.remove('eye-blink');
+  outer.classList.add('eye-opening');
+  await delay(2000);
+}
+
+// ===== 系统对话（打字机，逐行） =====
+async function runDialogue(){
+  const area=document.getElementById('dialogue-area');
+  area.innerHTML='';
+
+  const lines=[
+    {text:'「叮——检测到未知生命体进入拓圈领空。」',sound:1200},
+    {text:'「正在扫描……扫描完毕。」',sound:1000},
+    {text:'「确认身份：漫游者。」',sound:1400},
+    {text:'',sound:null},
+    {text:'你好。',sound:900},
+    {text:'我是拓圈系统。',sound:800},
+    {text:'接下来，请完成身份确认。',sound:1100}
+  ];
+
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    if(!line.text){
+      await delay(600);
+      continue;
+    }
+
+    // 创建行
+    const div=document.createElement('div');
+    div.className='sys-line';
+    area.appendChild(div);
+
+    // 打字机
+    const cursor=document.createElement('span');
+    cursor.className='typewriter-cursor';
+    let charIdx=0;
+    await new Promise(resolve=>{
+      function type(){
+        if(charIdx<line.text.length){
+          div.textContent=line.text.substring(0,charIdx+1);
+          div.appendChild(cursor);
+          charIdx++;
+          let pause=45;
+          if(line.text[charIdx-1]==='。'||line.text[charIdx-1]==='！'||line.text[charIdx-1]==='？') pause=280;
+          else if(line.text[charIdx-1]==='，'||line.text[charIdx-1]==='…') pause=130;
+          else if(line.text[charIdx-1]==='」') pause=200;
+          setTimeout(type,pause);
+        }else{
+          try{div.removeChild(cursor);}catch(e){}
+          resolve();
+        }
+      }
+      type();
+    });
+
+    div.classList.add('show');
+    if(line.sound)playDing(line.sound,.15,.08);
+    await delay(400);
+  }
+
+  // 打字结束，显示"下一步"按钮
+  state.dialogueDone=true;
+  document.getElementById('btn-dialogue').classList.add('show');
+  setProgress(30);
+}
+
+// ===== 指纹扫描 =====
+let fpPressed=false;
+async function startFingerprint(){
+  if(fpPressed)return;
+  fpPressed=true;
+
+  const circle=document.getElementById('fp-circle');
+  const hint=document.getElementById('fp-hint');
+  const btn=document.getElementById('btn-fingerprint');
+
+  circle.classList.add('scanning','pressed');
+  hint.textContent='身份验证中……';
+  hint.classList.add('active');
+  playDing(800,.2,.08);
+
+  // 扫描动画 2秒
+  await delay(2000);
+
+  // 扫描成功
+  circle.classList.remove('scanning');
+  circle.style.borderColor='rgba(74,158,184,.6)';
+  circle.style.boxShadow='0 0 50px rgba(74,158,184,.2)';
+  hint.textContent='验证通过';
+  hint.style.color='var(--blue)';
+  playDing(1200,.3,.1);
+  await delay(300);
+  playDing(1600,.2,.08);
+
+  await delay(800);
+  setProgress(50);
+  btn.classList.add('show');
+}
+
+// ===== 赛博框编号 =====
+async function runCyberCard(){
+  const content=document.getElementById('cyber-content');
+  content.innerHTML='';
+
+  const visitorId=state.visitorId;
+  const paddedId=String(visitorId).padStart(6,'0');
+
+  const lines=[
+    {text:'正在验证身份……',delay:400},
+    {text:'',delay:300},
+    {text:'漫游者编号已分配',delay:300},
+    {type:'number',value:paddedId},
+    {type:'label',value:'第 '+visitorId.toLocaleString()+' 位漫游者'},
+    {text:'',delay:200},
+    {text:'欢迎来到拓圈。',delay:300}
+  ];
+
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+
+    if(line.type==='number'){
+      const div=document.createElement('div');
+      div.className='cyber-number';
+      content.appendChild(div);
+      await delay(300);
+      // 数字逐个出现
+      for(let c=0;c<line.value.length;c++){
+        div.textContent=line.value.substring(0,c+1);
+        playDing(800+c*100,.08,.05);
+        await delay(120);
+      }
+      div.classList.add('show');
+      await delay(200);
+      continue;
+    }
+
+    if(line.type==='label'){
+      const div=document.createElement('div');
+      div.className='cyber-label';
+      div.textContent=line.value;
+      content.appendChild(div);
+      await delay(200);
+      div.classList.add('show');
+      await delay(300);
+      continue;
+    }
+
+    if(!line.text){
+      await delay(line.delay);
+      continue;
+    }
+
+    const div=document.createElement('div');
+    div.className='cyber-line';
+    content.appendChild(div);
+
+    // 打字机
+    let charIdx=0;
+    await new Promise(resolve=>{
+      function type(){
+        if(charIdx<line.text.length){
+          div.textContent=line.text.substring(0,charIdx+1);
+          charIdx++;
+          let pause=35;
+          if(line.text[charIdx-1]==='。'||line.text[charIdx-1]==='…') pause=200;
+          setTimeout(type,pause);
+        }else{
+          resolve();
+        }
+      }
+      type();
+    });
+
+    div.classList.add('show');
+    await delay(line.delay||300);
+  }
+
+  setProgress(65);
+  document.getElementById('btn-cyber').classList.add('show');
+}
+
+// ===== 导航函数 =====
+async function goFingerprint(){
+  document.getElementById('btn-dialogue').classList.remove('show');
+  flashEffect();
+  playDing(800,.15,.06);
+  await switchScene('scene-dialogue','scene-fingerprint');
+  setProgress(35);
+}
+
+async function goCyberCard(){
+  document.getElementById('btn-fingerprint').classList.remove('show');
+  flashEffect();
+  playDing(1000,.15,.08);
+  await switchScene('scene-fingerprint','scene-cyber-card');
+  await delay(600);
+  await runCyberCard();
+}
+
+async function goRole(){
+  document.getElementById('btn-cyber').classList.remove('show');
+  flashEffect();
+  playDing(800,.15,.06);
+  await switchScene('scene-cyber-card','scene-role');
+  setProgress(75);
+}
+
+// ===== 角色选择 =====
+const roleNames={
+  seeker:'🅰️ 探索者 Seeker',
+  creator:'🅱️ 创造者 Creator',
+  learner:'🅲️ 学习者',
+  social:'🅳️ 碰撞者',
+  looker:'🅴️ 观望者',
+  worker:'🅵️ 工作者 Worker'
+};
+
+async function selectRole(role){
+  playDing(1000,.2,.1);
+  state.selectedRole=role;
+  document.getElementById('form-selected-role').textContent='你选择了：'+roleNames[role];
+  setProgress(85);
+  await switchScene('scene-role','scene-form');
+  playDing(800,.2,.08);
+  setTimeout(()=>{
+    const phoneInput=document.getElementById('input-phone');
+    if(phoneInput)phoneInput.focus();
+  },1000);
+}
+
+// ===== 表单提交 =====
+function submitForm(){
+  const phone=document.getElementById('input-phone').value.trim();
+  const name=document.getElementById('input-name').value.trim();
+  const desc=document.getElementById('input-desc').value.trim();
+
+  if(!phone||phone.length<11){
+    const phoneInput=document.getElementById('input-phone');
+    phoneInput.style.borderColor='var(--rust)';
+    setTimeout(()=>phoneInput.style.borderColor='',1500);
+    return;
+  }
+
+  const submitBtn=document.getElementById('form-submit');
+  submitBtn.classList.add('disabled');
+  submitBtn.textContent='提交中...';
+
+  const formData={
+    visitor_id:state.visitorId,
+    role:state.selectedRole,
+    phone:phone,
+    name:name||'未填写',
+    desc:desc||'未填写',
+    submit_time:new Date().toISOString()
+  };
+
+  const submissions=JSON.parse(localStorage.getItem('topoo_submissions')||'[]');
+  submissions.push(formData);
+  localStorage.setItem('topoo_submissions',JSON.stringify(submissions));
+
+  setTimeout(async()=>{
+    flashEffect();
+    playDing(1200,.3,.1);
+    setProgress(100);
+    await switchScene('scene-form','scene-success');
+  },800);
+}
+
+// ===== 主流程 =====
+async function main(){
+  try{
+    createStars();
+
+    // 获取访客编号
+    const visitorId=generateVisitorId();
+    state.visitorId=visitorId;
+
+    // 阶段1：启动（纯黑呼吸光点）1.5秒
+    await delay(1500);
+    playBoot();
+    flashEffect();
+
+    // 阶段2：倒计时
+    setProgress(5);
+    await switchScene('scene-boot','scene-countdown');
+    await delay(300);
+    await runCountdown();
+
+    // 阶段3：眼睛睁开
+    flashEffect();
+    setProgress(10);
+    await switchScene('scene-countdown','scene-eye');
+    await runEyeOpen();
+
+    // 阶段4：系统对话（手动推进）
+    flashEffect();
+    setProgress(15);
+    await switchScene('scene-eye','scene-dialogue');
+    await delay(600);
+    await runDialogue();
+    // 等待用户点"下一步" → goFingerprint()
+
+  }catch(err){
+    console.error('Main flow error:',err);
+  }
+}
+
+// ===== 事件绑定 =====
+// 指纹触摸
+const fpCircle=document.getElementById('fp-circle');
+fpCircle.addEventListener('touchend',e=>{
+  e.preventDefault();
+  startFingerprint();
+});
+fpCircle.addEventListener('click',()=>{
+  startFingerprint();
+});
+
+// 角色按钮
+document.querySelectorAll('.role-btn').forEach(btn=>{
+  const role=btn.dataset.role;
+  let touched=false;
+  btn.addEventListener('touchend',e=>{
+    e.preventDefault();
+    if(!touched){touched=true;selectRole(role);setTimeout(()=>touched=false,500);}
+  });
+  btn.addEventListener('click',()=>{
+    if(!touched)selectRole(role);
+  });
+});
+
+// 表单提交
+document.getElementById('form-submit').addEventListener('click',submitForm);
+
+// 音频上下文
+document.addEventListener('touchstart',()=>ensureAudio(),{once:true});
+document.addEventListener('click',()=>ensureAudio(),{once:true});
+
+// 启动
+window.addEventListener('load',main);
+</script>
+</body>
+</html>

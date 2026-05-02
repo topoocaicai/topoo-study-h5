@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拓圈·南京星球 - 四版对比</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0a0a0f; color:#fff; font-family: 'Microsoft YaHei','PingFang SC',sans-serif; overflow-x:hidden; }
+
+/* Tab Bar */
+.tab-bar {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; background:rgba(10,10,15,0.95); backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(255,255,255,0.1); padding:0 10px;
+}
+.tab-btn {
+  flex:1; padding:14px 8px; background:none; border:none; color:rgba(255,255,255,0.4);
+  font-size:13px; cursor:pointer; transition:all 0.3s; font-family:inherit;
+  border-bottom:2px solid transparent; letter-spacing:1px;
+}
+.tab-btn:hover { color:rgba(255,255,255,0.7); }
+.tab-btn.active { color:#fff; border-bottom-color:var(--accent); }
+.tab-btn span { display:block; font-size:10px; opacity:0.5; margin-top:2px; }
+
+.panel { display:none; width:100%; height:100vh; position:relative; }
+.panel.active { display:block; }
+canvas { display:block; }
+
+/* ====== SCHEME A: Data Dashboard ====== */
+#panelA { background:#0a0a12; }
+#panelA canvas { position:absolute; top:50px; left:0; }
+.a-hud {
+  position:absolute; top:60px; left:20px; pointer-events:none; z-index:5;
+}
+.a-hud h1 { font-size:20px; color:#00f0ff; letter-spacing:4px; font-weight:300; }
+.a-hud p { font-size:11px; color:rgba(0,240,255,0.4); margin-top:4px; letter-spacing:2px; }
+.a-stats {
+  position:absolute; bottom:30px; left:20px; display:flex; gap:30px; z-index:5;
+}
+.a-stat-item { text-align:left; }
+.a-stat-item .label { font-size:10px; color:rgba(0,240,255,0.4); letter-spacing:1px; }
+.a-stat-item .value { font-size:22px; color:#00f0ff; font-weight:200; font-variant-numeric:tabular-nums; }
+.a-sidebar {
+  position:absolute; top:60px; right:20px; width:180px; z-index:5;
+  border:1px solid rgba(0,240,255,0.15); border-radius:4px; padding:12px;
+  background:rgba(0,10,20,0.6); backdrop-filter:blur(5px);
+}
+.a-sidebar h3 { font-size:10px; color:rgba(0,240,255,0.5); letter-spacing:2px; margin-bottom:8px; }
+.a-node-list { list-style:none; }
+.a-node-list li {
+  font-size:11px; color:rgba(0,240,255,0.7); padding:3px 0;
+  border-bottom:1px solid rgba(0,240,255,0.06);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.a-node-list li .dot {
+  width:6px; height:6px; border-radius:50%; display:inline-block; margin-right:6px;
+}
+.a-node-list li .status { font-size:9px; color:rgba(0,240,255,0.3); }
+
+/* ====== SCHEME B: Social Network Graph ====== */
+#panelB { background:#0f0f1a; }
+#panelB canvas { position:absolute; top:50px; left:0; }
+.b-header {
+  position:absolute; top:60px; left:50%; transform:translateX(-50%); text-align:center; z-index:5;
+}
+.b-header h1 { font-size:18px; color:#fff; font-weight:400; letter-spacing:3px; }
+.b-header p { font-size:11px; color:rgba(255,255,255,0.3); margin-top:4px; }
+
+/* ====== SCHEME D: Game World Map ====== */
+#panelD { background:#1a1520; }
+#panelD canvas { position:absolute; top:50px; left:0; }
+.d-ui-frame {
+  position:absolute; top:50px; left:0; right:0; bottom:0; pointer-events:none; z-index:5;
+  border:8px solid rgba(0,0,0,0.6);
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Crect x='2' y='2' width='20' height='20' fill='%23332' stroke='%23554' stroke-width='1'/%3E%3Crect x='4' y='4' width='6' height='6' fill='%23443' rx='1'/%3E%3C/svg%3E") 8 round;
+}
+.d-title {
+  position:absolute; top:65px; left:50%; transform:translateX(-50%); text-align:center; z-index:6;
+}
+.d-title h1 { font-size:28px; color:#ffd700; font-weight:900; letter-spacing:6px;
+  text-shadow:0 0 20px rgba(255,215,0,0.5), 0 2px 4px rgba(0,0,0,0.8); }
+.d-title p { font-size:11px; color:rgba(255,215,0,0.5); margin-top:2px; letter-spacing:3px; }
+.d-minimap {
+  position:absolute; bottom:20px; right:20px; width:140px; height:100px;
+  border:2px solid rgba(255,215,0,0.3); background:rgba(0,0,0,0.5); border-radius:4px; z-index:6;
+}
+.d-info-panel {
+  position:absolute; bottom:20px; left:20px; width:200px; z-index:6;
+  background:rgba(0,0,0,0.7); border:1px solid rgba(255,215,0,0.2); border-radius:4px; padding:12px;
+}
+.d-info-panel h3 { font-size:12px; color:#ffd700; margin-bottom:6px; }
+.d-info-panel p { font-size:10px; color:rgba(255,255,255,0.5); line-height:1.6; }
+.d-location-btns {
+  position:absolute; top:120px; right:15px; display:flex; flex-direction:column; gap:6px; z-index:6; pointer-events:auto;
+}
+.d-loc-btn {
+  background:rgba(0,0,0,0.7); border:1px solid rgba(255,215,0,0.3); color:#ffd700;
+  padding:6px 12px; font-size:10px; border-radius:3px; cursor:pointer; font-family:inherit;
+  letter-spacing:1px; transition:all 0.2s;
+}
+.d-loc-btn:hover { background:rgba(255,215,0,0.15); border-color:rgba(255,215,0,0.6); }
+.d-loc-btn.active { background:rgba(255,215,0,0.2); border-color:#ffd700; }
+
+/* ====== SCHEME E: Comic/Storybook ====== */
+#panelE { background:#f5f0e0; overflow-y:auto; }
+.e-page {
+  min-height:100vh; padding:60px 20px 40px;
+  max-width:900px; margin:0 auto;
+}
+.e-title-bar {
+  text-align:center; padding:20px 0 30px;
+  border-bottom:3px solid #2a2a2a;
+  margin-bottom:30px;
+}
+.e-title-bar h1 {
+  font-size:32px; font-weight:900; color:#2a2a2a; letter-spacing:4px;
+  -webkit-text-stroke:1px #2a2a2a;
+}
+.e-title-bar p { font-size:12px; color:#888; margin-top:4px; letter-spacing:2px; }
+.e-grid {
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto;
+  gap:6px;
+  margin-bottom:30px;
+}
+.e-panel {
+  border:3px solid #2a2a2a; background:#fff; position:relative; overflow:hidden;
+  min-height:200px; cursor:pointer; transition:transform 0.2s;
+}
+.e-panel:hover { transform:scale(1.02); }
+.e-panel.featured { grid-column: span 2; grid-row: span 2; min-height:420px; }
+.e-panel.wide { grid-column: span 2; }
+.e-panel-header {
+  position:absolute; top:0; left:0; right:0; padding:8px 12px;
+  background:rgba(0,0,0,0.8); z-index:2;
+}
+.e-panel-header h3 { font-size:12px; color:#fff; font-weight:700; }
+.e-panel-header .tag { font-size:9px; color:rgba(255,255,255,0.6); }
+.e-panel canvas { width:100%; height:100%; display:block; }
+.e-connector {
+  position:absolute; z-index:3; pointer-events:none;
+}
+.e-speech-bubble {
+  position:absolute; background:#fff; border:2px solid #2a2a2a; border-radius:12px;
+  padding:6px 10px; font-size:10px; color:#2a2a2a; z-index:4;
+  max-width:120px; box-shadow:2px 2px 0 rgba(0,0,0,0.1);
+}
+.e-speech-bubble::after {
+  content:''; position:absolute; bottom:-8px; left:15px;
+  width:0; height:0; border-left:6px solid transparent;
+  border-right:6px solid transparent; border-top:8px solid #fff;
+}
+.e-caption {
+  text-align:center; font-size:11px; color:#888; font-style:italic;
+  margin:15px 0; padding:0 40px; line-height:1.8;
+}
+.e-page-num {
+  text-align:center; font-size:10px; color:#ccc; padding:20px 0;
+  letter-spacing:2px;
+}
+.e-sfx {
+  position:absolute; font-size:28px; font-weight:900; color:#2a2a2a;
+  z-index:5; pointer-events:none; letter-spacing:2px;
+  -webkit-text-stroke:1px #2a2a2a;
+}
+.e-nav {
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+  display:flex; gap:10px; z-index:10;
+}
+.e-nav button {
+  width:36px; height:36px; border-radius:50%; border:2px solid #2a2a2a;
+  background:rgba(255,255,255,0.9); color:#2a2a2a; font-size:16px;
+  cursor:pointer; font-family:inherit; transition:all 0.2s;
+}
+.e-nav button:hover { background:#2a2a2a; color:#fff; }
+</style>
+</head>
+<body>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('A')" style="--accent:#00f0ff">
+    A 数据仪表盘<span>DATA DASHBOARD</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('B')" style="--accent:#7c5cff">
+    B 社交网络<span>SOCIAL GRAPH</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('D')" style="--accent:#ffd700">
+    D 游戏世界地图<span>GAME MAP</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('E')" style="--accent:#2a2a2a">
+    E 漫画分格<span>STORYBOARD</span>
+  </button>
+</div>
+
+<!-- ======== PANEL A: Data Dashboard ======== -->
+<div id="panelA" class="panel active">
+  <canvas id="canvasA"></canvas>
+  <div class="a-hud">
+    <h1>TOPSPACE · NANOJING</h1>
+    <p>REAL-TIME NETWORK TOPOLOGY</p>
+  </div>
+  <div class="a-stats">
+    <div class="a-stat-item"><div class="label">ACTIVE NODES</div><div class="value" id="aNodeCount">0</div></div>
+    <div class="a-stat-item"><div class="label">CONNECTIONS</div><div class="value" id="aConnCount">0</div></div>
+    <div class="a-stat-item"><div class="label">NETWORK HEALTH</div><div class="value" id="aHealth">98.7%</div></div>
+    <div class="a-stat-item"><div class="label">THROUGHPUT</div><div class="value">1.2M/s</div></div>
+  </div>
+  <div class="a-sidebar">
+    <h3>ACTIVE CREATORS</h3>
+    <ul class="a-node-list" id="aNodeList"></ul>
+  </div>
+</div>
+
+<!-- ======== PANEL B: Social Network Graph ======== -->
+<div id="panelB" class="panel">
+  <canvas id="canvasB"></canvas>
+  <div class="b-header">
+    <h1>拓 圈 · 南 京</h1>
+    <p>CREATOR NETWORK</p>
+  </div>
+</div>
+
+<!-- ======== PANEL D: Game World Map ======== -->
+<div id="panelD" class="panel">
+  <canvas id="canvasD"></canvas>
+  <div class="d-ui-frame"></div>
+  <div class="d-title">
+    <h1>拓 圈 大 陆</h1>
+    <p>T O P S P A C E</p>
+  </div>
+  <div class="d-info-panel" id="dInfoPanel">
+    <h3 id="dInfoTitle">南京大陆</h3>
+    <p id="dInfoDesc">欢迎来到拓圈大陆！每个据点都是一位创造者的领地。选择你的目的地，开启探索之旅。</p>
+  </div>
+  <div class="d-location-btns">
+    <button class="d-loc-btn active" onclick="dSetRegion('all')">全 部</button>
+    <button class="d-loc-btn" onclick="dSetRegion('content')">内容区</button>
+    <button class="d-loc-btn" onclick="dSetRegion('product')">产品区</button>
+    <button class="d-loc-btn" onclick="dSetRegion('service')">服务区</button>
+  </div>
+  <canvas class="d-minimap" id="dMinimap"></canvas>
+</div>
+
+<!-- ======== PANEL E: Comic Storyboard ======== -->
+<div id="panelE" class="panel">
+  <div class="e-page" id="ePage"></div>
+</div>
+
+<script>
+// ============ TAB SWITCH ============
+let currentTab = 'A';
+let animFrames = {};
+
+function switchTab(id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (animFrames[currentTab]) cancelAnimationFrame(animFrames[currentTab]);
+  currentTab = id;
+  if (id === 'A') initA();
+  if (id === 'B') initB();
+  if (id === 'D') initD();
+  if (id === 'E') initE();
+}
+
+// ============ DATA ============
+const creators = [
+  { name:'茶语时光', cat:'产品型', color:'#e8b44c', icon:'🍵' },
+  { name:'光影手作', cat:'产品型', color:'#d96b6b', icon:'🎨' },
+  { name:'城市漫步', cat:'内容型', color:'#5a9fd4', icon:'📱' },
+  { name:'味觉实验室', cat:'产品型', color:'#5ba875', icon:'🍰' },
+  { name:'声音工坊', cat:'内容型', color:'#9b7bbf', icon:'🎵' },
+  { name:'陶说匠心', cat:'产品型', color:'#e07b4c', icon:'🏺' },
+  { name:'独立杂志', cat:'内容型', color:'#d4a574', icon:'📖' },
+  { name:'花艺日记', cat:'服务型', color:'#e8a0bf', icon:'💐' },
+  { name:'咖啡地图', cat:'服务型', color:'#8b6f47', icon:'☕' },
+  { name:'像素宇宙', cat:'内容型', color:'#4ecdc4', icon:'🎮' },
+  { name:'手账美学', cat:'产品型', color:'#f7dc6f', icon:'📝' },
+  { name:'素食主义', cat:'产品型', color:'#82c785', icon:'🥗' },
+];
+
+const seekers = [
+  '小A','小B','小C','小D','小E','小F','小G','小H','小I','小J',
+  '小K','小L','小M','小N','小O','小P','小Q','小R','小S','小T',
+  '小U','小V','小W','小X','小Y','小Z','阿甲','阿乙','阿丙','阿丁',
+  '路人1','路人2','路人3','路人4','路人5','路人6','路人7','路人8',
+];
+
+// ============ SCHEME A: DATA DASHBOARD ============
+let nodesA = [], edgesA = [];
+let canvasA, ctxA, hoverNodeA = null;
+
+function initA() {
+  canvasA = document.getElementById('canvasA');
+  ctxA = canvasA.getContext('2d');
+  canvasA.width = window.innerWidth;
+  canvasA.height = window.innerHeight - 50;
+  
+  nodesA = []; edgesA = [];
+  const cx = canvasA.width / 2 - 50, cy = canvasA.height / 2;
+  
+  creators.forEach((c, i) => {
+    const angle = (i / creators.length) * Math.PI * 2;
+    const r = 160 + Math.random() * 80;
+    nodesA.push({
+      x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r,
+      vx: 0, vy: 0, r: 22 + Math.random() * 8,
+      name: c.name, cat: c.cat, color: c.color, icon: c.icon,
+      pulse: Math.random() * Math.PI * 2, energy: 0.7 + Math.random() * 0.3
+    });
+  });
+  
+  seekers.forEach((s, i) => {
+    const angle = (i / seekers.length) * Math.PI * 2;
+    const r = 50 + Math.random() * 300;
+    nodesA.push({
+      x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r,
+      vx: 0, vy: 0, r: 3 + Math.random() * 2,
+      name: s, cat:'探索者', color:'rgba(0,240,255,0.4)', icon:'',
+      pulse: Math.random() * Math.PI * 2, energy: 0.3 + Math.random() * 0.4
+    });
+  });
+  
+  for (let i = 0; i < creators.length; i++) {
+    for (let j = i + 1; j < creators.length; j++) {
+      if (Math.random() < 0.35) edgesA.push({ from: i, to: j, strength: 0.3 + Math.random() * 0.7 });
+    }
+  }
+  seekers.forEach((s, i) => {
+    const ci = creators[Math.floor(Math.random() * creators.length)];
+    const cidx = nodesA.findIndex(n => n.name === ci.name);
+    edgesA.push({ from: creators.length + i, to: cidx, strength: 0.1 + Math.random() * 0.3 });
+  });
+  
+  // Update sidebar
+  const list = document.getElementById('aNodeList');
+  list.innerHTML = '';
+  creators.forEach(c => {
+    list.innerHTML += `<li><span><span class="dot" style="background:${c.color}"></span>${c.name}</span><span class="status">${c.cat}</span></li>`;
+  });
+  
+  document.getElementById('aNodeCount').textContent = nodesA.length;
+  document.getElementById('aConnCount').textContent = edgesA.length;
+  
+  drawA();
+}
+
+function drawA() {
+  const t = Date.now() / 1000;
+  ctxA.fillStyle = 'rgba(10,10,18,0.15)';
+  ctxA.fillRect(0, 0, canvasA.width, canvasA.height);
+  
+  // Grid
+  ctxA.strokeStyle = 'rgba(0,240,255,0.03)';
+  ctxA.lineWidth = 1;
+  for (let x = 0; x < canvasA.width; x += 60) {
+    ctxA.beginPath(); ctxA.moveTo(x, 0); ctxA.lineTo(x, canvasA.height); ctxA.stroke();
+  }
+  for (let y = 0; y < canvasA.height; y += 60) {
+    ctxA.beginPath(); ctxA.moveTo(0, y); ctxA.lineTo(canvasA.width, y); ctxA.stroke();
+  }
+  
+  // Edges with data flow particles
+  edgesA.forEach(e => {
+    const a = nodesA[e.from], b = nodesA[e.to];
+    if (!a || !b) return;
+    const alpha = e.strength * 0.3;
+    ctxA.strokeStyle = `rgba(0,240,255,${alpha})`;
+    ctxA.lineWidth = e.strength * 1.5;
+    ctxA.beginPath(); ctxA.moveTo(a.x, a.y); ctxA.lineTo(b.x, b.y); ctxA.stroke();
+    
+    // Particle
+    const pt = (t * 0.3 * e.strength) % 1;
+    const px = a.x + (b.x - a.x) * pt, py = a.y + (b.y - a.y) * pt;
+    ctxA.fillStyle = `rgba(0,240,255,${alpha * 3})`;
+    ctxA.beginPath(); ctxA.arc(px, py, 1.5, 0, Math.PI * 2); ctxA.fill();
+  });
+  
+  // Nodes
+  nodesA.forEach((n, i) => {
+    n.pulse += 0.02;
+    const isCreator = n.cat !== '探索者';
+    const pulseR = isCreator ? n.r + Math.sin(n.pulse) * 3 : n.r;
+    
+    if (isCreator) {
+      // Outer glow
+      const grd = ctxA.createRadialGradient(n.x, n.y, 0, n.x, n.y, pulseR * 2.5);
+      grd.addColorStop(0, n.color + '30');
+      grd.addColorStop(1, 'transparent');
+      ctxA.fillStyle = grd;
+      ctxA.beginPath(); ctxA.arc(n.x, n.y, pulseR * 2.5, 0, Math.PI * 2); ctxA.fill();
+      
+      // Ring
+      ctxA.strokeStyle = n.color + '60';
+      ctxA.lineWidth = 1;
+      ctxA.beginPath(); ctxA.arc(n.x, n.y, pulseR * 1.6, 0, Math.PI * 2); ctxA.stroke();
+      
+      // Core
+      ctxA.fillStyle = n.color;
+      ctxA.beginPath(); ctxA.arc(n.x, n.y, pulseR, 0, Math.PI * 2); ctxA.fill();
+      
+      // Hex border
+      ctxA.strokeStyle = '#00f0ff';
+      ctxA.lineWidth = 1.5;
+      drawHex(ctxA, n.x, n.y, pulseR + 4);
+      ctxA.stroke();
+      
+      // Label
+      ctxA.fillStyle = '#fff';
+      ctxA.font = '11px Microsoft YaHei';
+      ctxA.textAlign = 'center';
+      ctxA.fillText(n.name, n.x, n.y + pulseR + 18);
+      ctxA.fillStyle = 'rgba(0,240,255,0.4)';
+      ctxA.font = '8px monospace';
+      ctxA.fillText(n.cat.toUpperCase(), n.x, n.y + pulseR + 30);
+      
+      // Data readout
+      ctxA.fillStyle = 'rgba(0,240,255,0.6)';
+      ctxA.font = '7px monospace';
+      ctxA.textAlign = 'left';
+      ctxA.fillText(`ID:${String(i).padStart(3,'0')}`, n.x + pulseR + 8, n.y - 4);
+      ctxA.fillText(`PWR:${(n.energy * 100).toFixed(0)}%`, n.x + pulseR + 8, n.y + 6);
+    } else {
+      ctxA.fillStyle = 'rgba(0,240,255,0.5)';
+      ctxA.beginPath(); ctxA.arc(n.x, n.y, pulseR, 0, Math.PI * 2); ctxA.fill();
+    }
+    
+    // Subtle drift
+    n.x += (Math.random() - 0.5) * 0.3;
+    n.y += (Math.random() - 0.5) * 0.3;
+  });
+  
+  // Scan line
+  const scanY = (t * 40) % canvasA.height;
+  ctxA.fillStyle = 'rgba(0,240,255,0.02)';
+  ctxA.fillRect(0, scanY, canvasA.width, 2);
+  
+  animFrames['A'] = requestAnimationFrame(drawA);
+}
+
+function drawHex(ctx, x, y, r) {
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = (Math.PI / 3) * i - Math.PI / 6;
+    const px = x + r * Math.cos(a), py = y + r * Math.sin(a);
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+}
+
+// ============ SCHEME B: SOCIAL NETWORK GRAPH ============
+let nodesB = [], canvasB, ctxB, mouseX = 0, mouseY = 0;
+
+function initB() {
+  canvasB = document.getElementById('canvasB');
+  ctxB = canvasB.getContext('2d');
+  canvasB.width = window.innerWidth;
+  canvasB.height = window.innerHeight - 50;
+  
+  nodesB = [];
+  const cx = canvasB.width / 2, cy = canvasB.height / 2;
+  
+  creators.forEach((c, i) => {
+    const angle = (i / creators.length) * Math.PI * 2;
+    const r = 120 + Math.random() * 100;
+    const hue = i * 30;
+    nodesB.push({
+      x: cx + Math.cos(angle) * r, y: cy + Math.sin(angle) * r,
+      vx: 0, vy: 0, r: 30 + Math.random() * 12,
+      name: c.name, cat: c.cat, color: c.color, icon: c.icon,
+      isCreator: true, phase: Math.random() * Math.PI * 2,
+      connections: 0
+    });
+  });
+  
+  seekers.forEach((s, i) => {
+    nodesB.push({
+      x: cx + (Math.random() - 0.5) * 400, y: cy + (Math.random() - 0.5) * 400,
+      vx: 0, vy: 0, r: 10 + Math.random() * 5,
+      name: s, cat:'探索者', color:'#7c5cff', icon:'',
+      isCreator: false, phase: Math.random() * Math.PI * 2,
+      connections: 0
+    });
+  });
+  
+  // Build connections
+  nodesB.forEach((n, i) => {
+    n.edges = [];
+    if (n.isCreator) {
+      nodesB.forEach((m, j) => {
+        if (i !== j && m.isCreator && Math.random() < 0.4) {
+          n.edges.push({ to: j, weight: 0.3 + Math.random() * 0.7 });
+          n.connections++;
+        }
+      });
+      seekers.forEach((s, si) => {
+        if (Math.random() < 0.15) {
+          const sidx = creators.length + si;
+          n.edges.push({ to: sidx, weight: 0.1 + Math.random() * 0.2 });
+          nodesB[sidx].edges = nodesB[sidx].edges || [];
+          nodesB[sidx].edges.push({ to: i, weight: 0.1 + Math.random() * 0.2 });
+        }
+      });
+    }
+  });
+  
+  canvasB.onmousemove = e => { mouseX = e.clientX; mouseY = e.clientY - 50; };
+  drawB();
+}
+
+function drawB() {
+  const t = Date.now() / 1000;
+  ctxB.fillStyle = 'rgba(15,15,26,0.12)';
+  ctxB.fillRect(0, 0, canvasB.width, canvasB.height);
+  
+  // Force simulation step
+  const creatorNodes = nodesB.filter(n => n.isCreator);
+  nodesB.forEach(n => {
+    // Repel from each other
+    nodesB.forEach(m => {
+      if (n === m) return;
+      const dx = n.x - m.x, dy = n.y - m.y;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      if (dist < 200) {
+        const force = (200 - dist) * 0.001 * (n.isCreator ? 0.5 : 0.2);
+        n.vx += (dx / dist) * force;
+        n.vy += (dy / dist) * force;
+      }
+    });
+    
+    // Attract to center
+    const cx = canvasB.width / 2, cy = canvasB.height / 2;
+    n.vx += (cx - n.x) * 0.0001;
+    n.vy += (cy - n.y) * 0.0001;
+    
+    // Mouse attraction for creators
+    if (n.isCreator) {
+      const dx = mouseX - n.x, dy = mouseY - n.y;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      if (dist < 200) {
+        n.vx += (dx / dist) * 0.05;
+        n.vy += (dy / dist) * 0.05;
+      }
+    }
+    
+    n.vx *= 0.95; n.vy *= 0.95;
+    n.x += n.vx; n.y += n.vy;
+    
+    // Keep in bounds
+    const margin = 50;
+    n.x = Math.max(margin, Math.min(canvasB.width - margin, n.x));
+    n.y = Math.max(margin, Math.min(canvasB.height - margin, n.y));
+  });
+  
+  // Draw edges
+  nodesB.forEach((n, i) => {
+    if (!n.edges) return;
+    n.edges.forEach(e => {
+      const m = nodesB[e.to];
+      if (!m) return;
+      
+      // Curved edges
+      const midX = (n.x + m.x) / 2 + (Math.sin(t + i) * 20);
+      const midY = (n.y + m.y) / 2 + (Math.cos(t + i) * 20);
+      
+      ctxB.strokeStyle = n.isCreator && m.isCreator 
+        ? `rgba(124,92,255,${e.weight * 0.25})`
+        : `rgba(124,92,255,${e.weight * 0.1})`;
+      ctxB.lineWidth = e.weight * (n.isCreator ? 2 : 0.8);
+      ctxB.beginPath(); ctxB.moveTo(n.x, n.y);
+      ctxB.quadraticCurveTo(midX, midY, m.x, m.y);
+      ctxB.stroke();
+    });
+  });
+  
+  // Draw nodes
+  nodesB.forEach((n, i) => {
+    n.phase += 0.015;
+    const breathe = Math.sin(n.phase) * 2;
+    const r = n.r + breathe;
+    
+    if (n.isCreator) {
+      // Avatar bubble
+      const grd = ctxB.createRadialGradient(n.x - r*0.2, n.y - r*0.2, 0, n.x, n.y, r * 1.8);
+      grd.addColorStop(0, n.color + '40');
+      grd.addColorStop(1, 'transparent');
+      ctxB.fillStyle = grd;
+      ctxB.beginPath(); ctxB.arc(n.x, n.y, r * 1.8, 0, Math.PI * 2); ctxB.fill();
+      
+      // Main circle
+      ctxB.fillStyle = n.color + 'dd';
+      ctxB.beginPath(); ctxB.arc(n.x, n.y, r, 0, Math.PI * 2); ctxB.fill();
+      
+      // Inner highlight
+      ctxB.fillStyle = 'rgba(255,255,255,0.15)';
+      ctxB.beginPath(); ctxB.arc(n.x - r*0.25, n.y - r*0.25, r * 0.5, 0, Math.PI * 2); ctxB.fill();
+      
+      // Border
+      ctxB.strokeStyle = '#fff';
+      ctxB.lineWidth = 2.5;
+      ctxB.beginPath(); ctxB.arc(n.x, n.y, r, 0, Math.PI * 2); ctxB.stroke();
+      
+      // Icon
+      ctxB.font = `${r * 0.8}px serif`;
+      ctxB.textAlign = 'center'; ctxB.textBaseline = 'middle';
+      ctxB.fillText(n.icon, n.x, n.y);
+      
+      // Name
+      ctxB.fillStyle = '#fff';
+      ctxB.font = 'bold 12px Microsoft YaHei';
+      ctxB.textAlign = 'center';
+      ctxB.fillText(n.name, n.x, n.y + r + 16);
+      
+      // Connection count badge
+      if (n.connections > 0) {
+        ctxB.fillStyle = '#7c5cff';
+        ctxB.beginPath(); ctxB.arc(n.x + r - 2, n.y - r + 2, 8, 0, Math.PI * 2); ctxB.fill();
+        ctxB.fillStyle = '#fff'; ctxB.font = 'bold 8px monospace';
+        ctxB.fillText(n.connections, n.x + r - 2, n.y - r + 3);
+      }
+    } else {
+      // Small seeker nodes
+      ctxB.fillStyle = 'rgba(124,92,255,0.35)';
+      ctxB.beginPath(); ctxB.arc(n.x, n.y, r, 0, Math.PI * 2); ctxB.fill();
+      ctxB.strokeStyle = 'rgba(124,92,255,0.3)';
+      ctxB.lineWidth = 1;
+      ctxB.stroke();
+    }
+  });
+  
+  animFrames['B'] = requestAnimationFrame(drawB);
+}
+
+// ============ SCHEME D: GAME WORLD MAP ============
+let canvasD, ctxD, locationsD = [], hoveredLoc = null;
+let dCamera = { x: 0, y: 0, zoom: 1 };
+let dCurrentRegion = 'all';
+
+function initD() {
+  canvasD = document.getElementById('canvasD');
+  ctxD = canvasD.getContext('2d');
+  canvasD.width = window.innerWidth;
+  canvasD.height = window.innerHeight - 50;
+  
+  locationsD = [
+    { name:'茶语时光', cat:'product', type:'产品', icon:'🍵', color:'#e8b44c',
+      x: 200, y: 300, w:80, h:60, desc:'百年茶文化，一杯好茶待知音' },
+    { name:'光影手作', cat:'product', type:'产品', icon:'🎨', color:'#d96b6b',
+      x: 350, y: 220, w:90, h:65, desc:'手工光影艺术，每一件都是唯一' },
+    { name:'城市漫步', cat:'content', type:'内容', icon:'📱', color:'#5a9fd4',
+      x: 550, y: 180, w:85, h:60, desc:'用镜头记录城市的每一个角落' },
+    { name:'味觉实验室', cat:'product', type:'产品', icon:'🍰', color:'#5ba875',
+      x: 150, y: 450, w:80, h:60, desc:'探索味觉的无限可能' },
+    { name:'声音工坊', cat:'content', type:'内容', icon:'🎵', color:'#9b7bbf',
+      x: 380, y: 420, w:80, h:60, desc:'用声音编织故事，让耳朵旅行' },
+    { name:'陶说匠心', cat:'product', type:'产品', icon:'🏺', color:'#e07b4c',
+      x: 600, y: 380, w:80, h:60, desc:'泥土与火焰的艺术，手作陶器' },
+    { name:'独立杂志', cat:'content', type:'内容', icon:'📖', color:'#d4a574',
+      x: 500, y: 500, w:85, h:60, desc:'独立出版，记录不被看见的故事' },
+    { name:'花艺日记', cat:'service', type:'服务', icon:'💐', color:'#e8a0bf',
+      x: 750, y: 250, w:80, h:60, desc:'用花语诉说每一天的心情' },
+    { name:'咖啡地图', cat:'service', type:'服务', icon:'☕', color:'#8b6f47',
+      x: 700, y: 420, w:85, h:60, desc:'每一杯咖啡，都是一段旅程' },
+    { name:'像素宇宙', cat:'content', type:'内容', icon:'🎮', color:'#4ecdc4',
+      x: 850, y: 350, w:80, h:60, desc:'在像素世界里创造无限可能' },
+    { name:'手账美学', cat:'product', type:'产品', icon:'📝', color:'#f7dc6f',
+      x: 300, y: 550, w:80, h:60, desc:'记录生活之美，一本手账一个世界' },
+    { name:'素食主义', cat:'product', type:'产品', icon:'🥗', color:'#82c785',
+      x: 650, y: 550, w:80, h:60, desc:'素食不止于饮食，是一种生活态度' },
+  ];
+  
+  canvasD.onmousemove = e => {
+    const rect = canvasD.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    hoveredLoc = null;
+    locationsD.forEach(loc => {
+      if (mx > loc.x && mx < loc.x + loc.w && my > loc.y && my < loc.y + loc.h) {
+        hoveredLoc = loc;
+      }
+    });
+    canvasD.style.cursor = hoveredLoc ? 'pointer' : 'default';
+  };
+  
+  canvasD.onclick = e => {
+    if (hoveredLoc) {
+      document.getElementById('dInfoTitle').textContent = hoveredLoc.icon + ' ' + hoveredLoc.name;
+      document.getElementById('dInfoDesc').textContent = hoveredLoc.desc + '\n类型：' + hoveredLoc.type + '创造者';
+    }
+  };
+  
+  drawD();
+  drawMinimap();
+}
+
+function dSetRegion(region) {
+  dCurrentRegion = region;
+  document.querySelectorAll('.d-loc-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+function drawD() {
+  const t = Date.now() / 1000;
+  ctxD.clearRect(0, 0, canvasD.width, canvasD.height);
+  
+  // Background with terrain colors
+  const bgGrd = ctxD.createLinearGradient(0, 0, canvasD.width, canvasD.height);
+  bgGrd.addColorStop(0, '#1a1520');
+  bgGrd.addColorStop(0.5, '#1f1a28');
+  bgGrd.addColorStop(1, '#15121e');
+  ctxD.fillStyle = bgGrd;
+  ctxD.fillRect(0, 0, canvasD.width, canvasD.height);
+  
+  // Terrain patches (like map regions)
+  const regions = [
+    { x:100, y:150, r:200, color:'rgba(60,40,80,0.3)', name:'内容森林' },
+    { x:400, y:300, r:250, color:'rgba(40,60,50,0.3)', name:'产品平原' },
+    { x:700, y:300, r:180, color:'rgba(60,50,40,0.3)', name:'服务港湾' },
+    { x:500, y:500, r:150, color:'rgba(50,40,60,0.3)', name:'探索者营地' },
+  ];
+  regions.forEach(r => {
+    ctxD.fillStyle = r.color;
+    ctxD.beginPath();
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      const rr = r.r + Math.sin(i * 2.7) * 40;
+      const px = r.x + Math.cos(a) * rr, py = r.y + Math.sin(a) * rr;
+      if (i === 0) ctxD.moveTo(px, py); else ctxD.lineTo(px, py);
+    }
+    ctxD.closePath(); ctxD.fill();
+    
+    // Region name
+    ctxD.fillStyle = 'rgba(255,255,255,0.08)';
+    ctxD.font = '16px Microsoft YaHei';
+    ctxD.textAlign = 'center';
+    ctxD.fillText(r.name, r.x, r.y);
+  });
+  
+  // Dotted paths between locations
+  ctxD.strokeStyle = 'rgba(255,215,0,0.08)';
+  ctxD.lineWidth = 2;
+  ctxD.setLineDash([4, 6]);
+  for (let i = 0; i < locationsD.length - 1; i++) {
+    const a = locationsD[i], b = locationsD[i+1];
+    ctxD.beginPath(); ctxD.moveTo(a.x + a.w/2, a.y + a.h/2);
+    ctxD.lineTo(b.x + b.w/2, b.y + b.h/2); ctxD.stroke();
+  }
+  ctxD.setLineDash([]);
+  
+  // Location buildings
+  locationsD.forEach((loc, i) => {
+    if (dCurrentRegion !== 'all' && loc.cat !== dCurrentRegion) {
+      ctxD.globalAlpha = 0.25;
+    }
+    
+    const cx = loc.x + loc.w / 2, cy = loc.y + loc.h / 2;
+    const isHovered = hoveredLoc === loc;
+    const bob = Math.sin(t * 1.5 + i) * 2;
+    
+    // Shadow
+    ctxD.fillStyle = 'rgba(0,0,0,0.3)';
+    ctxD.beginPath();
+    ctxD.ellipse(cx, loc.y + loc.h + 5, loc.w * 0.5, 6, 0, 0, Math.PI * 2);
+    ctxD.fill();
+    
+    // Building base
+    const buildY = loc.y + bob;
+    ctxD.fillStyle = isHovered ? loc.color : shadeColor(loc.color, -30);
+    ctxD.strokeStyle = isHovered ? '#ffd700' : 'rgba(255,215,0,0.4)';
+    ctxD.lineWidth = isHovered ? 2 : 1;
+    
+    // Draw as a cute game building
+    ctxD.beginPath();
+    ctxD.moveTo(loc.x + 5, buildY + loc.h);
+    ctxD.lineTo(loc.x + 5, buildY + 15);
+    ctxD.lineTo(loc.x + loc.w/2, buildY);
+    ctxD.lineTo(loc.x + loc.w - 5, buildY + 15);
+    ctxD.lineTo(loc.x + loc.w - 5, buildY + loc.h);
+    ctxD.closePath();
+    ctxD.fill(); ctxD.stroke();
+    
+    // Door
+    ctxD.fillStyle = 'rgba(0,0,0,0.3)';
+    ctxD.fillRect(cx - 6, buildY + loc.h - 18, 12, 18);
+    
+    // Flag on top
+    ctxD.strokeStyle = 'rgba(255,215,0,0.5)';
+    ctxD.lineWidth = 1;
+    ctxD.beginPath(); ctxD.moveTo(cx, buildY); ctxD.lineTo(cx, buildY - 15); ctxD.stroke();
+    ctxD.fillStyle = loc.color;
+    ctxD.beginPath();
+    ctxD.moveTo(cx, buildY - 15);
+    ctxD.lineTo(cx + 12, buildY - 10 + Math.sin(t * 3 + i) * 2);
+    ctxD.lineTo(cx, buildY - 5);
+    ctxD.fill();
+    
+    // Icon
+    ctxD.font = '20px serif';
+    ctxD.textAlign = 'center'; ctxD.textBaseline = 'middle';
+    ctxD.fillText(loc.icon, cx, buildY + loc.h * 0.4);
+    
+    // Name plate
+    const plateW = ctxD.measureText(loc.name).width + 16;
+    ctxD.fillStyle = 'rgba(0,0,0,0.7)';
+    roundRect(ctxD, cx - plateW/2, buildY + loc.h + 8, plateW, 18, 3);
+    ctxD.fill();
+    ctxD.strokeStyle = 'rgba(255,215,0,0.3)'; ctxD.lineWidth = 0.5;
+    roundRect(ctxD, cx - plateW/2, buildY + loc.h + 8, plateW, 18, 3);
+    ctxD.stroke();
+    
+    ctxD.fillStyle = isHovered ? '#ffd700' : '#eee';
+    ctxD.font = '10px Microsoft YaHei';
+    ctxD.textAlign = 'center'; ctxD.textBaseline = 'middle';
+    ctxD.fillText(loc.name, cx, buildY + loc.h + 17);
+    
+    // Sparkle for hovered
+    if (isHovered) {
+      for (let s = 0; s < 3; s++) {
+        const sx = cx + Math.cos(t * 4 + s * 2) * (30 + s * 10);
+        const sy = buildY + loc.h/2 + Math.sin(t * 4 + s * 2) * (20 + s * 5);
+        ctxD.fillStyle = '#ffd700';
+        drawStar(ctxD, sx, sy, 3, 5);
+      }
+    }
+    
+    ctxD.globalAlpha = 1;
+  });
+  
+  // Wandering seeker dots
+  seekers.forEach((s, i) => {
+    const angle = (t * 0.2 + i * 0.5) % (Math.PI * 2);
+    const r = 100 + i * 8 + Math.sin(t + i) * 30;
+    const sx = canvasD.width / 2 + Math.cos(angle) * r;
+    const sy = canvasD.height / 2 + Math.sin(angle) * r;
+    const alpha = 0.3 + Math.sin(t * 2 + i) * 0.15;
+    ctxD.fillStyle = `rgba(255,215,0,${alpha})`;
+    ctxD.beginPath(); ctxD.arc(sx, sy, 2.5, 0, Math.PI * 2); ctxD.fill();
+  });
+  
+  animFrames['D'] = requestAnimationFrame(drawD);
+}
+
+function drawMinimap() {
+  const mc = document.getElementById('dMinimap');
+  const mctx = mc.getContext('2d');
+  mc.width = 140; mc.height = 100;
+  mctx.fillStyle = 'rgba(0,0,0,0.5)';
+  mctx.fillRect(0, 0, 140, 100);
+  
+  locationsD.forEach(loc => {
+    const sx = loc.x / canvasD.width * 140;
+    const sy = loc.y / canvasD.height * 100;
+    mctx.fillStyle = loc.color;
+    mctx.fillRect(sx, sy, 4, 4);
+  });
+}
+
+function drawStar(ctx, x, y, r, points) {
+  ctx.beginPath();
+  for (let i = 0; i < points * 2; i++) {
+    const a = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2;
+    const rr = i % 2 === 0 ? r : r * 0.4;
+    if (i === 0) ctx.moveTo(x + Math.cos(a)*rr, y + Math.sin(a)*rr);
+    else ctx.lineTo(x + Math.cos(a)*rr, y + Math.sin(a)*rr);
+  }
+  ctx.closePath(); ctxD.fill();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+
+function shadeColor(hex, percent) {
+  const num = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, Math.max(0, (num >> 16) + percent));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + percent));
+  const b = Math.min(255, Math.max(0, (num & 0x0000FF) + percent));
+  return `rgb(${r},${g},${b})`;
+}
+
+// ============ SCHEME E: COMIC STORYBOARD ============
+function initE() {
+  const page = document.getElementById('ePage');
+  page.innerHTML = '';
+  
+  // Title
+  page.innerHTML += `
+    <div class="e-title-bar">
+      <h1>拓圈·南京</h1>
+      <p>TOPSPACE NANJING — 创造者图鉴</p>
+    </div>
+    <div class="e-caption">在南京的某个角落，12位创造者正在用各自的方式改变世界。这是他们的故事。</div>
+  `;
+  
+  // Build comic grid
+  const grid = document.createElement('div');
+  grid.className = 'e-grid';
+  
+  creators.forEach((c, i) => {
+    const panel = document.createElement('div');
+    panel.className = 'e-panel';
+    if (i === 0) panel.classList.add('featured');
+    if (i === 5) panel.classList.add('wide');
+    
+    const hue = (i * 37) % 360;
+    const bgColor = `hsl(${hue}, 20%, 92%)`;
+    const accentColor = `hsl(${hue}, 60%, 50%)`;
+    panel.style.background = bgColor;
+    
+    // Inner illustration canvas
+    const cvs = document.createElement('canvas');
+    cvs.width = panel.classList.contains('featured') ? 500 : 250;
+    cvs.height = panel.classList.contains('featured') ? 400 : 180;
+    panel.appendChild(cvs);
+    
+    // Draw comic illustration
+    drawComicPanel(cvs, c, i, hue, panel.classList.contains('featured'));
+    
+    // Header overlay
+    panel.innerHTML += `
+      <div class="e-panel-header">
+        <h3>${c.icon} ${c.name}</h3>
+        <div class="tag">${c.cat}</div>
+      </div>
+    `;
+    
+    // Speech bubble for some panels
+    if (i % 3 === 0) {
+      const quotes = [
+        '每一杯茶都有一段故事',
+        '创造，是唯一不会过期的事',
+        '城市很大，但故事不远',
+        '味道是记忆的密码',
+        '让耳朵带你去旅行',
+        '泥土里藏着时间的秘密',
+      ];
+      const bubble = document.createElement('div');
+      bubble.className = 'e-speech-bubble';
+      bubble.style.top = '40px';
+      bubble.style.right = '10px';
+      bubble.textContent = quotes[Math.floor(i/3)];
+      panel.appendChild(bubble);
+    }
+    
+    // SFX for some
+    if (i === 2 || i === 7) {
+      const sfx = document.createElement('div');
+      sfx.className = 'e-sfx';
+      sfx.style.top = '20px'; sfx.style.left = '10px';
+      sfx.style.color = accentColor;
+      sfx.textContent = i === 2 ? '咔嚓!' : '✨';
+      sfx.style.fontSize = '36px';
+      panel.appendChild(sfx);
+    }
+    
+    grid.appendChild(panel);
+  });
+  
+  page.appendChild(grid);
+  
+  // Caption
+  page.innerHTML += `
+    <div class="e-caption">每个人都有一个星球。在拓圈，星球之间可以相连。<br>你，想成为第几位创造者？</div>
+    <div class="e-page-num">— TO BE CONTINUED —</div>
+  `;
+}
+
+function drawComicPanel(canvas, creator, index, hue, isLarge) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const accentColor = `hsl(${hue}, 60%, 50%)`;
+  const bgColor = `hsl(${hue}, 20%, 92%)`;
+  
+  // Background
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, w, h);
+  
+  // Halftone dots pattern
+  ctx.fillStyle = `hsla(${hue}, 30%, 80%, 0.3)`;
+  for (let x = 0; x < w; x += 12) {
+    for (let y = 0; y < h; y += 12) {
+      const r = 1 + Math.sin(x * 0.1 + y * 0.1) * 0.8;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctxD && 0; ctx.fill();
+    }
+  }
+  
+  // Simple illustration based on creator
+  ctx.save();
+  if (isLarge) {
+    // Large featured panel gets a more elaborate scene
+    // Landscape
+    ctx.fillStyle = `hsl(${hue}, 40%, 85%)`;
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.6);
+    for (let x = 0; x <= w; x += 20) {
+      ctx.lineTo(x, h * 0.6 + Math.sin(x * 0.02) * 20);
+    }
+    ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.fill();
+    
+    // Clouds
+    ctx.fillStyle = `hsla(${hue}, 10%, 95%, 0.8)`;
+    [[60, 40, 30], [200, 60, 25], [380, 35, 35]].forEach(([cx, cy, r]) => {
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx+r*0.6, cy-r*0.3, r*0.7, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx-r*0.5, cy-r*0.2, r*0.6, 0, Math.PI * 2); ctx.fill();
+    });
+    
+    // Big creator icon
+    ctx.font = `${Math.min(w,h) * 0.3}px serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(creator.icon, w/2, h/2);
+  } else {
+    // Small panel - simpler scene
+    // Simple background element
+    ctx.fillStyle = `hsl(${hue}, 30%, 85%)`;
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.7);
+    for (let x = 0; x <= w; x += 15) {
+      ctx.lineTo(x, h * 0.7 + Math.sin(x * 0.03 + index) * 10);
+    }
+    ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.fill();
+    
+    // Icon
+    ctx.font = `${Math.min(w,h) * 0.35}px serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(creator.icon, w/2, h * 0.45);
+    
+    // Small decorative elements
+    if (index % 2 === 0) {
+      // Stars/sparkles
+      for (let s = 0; s < 3; s++) {
+        const sx = w * (0.2 + s * 0.3), sy = h * 0.2 + Math.sin(s) * 10;
+        ctx.fillStyle = accentColor;
+        ctx.font = '14px serif';
+        ctx.fillText('✦', sx, sy);
+      }
+    } else {
+      // Lines (action lines)
+      ctx.strokeStyle = `hsla(${hue}, 50%, 60%, 0.2)`;
+      ctx.lineWidth = 1;
+      for (let l = 0; l < 5; l++) {
+        ctx.beginPath();
+        ctx.moveTo(w * 0.1, h * 0.1 + l * 15);
+        ctx.lineTo(w * 0.4, h * 0.1 + l * 15);
+        ctx.stroke();
+      }
+    }
+  }
+  ctx.restore();
+  
+  // Speed lines on edges (comic effect)
+  ctx.strokeStyle = `hsla(${hue}, 10%, 60%, 0.15)`;
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 8; i++) {
+    ctx.beginPath();
+    const y = (h / 8) * i;
+    ctx.moveTo(0, y + 5);
+    ctx.lineTo(w * 0.15, y + 5);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(w, y + 5);
+    ctx.lineTo(w * 0.85, y + 5);
+    ctx.stroke();
+  }
+}
+
+// ============ INIT ============
+window.addEventListener('resize', () => {
+  if (currentTab === 'A') initA();
+  if (currentTab === 'B') initB();
+  if (currentTab === 'D') initD();
+});
+
+initA();
+</script>
+</body>
+</html>

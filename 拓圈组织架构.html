@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>拓圈 · 组织架构</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:-apple-system,'PingFang SC','Helvetica Neue','Microsoft YaHei',sans-serif;
+  background:#f5f3ef;
+  color:#2d2d2d;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* 顶部 */
+.hero{
+  text-align:center;
+  padding:48px 28px 36px;
+}
+
+.brand-tag{
+  font-size:11px;
+  letter-spacing:3px;
+  color:#999;
+  font-weight:300;
+  margin-bottom:20px;
+}
+
+.hero h1{
+  font-size:24px;
+  font-weight:600;
+  color:#1a1a1a;
+  letter-spacing:2px;
+  margin-bottom:12px;
+}
+
+.originator-badge{
+  display:inline-block;
+  background:#1a1a1a;
+  color:#fff;
+  padding:6px 20px;
+  border-radius:20px;
+  font-size:12px;
+  letter-spacing:1px;
+  font-weight:300;
+}
+
+.originator-badge .dot{
+  display:inline-block;
+  width:4px;height:4px;
+  border-radius:50%;
+  background:#666;
+  margin:0 8px;
+  vertical-align:middle;
+}
+
+/* 中心卡片 */
+.center-card{
+  background:#fff;
+  margin:12px 20px;
+  border-radius:20px;
+  box-shadow:0 2px 20px rgba(0,0,0,0.04);
+  overflow:hidden;
+}
+
+.center-header{
+  display:flex;
+  align-items:center;
+  padding:24px 24px 0;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.center-icon{
+  width:40px;height:40px;
+  border-radius:50%;
+  background:#f5f3ef;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+  flex-shrink:0;
+}
+
+.center-title-group{
+  flex:1;
+  margin-left:16px;
+}
+
+.center-title-group h2{
+  font-size:16px;
+  font-weight:600;
+  color:#1a1a1a;
+  letter-spacing:1px;
+}
+
+.center-title-group .en{
+  font-size:10px;
+  color:#bbb;
+  font-weight:300;
+  letter-spacing:1px;
+  margin-top:2px;
+}
+
+.center-count{
+  font-size:11px;
+  color:#999;
+  font-weight:300;
+  letter-spacing:0;
+}
+
+.center-arrow{
+  width:20px;
+  margin-left:12px;
+  color:#ccc;
+  font-size:11px;
+  transition:transform .3s;
+  text-align:center;
+}
+
+.center-card.open .center-arrow{
+  transform:rotate(180deg);
+}
+
+/* 分割线 */
+.center-divider{
+  height:1px;
+  background:#f0eeeb;
+  margin:16px 24px 0;
+}
+
+/* 中心说明 */
+.center-subtitle{
+  padding:8px 24px 16px;
+  font-size:12px;
+  color:#999;
+  font-weight:300;
+  letter-spacing:0.5px;
+}
+
+/* 部门列表 */
+.dept-list{
+  padding:0 24px 20px;
+  display:none;
+}
+
+.center-card.open .dept-list{
+  display:block;
+}
+
+.dept-item{
+  padding:16px 0;
+  border-top:1px solid #f5f3ef;
+}
+
+.dept-item:first-child{
+  border-top:none;
+}
+
+.dept-name-row{
+  display:flex;
+  align-items:center;
+  margin-bottom:3px;
+}
+
+.dept-dot{
+  width:5px;height:5px;
+  border-radius:50%;
+  background:#2d2d2d;
+  margin-right:10px;
+  flex-shrink:0;
+}
+
+.dept-name{
+  font-size:14px;
+  font-weight:500;
+  color:#1a1a1a;
+  letter-spacing:0.5px;
+}
+
+.dept-name .en{
+  font-size:10px;
+  color:#bbb;
+  font-weight:300;
+  margin-left:8px;
+}
+
+.dept-trad{
+  font-size:11px;
+  color:#ccc;
+  font-weight:300;
+  padding-left:15px;
+  margin-bottom:6px;
+}
+
+.dept-desc{
+  font-size:13px;
+  color:#888;
+  font-weight:300;
+  line-height:1.7;
+  padding-left:15px;
+}
+
+/* 底部品牌 */
+.footer{
+  text-align:center;
+  padding:32px 24px 48px;
+}
+
+.brand-logo{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin-bottom:12px;
+}
+
+.logo-circle{
+  width:20px;height:20px;
+  border:1.5px solid #ccc;
+  border-radius:50%;
+  position:relative;
+}
+
+.logo-circle::after{
+  content:'';
+  position:absolute;
+  width:10px;height:10px;
+  border:1.5px solid #ccc;
+  border-radius:50%;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+}
+
+.logo-text{
+  font-size:12px;
+  color:#999;
+  letter-spacing:2px;
+  font-weight:300;
+}
+
+.bottom-line{
+  width:40px;height:1px;
+  background:#e0ddd8;
+  margin:0 auto;
+}
+
+.footer-info{
+  font-size:10px;
+  color:#ccc;
+  font-weight:300;
+  letter-spacing:1px;
+  margin-top:12px;
+}
+
+@media(min-width:480px){
+  .center-card{margin:12px auto;max-width:440px}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="brand-tag">TOPOO · ORGANIZATION</div>
+  <h1>组织架构</h1>
+  <div class="originator-badge">拓荒者 Originator<span class="dot"></span>菜菜</div>
+</div>
+
+<!-- 商务中心 -->
+<div class="center-card open" onclick="toggle(this)">
+  <div class="center-header">
+    <div class="center-icon">💼</div>
+    <div class="center-title-group">
+      <h2>商务中心</h2>
+      <div class="en">BUSINESS</div>
+    </div>
+    <span class="center-count">2 部门</span>
+    <div class="center-arrow">▼</div>
+  </div>
+  <div class="center-divider"></div>
+  <div class="center-subtitle">怎么赚钱和拿资源</div>
+  <div class="dept-list">
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">招募站<span class="en">Business Development</span></div></div>
+      <div class="dept-trad">商务拓展部</div>
+      <div class="dept-desc">创造者招募、号段销售、入驻洽谈</div>
+    </div>
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">合作社<span class="en">Partnership</span></div></div>
+      <div class="dept-trad">商务合作部</div>
+      <div class="dept-desc">赞助洽谈、异业合作、品牌联名、政府/园区对接</div>
+    </div>
+  </div>
+</div>
+
+<!-- 市场中心 -->
+<div class="center-card" onclick="toggle(this)">
+  <div class="center-header">
+    <div class="center-icon">📡</div>
+    <div class="center-title-group">
+      <h2>市场中心</h2>
+      <div class="en">MARKETING</div>
+    </div>
+    <span class="center-count">4 部门</span>
+    <div class="center-arrow">▼</div>
+  </div>
+  <div class="center-divider"></div>
+  <div class="center-subtitle">拓圈是谁 + 怎么让人来</div>
+  <div class="dept-list">
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">品牌站<span class="en">Brand</span></div></div>
+      <div class="dept-trad">品牌部</div>
+      <div class="dept-desc">品牌定位、视觉体系、SOP规范、品牌故事</div>
+    </div>
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">广播站<span class="en">New Media</span></div></div>
+      <div class="dept-trad">新媒体运营部</div>
+      <div class="dept-desc">抖音/小红书/视频号运营、投放策略</div>
+    </div>
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">情报局<span class="en">User Operation</span></div></div>
+      <div class="dept-trad">用户运营部</div>
+      <div class="dept-desc">社群管理、用户增长、数据分析、裂变机制</div>
+    </div>
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">推广局<span class="en">Marketing</span></div></div>
+      <div class="dept-trad">市场推广部</div>
+      <div class="dept-desc">线上线下推广、渠道合作、活动引流</div>
+    </div>
+  </div>
+</div>
+
+<!-- 内容中心 -->
+<div class="center-card" onclick="toggle(this)">
+  <div class="center-header">
+    <div class="center-icon">✏️</div>
+    <div class="center-title-group">
+      <h2>内容中心</h2>
+      <div class="en">CONTENT</div>
+    </div>
+    <span class="center-count">4 部门</span>
+    <div class="center-arrow">▼</div>
+  </div>
+  <div class="center-divider"></div>
+  <div class="center-subtitle">内容生产与赋能</div>
+  <div class="dept-list">
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">内容工厂<span class="en">Content Production</span></div></div>
+      <div class="dept-trad">内容制作部</div>
+      <div class="dept-desc">OPC矩阵、公众号推文、短视频脚本</div>
+    </div>
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">创意局<span class="en">Creative</span></div></div>
+      <div class="dept-trad">创意策划部</div>
+      <div class="dept-desc">活动文案、品牌文案、创意策划、话题营销</div>
+    </div>
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">视觉车间<span class="en">Visual Design</span></div></div>
+      <div class="dept-trad">视觉设计部</div>
+      <div class="dept-desc">产品包装、海报/主图/详情页设计、视频后期、品牌视觉物料</div>
+    </div>
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">内容学院<span class="en">Content Academy</span></div></div>
+      <div class="dept-trad">内容培训部</div>
+      <div class="dept-desc">教创造者做内容、短视频拍摄培训、文案写作课、AI内容工具教学</div>
+    </div>
+  </div>
+</div>
+
+<!-- 产品中心 -->
+<div class="center-card" onclick="toggle(this)">
+  <div class="center-header">
+    <div class="center-icon">⚙️</div>
+    <div class="center-title-group">
+      <h2>产品中心</h2>
+      <div class="en">PRODUCT</div>
+    </div>
+    <span class="center-count">4 部门</span>
+    <div class="center-arrow">▼</div>
+  </div>
+  <div class="center-divider"></div>
+  <div class="center-subtitle">核心技术引擎</div>
+  <div class="dept-list">
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">实验室<span class="en">Product & Tech</span></div></div>
+      <div class="dept-trad">产品技术部</div>
+      <div class="dept-desc">TopSpace/小程序/H5设计与开发、前后端开发、服务器、支付分润系统</div>
+    </div>
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">AI研究院<span class="en">AI Lab</span></div></div>
+      <div class="dept-trad">AI研发部</div>
+      <div class="dept-desc">AI工具应用、创造者AI赋能、AI内容生成、AI客服/助手/诊断</div>
+    </div>
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">算法实验室<span class="en">Algorithm</span></div></div>
+      <div class="dept-trad">算法策略部</div>
+      <div class="dept-desc">星球匹配、角色推荐、智能撮合、推荐算法、游戏化数据模型</div>
+    </div>
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">创新实验室<span class="en">Innovation</span></div></div>
+      <div class="dept-trad">创新孵化部</div>
+      <div class="dept-desc">新玩法测试、新功能原型验证、行业创新案例</div>
+    </div>
+  </div>
+</div>
+
+<!-- 体验中心 -->
+<div class="center-card" onclick="toggle(this)">
+  <div class="center-header">
+    <div class="center-icon">🔥</div>
+    <div class="center-title-group">
+      <h2>体验中心</h2>
+      <div class="en">EXPERIENCE</div>
+    </div>
+    <span class="center-count">3 部门</span>
+    <div class="center-arrow">▼</div>
+  </div>
+  <div class="center-divider"></div>
+  <div class="center-subtitle">线下的碰撞</div>
+  <div class="dept-list">
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">碰撞中心<span class="en">Event</span></div></div>
+      <div class="dept-trad">活动策划部</div>
+      <div class="dept-desc">1000人挑战、线下市集、碰撞工坊</div>
+    </div>
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">学习社<span class="en">Education</span></div></div>
+      <div class="dept-trad">培训教育部</div>
+      <div class="dept-desc">创造者赋能课程、知识体系、内训</div>
+    </div>
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">研究所<span class="en">Research</span></div></div>
+      <div class="dept-trad">商业研究部</div>
+      <div class="dept-desc">市场调研、商业模式研究、案例沉淀</div>
+    </div>
+  </div>
+</div>
+
+<!-- 部落总部 -->
+<div class="center-card" onclick="toggle(this)">
+  <div class="center-header">
+    <div class="center-icon">🏠</div>
+    <div class="center-title-group">
+      <h2>部落总部</h2>
+      <div class="en">HEADQUARTERS</div>
+    </div>
+    <span class="center-count">2 部门</span>
+    <div class="center-arrow">▼</div>
+  </div>
+  <div class="center-divider"></div>
+  <div class="center-subtitle">后方</div>
+  <div class="dept-list">
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">后勤站<span class="en">Admin</span></div></div>
+      <div class="dept-trad">行政部</div>
+      <div class="dept-desc">行政事务、办公管理、物料采购</div>
+    </div>
+    <div class="dept-item">
+      <div class="dept-name-row"><div class="dept-dot"></div><div class="dept-name">账房<span class="en">Finance & Legal</span></div></div>
+      <div class="dept-trad">财务法务部</div>
+      <div class="dept-desc">财务管理、合同法务、税务、保证金分润结算</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="brand-logo">
+    <div class="logo-circle"></div>
+    <span class="logo-text">TOPOO</span>
+  </div>
+  <div class="bottom-line"></div>
+  <div class="footer-info">6 中心 · 17 部门</div>
+</div>
+
+<script>
+function toggle(card){
+  card.classList.toggle('open');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOPOO 拓圈 · 整体介绍</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --warm-white: #F5F0E8;
+  --ink-black: #1A1A1A;
+  --gray-stone: #888780;
+  --divider: #E8E6E3;
+  --fire: #D96B6B;   /* 市场/门店 */
+  --water: #4A9EB8;  /* 内容 */
+  --gold: #E8B44C;   /* 商务/服务 */
+  --wood: #A0B87A;   /* 产品型 */
+  --earth: #9B7BBF;  /* 体验/活动 */
+  --tribe: #8B7E6A;  /* 部落 */
+  --fire-light: #F5E0E0;
+  --water-light: #DAEEF5;
+  --gold-light: #F7EFD5;
+  --wood-light: #EBF2E0;
+  --earth-light: #EDE8F5;
+  --fire-dark: #B85050;
+  --water-dark: #357A95;
+  --gold-dark: #C49520;
+  --wood-dark: #7D9A58;
+  --earth-dark: #7A5CA0;
+  --deep-space: #0B0F1E;
+  --nebula: #151B33;
+}
+
+body {
+  background: var(--warm-white);
+  color: var(--ink-black);
+  font-family: -apple-system, 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* ── 导航 ── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(245,240,232,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--divider);
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--ink-black);
+}
+.nav-brand .oo {
+  font-family: Georgia, serif;
+  color: var(--gold);
+  font-size: 19px;
+}
+.nav-links {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+}
+.nav-links a {
+  text-decoration: none;
+  color: var(--gray-stone);
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.nav-links a:hover {
+  background: var(--divider);
+  color: var(--ink-black);
+}
+
+/* ── Hero ── */
+.hero {
+  background: var(--deep-space);
+  color: white;
+  padding: 100px 60px 80px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(232,180,76,0.12) 0%, transparent 70%),
+              radial-gradient(ellipse 50% 40% at 20% 70%, rgba(74,158,184,0.08) 0%, transparent 60%),
+              radial-gradient(ellipse 40% 50% at 80% 20%, rgba(155,123,191,0.08) 0%, transparent 60%);
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(232,180,76,0.15);
+  border: 1px solid rgba(232,180,76,0.3);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 12px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-bottom: 32px;
+  position: relative;
+}
+.hero h1 {
+  font-size: 64px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  position: relative;
+  line-height: 1.1;
+}
+.hero h1 .topoo {
+  font-family: Georgia, serif;
+  background: linear-gradient(135deg, var(--gold), #f5d98a, var(--fire));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero-slogan {
+  margin-top: 20px;
+  font-size: 20px;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 4px;
+  position: relative;
+}
+.hero-sub {
+  margin-top: 12px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 2px;
+  position: relative;
+}
+.hero-pillars {
+  margin-top: 48px;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  position: relative;
+}
+.hero-pillar {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 20px 28px;
+  text-align: center;
+  min-width: 180px;
+}
+.hero-pillar .icon { font-size: 28px; margin-bottom: 8px; }
+.hero-pillar .label { font-size: 14px; color: rgba(255,255,255,0.8); font-weight: 600; }
+.hero-pillar .desc { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+/* ── 通用章节 ── */
+.section {
+  padding: 80px 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.section-header {
+  margin-bottom: 48px;
+}
+.section-num {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--gray-stone);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.section-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink-black);
+  letter-spacing: 1px;
+}
+.section-desc {
+  margin-top: 10px;
+  font-size: 15px;
+  color: var(--gray-stone);
+  max-width: 600px;
+}
+.section-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--divider);
+}
+
+/* ── 高亮块 ── */
+.highlight-block {
+  background: var(--deep-space);
+  color: white;
+  padding: 80px 60px;
+}
+.highlight-block .section-num { color: rgba(255,255,255,0.3); }
+.highlight-block .section-title { color: white; }
+.highlight-block .section-desc { color: rgba(255,255,255,0.5); }
+
+/* ── 理念三栏 ── */
+.philosophy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.philosophy-card {
+  background: white;
+  border: 1px solid var(--divider);
+  border-radius: 16px;
+  padding: 32px 28px;
+  position: relative;
+  overflow: hidden;
+}
+.philosophy-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.philosophy-card.fire::before { background: var(--fire); }
+.philosophy-card.water::before { background: var(--water); }
+.philosophy-card.gold::before { background: var(--gold); }
+.philosophy-card .num {
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--divider);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.philosophy-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.philosophy-card p {
+  font-size: 14px;
+  color: var(--gray-stone);
+  line-height: 1.7;
+}
+
+/* ── 对比表格 ── */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.compare-table th {
+  padding: 16px 24px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}
+.compare-table th:first-child { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); }
+.compare-table th.col-a { background: rgba(74,158,184,0.15); color: var(--water); }
+.compare-table th.col-b { background: rgba(232,180,76,0.15); color: var(--gold); }
+.compare-table td {
+  padding: 14px 24px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 14px;
+  vertical-align: top;
+}
+.compare-table td:first-child { color: rgba(255,255,255,0.4); font-size: 13px; }
+.compare-table td.col-a { color: rgba(255,255,255,0.6); }
+.compare-table td.col-b { color: rgba(255,255,255,0.85); }
+
+/* ── 角色卡片 ── */
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.role-card {
+  border: 1px solid var(--divider);
+  border-radius: 16px;
+  overflow: hidden;
+  background: white;
+}
+.role-head {
+  padding: 20px 24px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.role-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.role-title { font-size: 16px; font-weight: 700; }
+.role-en { font-size: 12px; color: var(--gray-stone); margin-top: 2px; letter-spacing: 1px; }
+.role-body { padding: 0 24px 20px; }
+.role-desc { font-size: 13px; color: var(--gray-stone); line-height: 1.7; margin-bottom: 12px; }
+.role-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 100px;
+}
+.role-features { margin-top: 12px; list-style: none; }
+.role-features li {
+  font-size: 12px;
+  color: var(--gray-stone);
+  padding: 4px 0;
+  border-top: 1px solid var(--divider);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.role-features li::before { content: '·'; color: var(--gold); font-weight: 700; }
+
+/* 角色颜色 */
+.role-wanderer .role-icon { background: #F5F0E8; }
+.role-wanderer .role-price { background: #F5F0E8; color: var(--gray-stone); }
+.role-seeker .role-icon { background: var(--water-light); }
+.role-seeker .role-price { background: var(--water-light); color: var(--water-dark); }
+.role-seeker .role-head { border-top: 3px solid var(--water); }
+.role-creator .role-icon { background: var(--gold-light); }
+.role-creator .role-price { background: var(--gold-light); color: var(--gold-dark); }
+.role-creator .role-head { border-top: 3px solid var(--gold); }
+.role-worker .role-icon { background: var(--wood-light); }
+.role-worker .role-price { background: var(--wood-light); color: var(--wood-dark); }
+.role-worker .role-head { border-top: 3px solid var(--wood); }
+.role-linker .role-icon { background: var(--earth-light); }
+.role-linker .role-price { background: var(--earth-light); color: var(--earth-dark); }
+.role-linker .role-head { border-top: 3px solid var(--earth); }
+.role-pioneer .role-icon { background: var(--fire-light); }
+.role-pioneer .role-price { background: var(--fire-light); color: var(--fire-dark); }
+.role-pioneer .role-head { border-top: 3px solid var(--fire); }
+
+/* ── 五行创造者 ── */
+.wuxing-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+.wuxing-card {
+  border-radius: 16px;
+  padding: 24px 20px;
+  text-align: center;
+  border: 1px solid;
+}
+.wuxing-card .element { font-size: 32px; margin-bottom: 12px; }
+.wuxing-card .element-name { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.wuxing-card .type-name { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.wuxing-card .type-desc { font-size: 12px; line-height: 1.6; }
+.wuxing-card .examples { margin-top: 10px; font-size: 11px; opacity: 0.6; }
+
+.wuxing-fire { background: var(--fire-light); border-color: rgba(217,107,107,0.3); color: var(--fire-dark); }
+.wuxing-water { background: var(--water-light); border-color: rgba(74,158,184,0.3); color: var(--water-dark); }
+.wuxing-wood { background: var(--wood-light); border-color: rgba(160,184,122,0.3); color: var(--wood-dark); }
+.wuxing-gold { background: var(--gold-light); border-color: rgba(232,180,76,0.3); color: var(--gold-dark); }
+.wuxing-earth { background: var(--earth-light); border-color: rgba(155,123,191,0.3); color: var(--earth-dark); }
+
+.wuxing-cycle {
+  margin-top: 24px;
+  background: white;
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--gray-stone);
+}
+.wuxing-cycle .arrow { color: var(--divider); font-weight: 300; }
+.wuxing-cycle .item { font-weight: 600; }
+.wuxing-cycle .fire-t { color: var(--fire); }
+.wuxing-cycle .water-t { color: var(--water); }
+.wuxing-cycle .wood-t { color: var(--wood-dark); }
+.wuxing-cycle .gold-t { color: var(--gold-dark); }
+.wuxing-cycle .earth-t { color: var(--earth); }
+
+/* ── 星球体系 ── */
+.planet-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.planet-card {
+  background: white;
+  border: 1px solid var(--divider);
+  border-radius: 16px;
+  padding: 28px;
+}
+.planet-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rank-list { list-style: none; }
+.rank-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--divider);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+.rank-list li:last-child { border-bottom: none; }
+.rank-icon { font-size: 20px; width: 32px; text-align: center; }
+.rank-name { font-weight: 600; }
+.rank-role { font-size: 12px; color: var(--gray-stone); margin-top: 2px; }
+
+/* ── 号段模型 ── */
+.num-economy {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.num-card {
+  background: var(--deep-space);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 28px;
+  color: white;
+}
+.num-card .card-num { font-size: 11px; color: rgba(255,255,255,0.3); letter-spacing: 2px; margin-bottom: 8px; }
+.num-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+.num-card p { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.7; }
+.num-card .highlight { color: var(--gold); font-weight: 600; }
+
+/* ── 游戏化机制 ── */
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+.game-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 28px;
+  color: white;
+}
+.game-card .game-icon { font-size: 28px; margin-bottom: 12px; }
+.game-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.game-card p { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.7; }
+.game-card .vs {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 12px;
+  color: var(--gold);
+}
+
+/* ── 组织架构 ── */
+.org-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.org-center {
+  border-radius: 16px;
+  border: 1px solid;
+  overflow: hidden;
+}
+.org-center-head {
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.org-depts { padding: 8px 16px 16px; }
+.org-dept {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid;
+  font-size: 13px;
+}
+.org-dept:last-child { border-bottom: none; }
+
+/* 组织中心颜色 */
+.org-market { border-color: rgba(217,107,107,0.3); }
+.org-market .org-center-head { background: var(--fire-light); color: var(--fire-dark); }
+.org-market .org-dept { border-color: rgba(217,107,107,0.1); color: #333; }
+.org-content { border-color: rgba(74,158,184,0.3); }
+.org-content .org-center-head { background: var(--water-light); color: var(--water-dark); }
+.org-content .org-dept { border-color: rgba(74,158,184,0.1); color: #333; }
+.org-biz { border-color: rgba(232,180,76,0.3); }
+.org-biz .org-center-head { background: var(--gold-light); color: var(--gold-dark); }
+.org-biz .org-dept { border-color: rgba(232,180,76,0.1); color: #333; }
+.org-product { border-color: rgba(160,184,122,0.3); }
+.org-product .org-center-head { background: var(--wood-light); color: var(--wood-dark); }
+.org-product .org-dept { border-color: rgba(160,184,122,0.1); color: #333; }
+.org-exp { border-color: rgba(155,123,191,0.3); }
+.org-exp .org-center-head { background: var(--earth-light); color: var(--earth-dark); }
+.org-exp .org-dept { border-color: rgba(155,123,191,0.1); color: #333; }
+.org-tribe { border-color: rgba(139,126,106,0.3); }
+.org-tribe .org-center-head { background: #EDE8DC; color: #6B5E4A; }
+.org-tribe .org-dept { border-color: rgba(139,126,106,0.1); color: #333; }
+
+/* ── 数字目标 ── */
+.targets-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.target-card {
+  border-radius: 16px;
+  padding: 24px 20px;
+  text-align: center;
+  border: 1px solid;
+  background: white;
+}
+.target-card .role-label { font-size: 12px; font-weight: 600; letter-spacing: 1px; margin-bottom: 6px; }
+.target-card .year-num { font-size: 28px; font-weight: 900; line-height: 1.1; }
+.target-card .year-unit { font-size: 12px; margin-top: 2px; }
+.target-card .may-num { font-size: 14px; font-weight: 600; margin-top: 8px; padding-top: 8px; border-top: 1px solid; }
+.target-card .may-label { font-size: 11px; margin-top: 2px; }
+
+.target-wanderer { border-color: rgba(136,135,128,0.3); }
+.target-wanderer .role-label { color: var(--gray-stone); }
+.target-wanderer .year-num { color: var(--ink-black); }
+.target-wanderer .may-num { color: var(--gray-stone); border-color: var(--divider); }
+.target-seeker { border-color: rgba(74,158,184,0.3); }
+.target-seeker .role-label { color: var(--water); }
+.target-seeker .year-num { color: var(--water-dark); }
+.target-seeker .may-num { color: var(--water); border-color: rgba(74,158,184,0.15); }
+.target-creator { border-color: rgba(232,180,76,0.3); }
+.target-creator .role-label { color: var(--gold-dark); }
+.target-creator .year-num { color: var(--gold-dark); }
+.target-creator .may-num { color: var(--gold); border-color: rgba(232,180,76,0.15); }
+.target-worker { border-color: rgba(160,184,122,0.3); }
+.target-worker .role-label { color: var(--wood-dark); }
+.target-worker .year-num { color: var(--wood-dark); }
+.target-worker .may-num { color: var(--wood-dark); border-color: rgba(160,184,122,0.15); }
+.target-linker { border-color: rgba(155,123,191,0.3); }
+.target-linker .role-label { color: var(--earth-dark); }
+.target-linker .year-num { color: var(--earth-dark); }
+.target-linker .may-num { color: var(--earth); border-color: rgba(155,123,191,0.15); }
+
+.revenue-bar {
+  background: white;
+  border: 1px solid var(--divider);
+  border-radius: 16px;
+  padding: 28px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+}
+.rev-item { text-align: center; }
+.rev-item .rev-label { font-size: 12px; color: var(--gray-stone); margin-bottom: 8px; }
+.rev-item .rev-num { font-size: 28px; font-weight: 900; }
+.rev-item .rev-unit { font-size: 13px; color: var(--gray-stone); }
+.rev-item.total .rev-num { color: var(--gold-dark); }
+.rev-item.creator .rev-num { color: var(--fire); }
+.rev-item.seeker .rev-num { color: var(--water); }
+
+/* ── 大陆世界观 ── */
+.continent-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.continent-card {
+  background: var(--nebula);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 28px 20px;
+  text-align: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.continent-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.continent-card.nanjing::before { background: var(--earth); }
+.continent-card.suzhou::before { background: var(--water); }
+.continent-card.hangzhou::before { background: var(--water-dark); }
+.continent-card.chengdu::before { background: var(--wood-dark); }
+.continent-card .continent-num { font-size: 11px; color: rgba(255,255,255,0.3); letter-spacing: 2px; margin-bottom: 12px; }
+.continent-card .continent-city { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+.continent-card .continent-theme { font-size: 13px; font-weight: 600; margin-bottom: 12px; }
+.continent-card .continent-desc { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.6; }
+.continent-card .continent-status {
+  margin-top: 16px;
+  display: inline-block;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-weight: 600;
+}
+.continent-card.nanjing .continent-status { background: rgba(155,123,191,0.2); color: var(--earth); }
+.continent-card.suzhou .continent-status,
+.continent-card.hangzhou .continent-status,
+.continent-card.chengdu .continent-status { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.3); }
+
+/* ── 商业模型 ── */
+.biz-model {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.biz-flow {
+  background: white;
+  border: 1px solid var(--divider);
+  border-radius: 16px;
+  padding: 28px;
+}
+.biz-flow h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+.flow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--divider);
+}
+.flow-step:last-child { border-bottom: none; }
+.flow-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+.flow-step p { font-size: 14px; line-height: 1.6; }
+.flow-step .step-label { font-weight: 600; margin-bottom: 2px; }
+.flow-step .step-desc { font-size: 13px; color: var(--gray-stone); }
+
+/* ── 三年路线图 ── */
+.roadmap {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.roadmap-item {
+  background: white;
+  border: 1px solid var(--divider);
+  border-radius: 16px;
+  padding: 28px;
+  position: relative;
+}
+.roadmap-year {
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--divider);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.roadmap-tag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 100px;
+  margin-bottom: 12px;
+}
+.roadmap-item:nth-child(1) .roadmap-tag { background: var(--fire-light); color: var(--fire-dark); }
+.roadmap-item:nth-child(2) .roadmap-tag { background: var(--water-light); color: var(--water-dark); }
+.roadmap-item:nth-child(3) .roadmap-tag { background: var(--gold-light); color: var(--gold-dark); }
+.roadmap-title { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+.roadmap-list { list-style: none; }
+.roadmap-list li {
+  font-size: 13px;
+  color: var(--gray-stone);
+  padding: 5px 0;
+  border-top: 1px solid var(--divider);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.roadmap-list li::before { content: '→'; color: var(--gold); font-size: 12px; }
+
+/* ── 底部 ── */
+.footer {
+  background: var(--deep-space);
+  color: white;
+  padding: 60px;
+  text-align: center;
+}
+.footer-brand { font-size: 32px; font-weight: 900; letter-spacing: 6px; }
+.footer-brand span { font-family: Georgia, serif; color: var(--gold); }
+.footer-slogan { margin-top: 8px; font-size: 14px; color: rgba(255,255,255,0.4); letter-spacing: 4px; }
+.footer-divider { width: 60px; height: 1px; background: rgba(255,255,255,0.1); margin: 24px auto; }
+.footer-note { font-size: 12px; color: rgba(255,255,255,0.25); letter-spacing: 1px; }
+
+/* ── 响应式 ── */
+@media (max-width: 900px) {
+  .philosophy-grid, .roles-grid, .org-grid, .roadmap { grid-template-columns: 1fr 1fr; }
+  .wuxing-grid, .targets-grid, .continent-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero h1 { font-size: 40px; }
+  .section { padding: 60px 24px; }
+  .hero { padding: 60px 24px; }
+  .nav { padding: 0 24px; }
+  .nav-links { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- 导航 -->
+<nav class="nav">
+  <div class="nav-brand">
+    <span class="oo">T</span>OPOO &nbsp;拓圈
+  </div>
+  <ul class="nav-links">
+    <li><a href="#brand">品牌理念</a></li>
+    <li><a href="#roles">角色体系</a></li>
+    <li><a href="#creator">创造者</a></li>
+    <li><a href="#planet">星球生态</a></li>
+    <li><a href="#gamification">游戏化</a></li>
+    <li><a href="#org">组织架构</a></li>
+    <li><a href="#targets">目标数字</a></li>
+    <li><a href="#world">大陆世界观</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">✦ TOPOO · 全域共生平台 · 2026</div>
+  <h1><span class="topoo">TOPOO</span><br>拓圈</h1>
+  <p class="hero-slogan">让小而美被世界看见</p>
+  <p class="hero-sub">商业研究所 · 产品试验田 · 创意落地场</p>
+  <div class="hero-pillars">
+    <div class="hero-pillar">
+      <div class="icon">🔭</div>
+      <div class="label">商业研究所</div>
+      <div class="desc">研究怎么被看见<br>方法论·数据·反馈</div>
+    </div>
+    <div class="hero-pillar">
+      <div class="icon">🧪</div>
+      <div class="label">产品试验田</div>
+      <div class="desc">试出什么值得被看见<br>测试·验证·迭代</div>
+    </div>
+    <div class="hero-pillar">
+      <div class="icon">🏗️</div>
+      <div class="label">创意落地场</div>
+      <div class="desc">真正落地被看见<br>从想法到产品到变现</div>
+    </div>
+  </div>
+</section>
+
+<!-- 01 品牌理念 -->
+<div id="brand">
+<div class="section-divider"></div>
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">01 · BRAND PHILOSOPHY</div>
+    <div class="section-title">三个核心理念</div>
+    <div class="section-desc">拓圈筛选的是精神状态，不是职业头衔。这三条是入场门槛，不是口号。</div>
+  </div>
+  <div class="philosophy-grid">
+    <div class="philosophy-card fire">
+      <div class="num">01</div>
+      <h3>长期主义</h3>
+      <p>不急功近利，愿意花时间打磨自己和产品，相信慢就是快。拓圈不是流量收割机，是需要时间才能见效的生态。</p>
+    </div>
+    <div class="philosophy-card water">
+      <div class="num">02</div>
+      <h3>探索精神</h3>
+      <p>知道自己是谁，或者正在寻找自己是谁。拓圈给你一个空间自己去发现，没有人告诉你该往哪走。</p>
+    </div>
+    <div class="philosophy-card gold">
+      <div class="num">03</div>
+      <h3>同频共振</h3>
+      <p>相信碰撞的力量，愿意跟一群人一起走。不是一个人抱着手机单打独斗，是找到真正同频的伙伴。</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 02 探索 vs 喂养 -->
+<div class="highlight-block">
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">02 · EXPLORE vs FEED</div>
+    <div class="section-title" style="color:white">探索 vs 喂养</div>
+    <div class="section-desc">拓圈和所有现有平台的本质差异</div>
+  </div>
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th class="col-a">抖音 / 小红书</th>
+        <th class="col-b">TOPOO 拓圈</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>逻辑</td>
+        <td class="col-a">喂养——算法比你更了解你</td>
+        <td class="col-b">探索——给你空间，你自己走</td>
+      </tr>
+      <tr>
+        <td>主动性</td>
+        <td class="col-a">被动接收，不用思考不用选择</td>
+        <td class="col-b">主动进入星球，自己看自己感受</td>
+      </tr>
+      <tr>
+        <td>多巴胺质地</td>
+        <td class="col-a">爽但空洞，刷完之后空虚</td>
+        <td class="col-b">"我找到了"的成就感和归属感</td>
+      </tr>
+      <tr>
+        <td>对人的定义</td>
+        <td class="col-a">你是标签，你是数据点</td>
+        <td class="col-b">你是灵魂个体，不是被投喂的对象</td>
+      </tr>
+      <tr>
+        <td>社交本质</td>
+        <td class="col-a">关注—取关，浅层互动</td>
+        <td class="col-b">碰撞——深度连接，真实人脉</td>
+      </tr>
+      <tr>
+        <td>内容逻辑</td>
+        <td class="col-a">推你可能喜欢的东西</td>
+        <td class="col-b">不推，你自己去发现</td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="margin-top:24px; padding:20px 24px; background:rgba(232,180,76,0.1); border:1px solid rgba(232,180,76,0.2); border-radius:12px;">
+    <p style="color:var(--gold); font-size:15px; font-style:normal; line-height:1.8; font-family:Georgia, serif;">"你现实中是谁，没人在意。但你的价值观和灵魂，每个人都看得见。"</p>
+    <p style="color:rgba(255,255,255,0.3); font-size:12px; margin-top:8px;">—— TOPOO 拓圈核心精神</p>
+  </div>
+</div>
+</div>
+
+<!-- 03 角色体系 -->
+<div id="roles">
+<div class="section-divider"></div>
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">03 · ROLE SYSTEM</div>
+    <div class="section-title">六层角色体系</div>
+    <div class="section-desc">从漫游到创造，每一步都有清晰的成长路径和对应价值。</div>
+  </div>
+  <div class="roles-grid">
+
+    <div class="role-card role-wanderer">
+      <div class="role-head">
+        <div class="role-icon">🌫️</div>
+        <div>
+          <div class="role-title">漫游者</div>
+          <div class="role-en">WANDERER</div>
+        </div>
+      </div>
+      <div class="role-body">
+        <div class="role-desc">已经注意到拓圈，开始了解和初步参与，但还没正式加入。路过星空的旅人，星际护照一张，编号是你在宇宙里的坐标。</div>
+        <div class="role-price" style="background:#F5F0E8;color:var(--gray-stone)">🆓 完全免费</div>
+        <ul class="role-features">
+          <li>自动生成专属漫游者身份卡</li>
+          <li>带编号可分享朋友圈</li>
+          <li>自由浏览星球</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="role-card role-seeker">
+      <div class="role-head">
+        <div class="role-icon">🔍</div>
+        <div>
+          <div class="role-title">探索者</div>
+          <div class="role-en">SEEKER</div>
+        </div>
+      </div>
+      <div class="role-body">
+        <div class="role-desc">付费正式加入，有专属编号，在找方向。漫游是闲逛，探索是有意图地寻找——你知道自己在找什么，或者正在发现自己在找什么。</div>
+        <div class="role-price">💙 种子¥365买断 / 正式¥599/年</div>
+        <ul class="role-features">
+          <li>任务线+付费线+积分线三条升级路</li>
+          <li>每季度可能分到50-100元返现</li>
+          <li>参与圈月度挑战赛</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="role-card role-creator">
+      <div class="role-head">
+        <div class="role-icon">⚡</div>
+        <div>
+          <div class="role-title">创造者</div>
+          <div class="role-en">CREATOR</div>
+        </div>
+      </div>
+      <div class="role-body">
+        <div class="role-desc">有东西要卖的人。可以做产品、做内容、做IP，在拓圈里变现。五种类型，五行属性，一号可以有多个创造身份，灵活运营不同领域。</div>
+        <div class="role-price">⭐ 种子保证金¥2000可退 / 正式¥2999</div>
+        <ul class="role-features">
+          <li>一号多身份，独立运营多个赛道</li>
+          <li>在主星球常住，分身全息出现各场景</li>
+          <li>号段可交易，越早进越值钱</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="role-card role-worker">
+      <div class="role-head">
+        <div class="role-icon">🔧</div>
+        <div>
+          <div class="role-title">工作者</div>
+          <div class="role-en">WORKER</div>
+        </div>
+      </div>
+      <div class="role-body">
+        <div class="role-desc">辅助创造者的人。碳基工作者做品牌运营/创意执行/商业对接/数据策略，用货币结算；硅基AI工作者做内容生产/数据分析/运营自动化，用token结算。</div>
+        <div class="role-price">🌱 0元入，从任务收入扣保证金999</div>
+        <ul class="role-features">
+          <li>四级成长：见习→正式→资深→导师级</li>
+          <li>AI做70%基础，人做30%关键判断</li>
+          <li>保证金扣满后正常发放，退出可退</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="role-card role-linker">
+      <div class="role-head">
+        <div class="role-icon">🕊️</div>
+        <div>
+          <div class="role-title">链接者</div>
+          <div class="role-en">LINKER</div>
+        </div>
+      </div>
+      <div class="role-body">
+        <div class="role-desc">搭桥/推广/撮合的角色。介绍创造者进来，拿交易额1-2%分成；做到顶级可拿整个城市交易分成。不靠充钱，靠做任务养等级。</div>
+        <div class="role-price">🌿 0元入，从分润扣保证金1200</div>
+        <ul class="role-features">
+          <li>介绍越多，等级越高，分成比例越高</li>
+          <li>顶级可拿全城市交易分成</li>
+          <li>跨星球服务，不受地域限制</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="role-card role-pioneer">
+      <div class="role-head">
+        <div class="role-icon">🚀</div>
+        <div>
+          <div class="role-title">开拓者</div>
+          <div class="role-en">PIONEER</div>
+        </div>
+      </div>
+      <div class="role-body">
+        <div class="role-desc">满级玩家的终极形态。从其他角色成长到满级后可晋升，拥有自己的星球，自己的圈，是拓圈生态真正的建设者和运营者。</div>
+        <div class="role-price">🔥 晋升制，满级解锁</div>
+        <ul class="role-features">
+          <li>自建自运营一颗星球</li>
+          <li>制定星球规则和文化氛围</li>
+          <li>星球收益按比例分成</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- 04 创造者五类型 -->
+<div id="creator">
+<div class="section-divider"></div>
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">04 · CREATOR TYPES</div>
+    <div class="section-title">创造者五行属性</div>
+    <div class="section-desc">五种创造者类型，五行相生，构成完整的生态循环。一个健康星球需要五行均衡。</div>
+  </div>
+  <div class="wuxing-grid">
+    <div class="wuxing-card wuxing-water">
+      <div class="element">💧</div>
+      <div class="element-name">水</div>
+      <div class="type-name">内容型</div>
+      <div class="type-desc">无形流到任何角落。内容就是水，渗透种草，流动即传播。</div>
+      <div class="examples">短视频 / KOL / IP / 博主</div>
+    </div>
+    <div class="wuxing-card wuxing-wood">
+      <div class="element">🌱</div>
+      <div class="element-name">木</div>
+      <div class="type-name">产品型</div>
+      <div class="type-desc">从种子到果实，需要水（内容）和阳光（流量）滋养生长。</div>
+      <div class="examples">实体商品 / 手作 / 线上产品</div>
+    </div>
+    <div class="wuxing-card wuxing-fire">
+      <div class="element">🔥</div>
+      <div class="element-name">火</div>
+      <div class="type-name">门店型</div>
+      <div class="type-desc">门店是火塘，人聚集的地方，烟火气，有固定位置有真实温度。</div>
+      <div class="examples">咖啡店 / 茶叶店 / 手作店</div>
+    </div>
+    <div class="wuxing-card wuxing-earth">
+      <div class="element">🌍</div>
+      <div class="element-name">土</div>
+      <div class="type-name">活动型</div>
+      <div class="type-desc">活动就是土，承载万物，是所有创造类型的场地和地基。</div>
+      <div class="examples">展览 / 市集 / 工作坊 / 快闪</div>
+    </div>
+    <div class="wuxing-card wuxing-gold">
+      <div class="element">⚙️</div>
+      <div class="element-name">金</div>
+      <div class="type-name">服务型</div>
+      <div class="type-desc">精准切割需求，锻造精钢，高价值硬通货，让其他人更强。</div>
+      <div class="examples">设计 / 策划 / 咨询 / 创意</div>
+    </div>
+  </div>
+  <div class="wuxing-cycle">
+    <span class="item water-t">水·内容</span>
+    <span class="arrow">→</span>
+    <span style="font-size:12px">滋养</span>
+    <span class="arrow">→</span>
+    <span class="item wood-t">木·产品</span>
+    <span class="arrow">→</span>
+    <span style="font-size:12px">带动</span>
+    <span class="arrow">→</span>
+    <span class="item fire-t">火·门店</span>
+    <span class="arrow">→</span>
+    <span style="font-size:12px">催生</span>
+    <span class="arrow">→</span>
+    <span class="item earth-t">土·活动</span>
+    <span class="arrow">→</span>
+    <span style="font-size:12px">锻炼</span>
+    <span class="arrow">→</span>
+    <span class="item gold-t">金·服务</span>
+    <span class="arrow">→</span>
+    <span style="font-size:12px">产出</span>
+    <span class="arrow">→</span>
+    <span class="item water-t">水·内容</span>
+    <span style="font-size:12px; color:var(--gray-stone); margin-left:4px">（循环）</span>
+  </div>
+</div>
+</div>
+
+<!-- 05 星球生态 -->
+<div id="planet">
+<div class="section-divider"></div>
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">05 · PLANET ECOSYSTEM</div>
+    <div class="section-title">星球·圈生态体系</div>
+    <div class="section-desc">星球不是品类分区，是性格/价值观群落。碰撞是核心词汇。</div>
+  </div>
+  <div class="planet-layout">
+    <div class="planet-card">
+      <h3>🏮 星球职位体系</h3>
+      <ul class="rank-list">
+        <li>
+          <span class="rank-icon">🏮</span>
+          <div>
+            <div class="rank-name">掌灯人</div>
+            <div class="rank-role">星球负责人，制定规则和文化方向</div>
+          </div>
+        </li>
+        <li>
+          <span class="rank-icon">🪐</span>
+          <div>
+            <div class="rank-name">引力手</div>
+            <div class="rank-role">副手/运营，维持星球日常活跃</div>
+          </div>
+        </li>
+        <li>
+          <span class="rank-icon">✨</span>
+          <div>
+            <div class="rank-name">星尘</div>
+            <div class="rank-role">流动荣誉，每月最活跃的人获得</div>
+          </div>
+        </li>
+        <li>
+          <span class="rank-icon">🕊️</span>
+          <div>
+            <div class="rank-name">信使</div>
+            <div class="rank-role">跨星球外交，负责星际碰撞</div>
+          </div>
+        </li>
+        <li>
+          <span class="rank-icon">🌟</span>
+          <div>
+            <div class="rank-name">指路星</div>
+            <div class="rank-role">新人引导，降低陌生感</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="planet-card">
+      <h3>📐 标准星球配比</h3>
+      <ul class="rank-list">
+        <li>
+          <span class="rank-icon">⭐</span>
+          <div>
+            <div class="rank-name">创造者 Creator</div>
+            <div class="rank-role">50-150人 · 星球常住人口</div>
+          </div>
+        </li>
+        <li>
+          <span class="rank-icon">🔍</span>
+          <div>
+            <div class="rank-name">探索者 Seeker</div>
+            <div class="rank-role">1500-3000人 · 在星球外大盘漂着</div>
+          </div>
+        </li>
+        <li>
+          <span class="rank-icon">🔧</span>
+          <div>
+            <div class="rank-name">工作者 Worker</div>
+            <div class="rank-role">10-20人 · 跨星球服务</div>
+          </div>
+        </li>
+        <li>
+          <span class="rank-icon">🕊️</span>
+          <div>
+            <div class="rank-name">链接者 Linker</div>
+            <div class="rank-role">2-5人 · 跨星球链接撮合</div>
+          </div>
+        </li>
+        <li>
+          <span class="rank-icon">🌫️</span>
+          <div>
+            <div class="rank-name">漫游者 Wanderer</div>
+            <div class="rank-role">不限 · 自由探索</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="planet-card">
+      <h3>🌌 圈层级结构</h3>
+      <ul class="rank-list">
+        <li>
+          <span class="rank-icon">🔮</span>
+          <div>
+            <div class="rank-name">小圈（星球）</div>
+            <div class="rank-role">50-1000人，单城市基本单位</div>
+          </div>
+        </li>
+        <li>
+          <span class="rank-icon">🌌</span>
+          <div>
+            <div class="rank-name">大圈（星系）</div>
+            <div class="rank-role">多个星球的聚合，同主题生态</div>
+          </div>
+        </li>
+        <li>
+          <span class="rank-icon">🌆</span>
+          <div>
+            <div class="rank-name">城市圈（星域）</div>
+            <div class="rank-role">一座城市的全部星球总和</div>
+          </div>
+        </li>
+        <li>
+          <span class="rank-icon">🌏</span>
+          <div>
+            <div class="rank-name">全国圈（宇宙）</div>
+            <div class="rank-role">所有城市大陆的总和</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="planet-card">
+      <h3>⚡ 星球限时玩法</h3>
+      <ul class="rank-list">
+        <li>
+          <span class="rank-icon">☕</span>
+          <div>
+            <div class="rank-name">今日星球特供</div>
+            <div class="rank-role">限时优惠吸引探索者降落，不是促销是接触机会</div>
+          </div>
+        </li>
+        <li>
+          <span class="rank-icon">🎁</span>
+          <div>
+            <div class="rank-name">星球盲盒</div>
+            <div class="rank-role">探索者发现惊喜，带动口碑传播</div>
+          </div>
+        </li>
+        <li>
+          <span class="rank-icon">🧑‍🍳</span>
+          <div>
+            <div class="rank-name">新品试吃官</div>
+            <div class="rank-role">产品型创造者验证新品，探索者获得参与感</div>
+          </div>
+        </li>
+        <li>
+          <span class="rank-icon">💡</span>
+          <div>
+            <div class="rank-name">灵感碰撞工坊</div>
+            <div class="rank-role">来玩一趟→顺便买东西→顺便学到东西</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 06 号段经济模型 -->
+<div class="section-divider"></div>
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">06 · NUMBER ECONOMY</div>
+    <div class="section-title">号段经济模型</div>
+    <div class="section-desc">号不是消费，是投资。越早进来，号越值钱。</div>
+  </div>
+  <div class="num-economy">
+    <div class="num-card">
+      <div class="card-num">01 · SCARCITY</div>
+      <h3>号码稀缺性</h3>
+      <p>1-10号预留拍卖，号码越靠前越值钱。类似 <span class="highlight">QQ靓号/车牌号</span>逻辑，物以稀为贵，前排号天然有价值。</p>
+    </div>
+    <div class="num-card">
+      <div class="card-num">02 · ACCUMULATION</div>
+      <h3>权重积累</h3>
+      <p>越早进来，内容积累越多、交易量越大、等级越高。后续新漫游者进来<span class="highlight">最先看到高权重创造者</span>——这就是流量分配权。</p>
+    </div>
+    <div class="num-card">
+      <div class="card-num">03 · TRADEABLE</div>
+      <h3>号可交易</h3>
+      <p>不想做了可以卖号，<span class="highlight">前期2000进的号，养好后卖1万2万</span>都可以。权重跟着号走，买家买的是积累的一切。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 07 游戏化机制 -->
+<div id="gamification" class="highlight-block">
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">07 · GAMIFICATION</div>
+    <div class="section-title" style="color:white">游戏化底层战略</div>
+    <div class="section-desc">参考《无尽冬日》联盟机制。游戏化做内核，商业化做外衣。</div>
+  </div>
+  <div class="game-grid">
+    <div class="game-card">
+      <div class="game-icon">⬆️</div>
+      <h3>资源永远不够·逐步解锁</h3>
+      <p>升级目标永远有下一步，不一步到位。让用户始终有奔头，阶段性成就感不断输出。</p>
+      <div class="vs">↔ 对标：圈科技升级，内容权重 +10%</div>
+    </div>
+    <div class="game-card">
+      <div class="game-icon">🤝</div>
+      <h3>联盟绑定·社交关系网</h3>
+      <p>社交关系越织越密，离开成本越来越高。从陌生人到盟友到真实朋友，这个过程是拓圈的核心价值。</p>
+      <div class="vs">↔ 对标：圈月度挑战赛，集体积分冲Top3</div>
+    </div>
+    <div class="game-card">
+      <div class="game-icon">📊</div>
+      <h3>同侪压力·看见彼此成长</h3>
+      <p>能看到同期的人谁在进步，对比本身就是驱动力。不是攀比，是激励——你的成长被人看见，别人的进步激励你。</p>
+      <div class="vs">↔ 对标：季度黑马榜，城市圈对抗</div>
+    </div>
+    <div class="game-card">
+      <div class="game-icon">⏰</div>
+      <h3>限时活动·阶段性冲刺</h3>
+      <p>月度挑战赛/季度黑马榜/限时资源加成。参加是锦上添花不是保命必需，有点紧迫感但不制造焦虑。</p>
+      <div class="vs">↔ 两层奖励：个人任务 + 平台目标集体分红</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 08 组织架构 -->
+<div id="org">
+<div class="section-divider"></div>
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">08 · ORGANIZATION</div>
+    <div class="section-title">组织架构 v3</div>
+    <div class="section-desc">6个中心，16个部门，五行颜色对应，各司其职。</div>
+  </div>
+  <div class="org-grid">
+
+    <div class="org-center org-market">
+      <div class="org-center-head">🔴 市场中心</div>
+      <div class="org-depts">
+        <div class="org-dept">⭐ 品牌站 <span style="margin-left:auto;font-size:11px;opacity:0.5">品牌建设与VI执行</span></div>
+        <div class="org-dept">📻 广播站 <span style="margin-left:auto;font-size:11px;opacity:0.5">内容传播与媒体矩阵</span></div>
+        <div class="org-dept">📡 情报局 <span style="margin-left:auto;font-size:11px;opacity:0.5">市场研究与竞品分析</span></div>
+        <div class="org-dept">📢 推广局 <span style="margin-left:auto;font-size:11px;opacity:0.5">增长投放与活动推广</span></div>
+      </div>
+    </div>
+
+    <div class="org-center org-content">
+      <div class="org-center-head">🔵 内容中心</div>
+      <div class="org-depts">
+        <div class="org-dept">✍️ 内容工厂 <span style="margin-left:auto;font-size:11px;opacity:0.5">内容生产与运营</span></div>
+        <div class="org-dept">💡 创意局 <span style="margin-left:auto;font-size:11px;opacity:0.5">创意策划与概念开发</span></div>
+        <div class="org-dept">🎨 视觉车间 <span style="margin-left:auto;font-size:11px;opacity:0.5">设计输出与视觉规范</span></div>
+      </div>
+    </div>
+
+    <div class="org-center org-biz">
+      <div class="org-center-head">🟡 商务中心</div>
+      <div class="org-depts">
+        <div class="org-dept">🎯 招募站 <span style="margin-left:auto;font-size:11px;opacity:0.5">创造者与成员招募</span></div>
+        <div class="org-dept">🤝 合作社 <span style="margin-left:auto;font-size:11px;opacity:0.5">品牌合作与资源对接</span></div>
+      </div>
+    </div>
+
+    <div class="org-center org-product">
+      <div class="org-center-head">🟢 产品中心</div>
+      <div class="org-depts">
+        <div class="org-dept">🔧 技术部 <span style="margin-left:auto;font-size:11px;opacity:0.5">前端/后端/支付系统</span></div>
+        <div class="org-dept">🤖 AI研究院 <span style="margin-left:auto;font-size:11px;opacity:0.5">AI工具研发与应用</span></div>
+        <div class="org-dept">🧮 算法实验室 <span style="margin-left:auto;font-size:11px;opacity:0.5">推荐算法与数据模型</span></div>
+        <div class="org-dept">🚀 创新实验室 <span style="margin-left:auto;font-size:11px;opacity:0.5">新产品孵化与探索</span></div>
+      </div>
+    </div>
+
+    <div class="org-center org-exp">
+      <div class="org-center-head">🟣 体验中心</div>
+      <div class="org-depts">
+        <div class="org-dept">💥 拓圈无界 <span style="margin-left:auto;font-size:11px;opacity:0.5">线下活动与体验设计</span></div>
+        <div class="org-dept">📚 学习社 <span style="margin-left:auto;font-size:11px;opacity:0.5">内部培训+外部课程</span></div>
+        <div class="org-dept">📊 商业研究所 <span style="margin-left:auto;font-size:11px;opacity:0.5">商业方法论与案例研究</span></div>
+      </div>
+    </div>
+
+    <div class="org-center org-tribe">
+      <div class="org-center-head">🟤 部落总部</div>
+      <div class="org-depts">
+        <div class="org-dept">🏠 后勤站 <span style="margin-left:auto;font-size:11px;opacity:0.5">行政与运营支撑</span></div>
+        <div class="org-dept">💰 账房 <span style="margin-left:auto;font-size:11px;opacity:0.5">财务与经济模型管理</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- 09 目标数字 -->
+<div id="targets">
+<div class="section-divider"></div>
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">09 · TARGETS · 南京 2026.5-12</div>
+    <div class="section-title">目标数字</div>
+    <div class="section-desc">8个月，先在南京打样，跑通最小闭环，再复制扩张。</div>
+  </div>
+  <div class="targets-grid">
+    <div class="target-card target-wanderer">
+      <div class="role-label">WANDERER</div>
+      <div class="year-num">20万</div>
+      <div class="year-unit">年度目标</div>
+      <div class="may-num">4万</div>
+      <div class="may-label">5月冲刺目标</div>
+    </div>
+    <div class="target-card target-seeker">
+      <div class="role-label">SEEKER</div>
+      <div class="year-num">1万</div>
+      <div class="year-unit">年度目标</div>
+      <div class="may-num">2000</div>
+      <div class="may-label">5月冲刺目标</div>
+    </div>
+    <div class="target-card target-creator">
+      <div class="role-label">CREATOR</div>
+      <div class="year-num">500</div>
+      <div class="year-unit">年度目标</div>
+      <div class="may-num">100</div>
+      <div class="may-label">5月冲刺目标</div>
+    </div>
+    <div class="target-card target-worker">
+      <div class="role-label">WORKER</div>
+      <div class="year-num">200</div>
+      <div class="year-unit">年度目标</div>
+      <div class="may-num">40</div>
+      <div class="may-label">5月冲刺目标</div>
+    </div>
+    <div class="target-card target-linker">
+      <div class="role-label">LINKER</div>
+      <div class="year-num">50</div>
+      <div class="year-unit">年度目标</div>
+      <div class="may-num">10</div>
+      <div class="may-label">5月冲刺目标</div>
+    </div>
+  </div>
+  <div class="revenue-bar">
+    <div class="rev-item creator">
+      <div class="rev-label">Creator 保证金（种子100人×¥2000）</div>
+      <div class="rev-num">100</div>
+      <div class="rev-unit">万元</div>
+    </div>
+    <div class="rev-item seeker">
+      <div class="rev-label">Seeker 入圈费（1000人×¥365）</div>
+      <div class="rev-num">365</div>
+      <div class="rev-unit">万元</div>
+    </div>
+    <div class="rev-item total">
+      <div class="rev-label">种子期预估收入合计</div>
+      <div class="rev-num">≈465</div>
+      <div class="rev-unit">万元</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 10 大陆世界观 -->
+<div id="world" class="highlight-block">
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">10 · TOPSPACE WORLD</div>
+    <div class="section-title" style="color:white">拓圈大陆世界观</div>
+    <div class="section-desc">每个城市不是"分站"，而是一片独立大陆。参考原神提瓦特大陆的逐步展开感。</div>
+  </div>
+  <div class="continent-grid">
+    <div class="continent-card nanjing">
+      <div class="continent-num">CHAPTER 01</div>
+      <div class="continent-city">南京大陆</div>
+      <div class="continent-theme" style="color:var(--earth)">「创造」</div>
+      <div class="continent-desc">第一片大陆，故事从发起人开始。紫色，属土，承载万物，是所有可能性的起点。</div>
+      <div class="continent-status">🟣 正式点亮</div>
+    </div>
+    <div class="continent-card suzhou">
+      <div class="continent-num">CHAPTER 02</div>
+      <div class="continent-city">苏州大陆</div>
+      <div class="continent-theme" style="color:var(--water)">「美学」</div>
+      <div class="continent-desc">丝绸/苏绣/设计。青绿色，属水，流动的美，渗透到每一个细节。</div>
+      <div class="continent-status">⬜ 待解锁</div>
+    </div>
+    <div class="continent-card hangzhou">
+      <div class="continent-num">CHAPTER 03</div>
+      <div class="continent-city">杭州大陆</div>
+      <div class="continent-theme" style="color:#4A89B8">「流动」</div>
+      <div class="continent-desc">电商/直播/数字产品。湖蓝色，数字经济之城，内容流动最快的地方。</div>
+      <div class="continent-status">⬜ 待解锁</div>
+    </div>
+    <div class="continent-card chengdu">
+      <div class="continent-num">CHAPTER 04</div>
+      <div class="continent-city">成都大陆</div>
+      <div class="continent-theme" style="color:var(--wood-dark)">「自在」</div>
+      <div class="continent-desc">美食/茶饮/文创IP。竹绿色，天府之国，有最松弛的创作氛围。</div>
+      <div class="continent-status">⬜ 待解锁</div>
+    </div>
+  </div>
+  <div style="margin-top:24px; display:flex; gap:16px; flex-wrap:wrap;">
+    <div style="flex:1; min-width:200px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:20px;">
+      <div style="font-size:12px; color:rgba(255,255,255,0.3); letter-spacing:2px; margin-bottom:8px;">大陆解锁机制</div>
+      <div style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.8;">总漫游者达阈值 → 当前大陆达标 → 找到城市主理人 → 预热1个月出现朦胧轮廓 → 解锁当天"大陆正式点亮"</div>
+    </div>
+    <div style="flex:1; min-width:200px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:20px;">
+      <div style="font-size:12px; color:rgba(255,255,255,0.3); letter-spacing:2px; margin-bottom:8px;">大陆内角色称呼</div>
+      <div style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.8;">Wanderer = 星旅人<br>Seeker = 冒险者<br>Creator = 造物主<br>Worker = 锻造师<br>Linker = 引航员</div>
+    </div>
+    <div style="flex:1; min-width:200px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:20px;">
+      <div style="font-size:12px; color:rgba(255,255,255,0.3); letter-spacing:2px; margin-bottom:8px;">跨大陆玩法</div>
+      <div style="font-size:13px; color:rgba(255,255,255,0.6); line-height:1.8;">大陆航线（跨城合作）<br>大陆对抗赛（跨城PK）<br>星旅人成就系统<br>大陆集市（跨城交易）</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 11 商业模型 -->
+<div class="section-divider"></div>
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">11 · BUSINESS MODEL</div>
+    <div class="section-title">商业模型底层逻辑</div>
+    <div class="section-desc">概率筛选 + 幸存者放大。不是课堂，是工地。</div>
+  </div>
+  <div class="biz-model">
+    <div class="biz-flow">
+      <h3>🔄 核心运转逻辑</h3>
+      <div class="flow-step">
+        <div class="flow-dot" style="background:var(--gold)"></div>
+        <div>
+          <div class="step-label">大量种子入场</div>
+          <div class="step-desc">Creator保证金2000可退，降低入场门槛，大量优质创造者进来</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-dot" style="background:var(--water)"></div>
+        <div>
+          <div class="step-label">平台赋能加持</div>
+          <div class="step-desc">内容指导、选品对接、流量扶持、圈内互助，把成功率从1%拉到4-5%</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-dot" style="background:var(--wood-dark)"></div>
+        <div>
+          <div class="step-label">跑出来的放大</div>
+          <div class="step-desc">成功案例成为招募素材，吸引更多同类创造者，口碑裂变</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-dot" style="background:var(--fire)"></div>
+        <div>
+          <div class="step-label">没跑出来的退保证金</div>
+          <div class="step-desc">但贡献了活跃度和生态养分，对平台不是损失，是滋养</div>
+        </div>
+      </div>
+    </div>
+    <div class="biz-flow">
+      <h3>💰 平台收入来源</h3>
+      <div class="flow-step">
+        <div class="flow-dot" style="background:var(--gold)"></div>
+        <div>
+          <div class="step-label">创造者保证金（可退）</div>
+          <div class="step-desc">种子期¥2000，正式¥5000，现金流但非利润</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-dot" style="background:var(--water)"></div>
+        <div>
+          <div class="step-label">Seeker年费</div>
+          <div class="step-desc">种子¥365买断，正式¥599/年，稳定现金流</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-dot" style="background:var(--wood-dark)"></div>
+        <div>
+          <div class="step-label">交易抽成</div>
+          <div class="step-desc">平台赚跑出来的创造者持续交易的抽成，这才是核心利润</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-dot" style="background:var(--earth)"></div>
+        <div>
+          <div class="step-label">课程 / 认证 / 活动票</div>
+          <div class="step-desc">学习社外部课程、活动票价等增值收入</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 12 三年路线图 -->
+<div class="section-divider"></div>
+<div class="section" style="padding-bottom:100px">
+  <div class="section-header">
+    <div class="section-num">12 · ROADMAP</div>
+    <div class="section-title">三年发展路线图</div>
+    <div class="section-desc">先集中后分布，先跑通最小闭环，再扩张复制。</div>
+  </div>
+  <div class="roadmap">
+    <div class="roadmap-item">
+      <div class="roadmap-year">Y1</div>
+      <div class="roadmap-tag">2026 · 南京打样</div>
+      <div class="roadmap-title">跑通最小闭环</div>
+      <ul class="roadmap-list">
+        <li>南京一城跑通全部角色体系</li>
+        <li>第一批8+王国（星球）上线</li>
+        <li>Seeker 1万 / Creator 500 达成</li>
+        <li>微信小程序+拓圈宇宙全面上线</li>
+        <li>完成第一批成功案例积累</li>
+        <li>种子期收入目标：465万</li>
+      </ul>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-year">Y2</div>
+      <div class="roadmap-tag">2027 · 多城复制</div>
+      <div class="roadmap-title">扩张3-5个城市</div>
+      <ul class="roadmap-list">
+        <li>苏州/杭州/成都/武汉等城市解锁</li>
+        <li>大陆解锁机制启动，制造全国期待感</li>
+        <li>城市主理人体系建立</li>
+        <li>跨大陆玩法（航线/对抗赛）上线</li>
+        <li>Seeker 总量突破10万</li>
+      </ul>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-year">Y3</div>
+      <div class="roadmap-tag">2028 · 全国成型</div>
+      <div class="roadmap-title">10+城市，平台级</div>
+      <ul class="roadmap-list">
+        <li>10+城市大陆全面点亮</li>
+        <li>平台自增长，自组织生态成型</li>
+        <li>TOPOO品牌成为全域共生标志</li>
+        <li>Seeker总量百万量级</li>
+        <li>拓圈宇宙成为创造者的第二家园</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-brand">T<span>OPOO</span></div>
+  <div class="footer-slogan">让小而美被世界看见</div>
+  <div class="footer-divider"></div>
+  <div class="footer-note">拓圈（南京）文化科技有限公司 · 注册中 · 2026</div>
+</footer>
+
+</body>
+</html>

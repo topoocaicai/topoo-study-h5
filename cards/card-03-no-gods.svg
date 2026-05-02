@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 520" width="100%">
+  <defs>
+    <pattern id="lines" x="0" y="0" width="680" height="520" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="30" x2="680" y2="30" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="60" x2="680" y2="60" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="90" x2="680" y2="90" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="120" x2="680" y2="120" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="150" x2="680" y2="150" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="180" x2="680" y2="180" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="210" x2="680" y2="210" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="240" x2="680" y2="240" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="270" x2="680" y2="270" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="300" x2="680" y2="300" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="330" x2="680" y2="330" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="360" x2="680" y2="360" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="390" x2="680" y2="390" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="420" x2="680" y2="420" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="450" x2="680" y2="450" stroke="#d4cfc4" stroke-width="0.3"/>
+      <line x1="0" y1="480" x2="680" y2="480" stroke="#d4cfc4" stroke-width="0.3"/>
+    </pattern>
+  </defs>
+
+  <!-- Paper background -->
+  <rect width="680" height="520" fill="#f5f0e8" rx="12"/>
+  <rect width="680" height="520" fill="url(#lines)" rx="12"/>
+
+  <!-- Top accent line -->
+  <rect x="0" y="0" width="680" height="3" fill="#e8b44c" rx="1"/>
+
+  <!-- TOPOO brand mark + logo - top left -->
+  <image href="拓圈logo.png" x="28" y="28" width="28" height="28"/>
+  <text x="62" y="46" font-family="Georgia, serif" font-size="15" fill="#2c2c2a" font-weight="bold" letter-spacing="3">TOPOO</text>
+  <text x="136" y="46" font-family="sans-serif" font-size="10" fill="#888780">理念卡片</text>
+
+  <!-- Number capsule - top right -->
+  <rect x="576" y="28" width="68" height="24" rx="12" fill="#e8b44c" opacity="0.15"/>
+  <text x="610" y="44" font-family="sans-serif" font-size="11" fill="#854F0B" text-anchor="middle" font-weight="500">NO.03</text>
+
+  <!-- Decorative dot cluster -->
+  <circle cx="560" cy="40" r="2" fill="#d96b6b" opacity="0.4"/>
+  <circle cx="548" cy="40" r="1.5" fill="#e8b44c" opacity="0.4"/>
+
+  <!-- Large opening quote mark -->
+  <text x="56" y="150" font-family="Georgia, serif" font-size="72" fill="#e8b44c" opacity="0.2">"</text>
+
+  <!-- Main quote area -->
+  <text font-family="sans-serif" font-size="24" fill="#2c2c2a" font-weight="500">
+    <tspan x="80" y="175">我们不造神，</tspan>
+    <tspan x="80" y="217">因为每个人，</tspan>
+    <tspan x="80" y="259">本身就是自己的神。</tspan>
+  </text>
+
+  <!-- Closing quote -->
+  <text x="480" y="290" font-family="Georgia, serif" font-size="72" fill="#e8b44c" opacity="0.2">"</text>
+
+  <!-- Divider line -->
+  <line x1="80" y1="320" x2="600" y2="320" stroke="#d4cfc4" stroke-width="0.5"/>
+
+  <!-- Sub-text area -->
+  <text font-family="sans-serif" font-size="13" fill="#5f5e5a">
+    <tspan x="80" y="355">没有高高在上的偶像，没有编造的故事和人设，</tspan>
+    <tspan x="80" y="379">没有造假的数据和光环。</tspan>
+    <tspan x="80" y="403">只有平等、自由的灵魂碰撞。</tspan>
+    <tspan x="80" y="427">你不必仰视任何人，也不必被任何人仰视。</tspan>
+  </text>
+
+  <!-- Topoo logo - right side watermark (large) -->
+  <image href="拓圈logo.png" x="540" y="380" width="80" height="80" opacity="0.08"/>
+
+  <!-- Bottom brand line -->
+  <text x="340" y="490" font-family="sans-serif" font-size="11" fill="#888780" text-anchor="middle" letter-spacing="1">TOPOO · 让小而美被世界看见</text>
+
+  <!-- Bottom accent -->
+  <rect x="0" y="517" width="680" height="3" fill="#e8b44c" rx="1"/>
+</svg>

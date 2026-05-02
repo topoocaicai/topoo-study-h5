@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
+<title>拓圈架构脑图</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #FAF9F7;
+  color: #1A1A1A;
+  font-family: -apple-system, "SF Pro Display", "Helvetica Neue", "PingFang SC", "Noto Sans SC", sans-serif;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  touch-action: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+#canvas {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+#canvas:active { cursor: grabbing; }
+
+/* 顶部标题 */
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  text-align: center;
+  padding: 16px;
+  z-index: 100;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(250,249,247,0.95) 0%, rgba(250,249,247,0.6) 70%, transparent 100%);
+}
+.header h1 {
+  font-size: 16px;
+  font-weight: 300;
+  color: #1A1A1A;
+  letter-spacing: 4px;
+}
+.header h1 strong {
+  font-weight: 600;
+}
+.header .sub {
+  font-size: 11px;
+  color: #A0A0A0;
+  margin-top: 4px;
+  letter-spacing: 2px;
+}
+
+/* 底部提示 */
+.hint {
+  position: fixed;
+  bottom: 16px; left: 0; right: 0;
+  text-align: center;
+  z-index: 100;
+  pointer-events: none;
+  font-size: 11px;
+  color: #C8C8C8;
+  letter-spacing: 1px;
+}
+
+/* 图例 */
+.legend {
+  position: fixed;
+  bottom: 40px; right: 16px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 11px;
+  background: rgba(250,249,247,0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid #EBEBEB;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.legend-text {
+  color: #999;
+  letter-spacing: 1px;
+}
+
+/* 统计 */
+.stats {
+  position: fixed;
+  bottom: 40px; left: 16px;
+  z-index: 100;
+  font-size: 10px;
+  color: #C8C8C8;
+  letter-spacing: 1px;
+  line-height: 1.8;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><strong>TOPOO</strong> · 拓圈架构</h1>
+  <div class="sub">让小而美被世界看见</div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#5A9DAF"></div><span class="legend-text">核心</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background:#5E9470"></div><span class="legend-text">角色</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background:#C49A20"></div><span class="legend-text">商业</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background:#C0633E"></div><span class="legend-text">产品</span></div>
+  <div class="legend-item"><div class="legend-dot" style="background:#7D6B93"></div><span class="legend-text">机制</span></div>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<div class="hint">双指缩放 · 单指拖动 · 点击节点展开/收起</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W, H, dpr;
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize();
+window.addEventListener('resize', () => { resize(); render(); });
+
+// ===== 配色体系（与品牌介绍页统一）=====
+// 图形色块用柔和色，文字用加深色，保证白底可读性
+const colors = {
+  // 主色
+  accent: '#5A9DAF', accentLight: '#B8D4E3', accentBlock: '#7CB9C8',
+  // 五色：block=图形色块, 主色=文字加深, Light=浅色辅助
+  wanderer: '#5A9DAF', wandererBlock: '#7CB9C8', wandererLight: '#B8D4E3',  // 天青·核心
+  seeker:   '#5E9470', seekerBlock:   '#7BAF8B', seekerLight:   '#A8C8A0',  // 灰绿·角色
+  creator:  '#C0633E', creatorBlock:  '#D4785A', creatorLight:  '#E8A87C',  // 暖橘·产品
+  worker:   '#7D6B93', workerBlock:   '#9B8AAE', workerLight:   '#C4B5D4',  // 淡紫·机制
+  linker:   '#C49A20', linkerBlock:   '#E8B84D', linkerLight:   '#F2D07A',  // 暖黄·商业（文字加深深）
+  // 辅助
+  text: '#1A1A1A',
+  textLight: '#666666',
+  textLighter: '#A0A0A0',
+  bg: '#FAF9F7',
+  border: '#EBEBEB',
+};
+
+// ===== 脑图数据 =====
+const data = {
+  text: '拓圈\nTopoo', color: colors.accent, blockColor: colors.accentBlock, size: 22, weight: 700, expanded: true,
+  children: [
+    {
+      text: '定位与愿景', color: colors.accent, blockColor: colors.accentBlock, size: 15, weight: 600, expanded: true,
+      children: [
+        { text: '让小而美被世界看见', color: colors.accent, blockColor: colors.accentLight, size: 12, weight: 400 },
+        { text: '产品试验田', color: colors.accent, blockColor: colors.accentLight, size: 12, weight: 400 },
+        { text: '商业研究所', color: colors.accent, blockColor: colors.accentLight, size: 12, weight: 400 },
+        { text: '创造者加速器\n概率筛选+幸存者放大', color: colors.accent, blockColor: colors.accentLight, size: 12, weight: 400 },
+        { text: '终极：自生长生态', color: colors.accent, blockColor: colors.accentLight, size: 12, weight: 400 },
+      ]
+    },
+    {
+      text: '六大角色', color: colors.seeker, blockColor: colors.seekerBlock, size: 15, weight: 600, expanded: true,
+      children: [
+        {
+          text: 'Wanderer 漫游者', color: colors.wanderer, blockColor: colors.wandererBlock, size: 13, weight: 500, expanded: false,
+          children: [
+            { text: '免费·注册拿编号', color: colors.wanderer, blockColor: colors.wandererLight, size: 11, weight: 400 },
+            { text: '漫游者身份卡（星际护照）', color: colors.wanderer, blockColor: colors.wandererLight, size: 11, weight: 400 },
+            { text: '目标20万/城', color: colors.wanderer, blockColor: colors.wandererLight, size: 11, weight: 400 },
+          ]
+        },
+        {
+          text: 'Seeker 探索者', color: colors.seeker, blockColor: colors.seekerBlock, size: 13, weight: 500, expanded: false,
+          children: [
+            { text: '种子期¥365买断', color: colors.seeker, blockColor: colors.seekerLight, size: 11, weight: 400 },
+            { text: '任务线+付费线+积分线', color: colors.seeker, blockColor: colors.seekerLight, size: 11, weight: 400 },
+            { text: '毕业→选角色', color: colors.seeker, blockColor: colors.seekerLight, size: 11, weight: 400 },
+            { text: '目标1万/城', color: colors.seeker, blockColor: colors.seekerLight, size: 11, weight: 400 },
+          ]
+        },
+        {
+          text: 'Creator 创造者', color: colors.creator, blockColor: colors.creatorBlock, size: 13, weight: 500, expanded: false,
+          children: [
+            { text: '产品型\n诊断→内容→渠道→验证→IP', color: colors.creator, blockColor: colors.creatorLight, size: 11, weight: 400 },
+            { text: '内容型\n定位→选品→制作→数据→变现', color: colors.creator, blockColor: colors.creatorLight, size: 11, weight: 400 },
+            { text: '服务型\n包装→产品化→对接→信任→放大', color: colors.creator, blockColor: colors.creatorLight, size: 11, weight: 400 },
+            { text: '门店型·活动型', color: colors.creator, blockColor: colors.creatorLight, size: 11, weight: 400 },
+            { text: '保证金¥2000 · 号段=资产', color: colors.creator, blockColor: colors.creatorLight, size: 11, weight: 400 },
+          ]
+        },
+        {
+          text: 'Worker 工作者', color: colors.worker, blockColor: colors.workerBlock, size: 13, weight: 500, expanded: false,
+          children: [
+            { text: '碳基：运营/创意/对接/数据', color: colors.worker, blockColor: colors.workerLight, size: 11, weight: 400 },
+            { text: '硅基AI：内容/分析/诊断', color: colors.worker, blockColor: colors.workerLight, size: 11, weight: 400 },
+            { text: 'AI 70% + 人 30%', color: colors.worker, blockColor: colors.workerLight, size: 11, weight: 400 },
+            { text: '工作室制·跨星球', color: colors.worker, blockColor: colors.workerLight, size: 11, weight: 400 },
+          ]
+        },
+        {
+          text: 'Linker 链接者', color: colors.linker, blockColor: colors.linkerBlock, size: 13, weight: 500, expanded: false,
+          children: [
+            { text: '搭桥·推广·撮合', color: colors.linker, blockColor: colors.linkerLight, size: 11, weight: 400 },
+            { text: '交易额1-2%分成', color: colors.linker, blockColor: colors.linkerLight, size: 11, weight: 400 },
+            { text: '顶级→全城分成', color: colors.linker, blockColor: colors.linkerLight, size: 11, weight: 400 },
+          ]
+        },
+        {
+          text: 'Pioneer 开拓者', color: colors.accent, blockColor: colors.accentBlock, size: 13, weight: 500, expanded: false,
+          children: [
+            { text: '满级玩家角色', color: colors.accent, blockColor: colors.accentLight, size: 11, weight: 400 },
+            { text: '可建造运营自己的星球', color: colors.accent, blockColor: colors.accentLight, size: 11, weight: 400 },
+            { text: '从其他角色成长到满级后晋升', color: colors.accent, blockColor: colors.accentLight, size: 11, weight: 400 },
+          ]
+        },
+        { text: 'Originator 拓荒者：菜菜', color: colors.creator, blockColor: colors.creatorBlock, size: 13, weight: 600 },
+      ]
+    },
+    {
+      text: '圈·星球体系', color: colors.worker, blockColor: colors.workerBlock, size: 15, weight: 600, expanded: false,
+      children: [
+        { text: '城市拆成多个圈（星球）', color: colors.worker, blockColor: colors.workerLight, size: 12, weight: 400 },
+        { text: '每星球 Creator 8-12人\n品类不重复·零内耗', color: colors.worker, blockColor: colors.workerLight, size: 12, weight: 400 },
+        { text: '星球=性格群落不是品类分区', color: colors.worker, blockColor: colors.workerLight, size: 12, weight: 400 },
+        { text: '圈科技·圈商店·圈挑战赛', color: colors.worker, blockColor: colors.workerLight, size: 12, weight: 400 },
+        { text: '层级：星球→星系→星域→宇宙', color: colors.worker, blockColor: colors.workerLight, size: 12, weight: 400 },
+        { text: '退出冷却期·防跳圈', color: colors.worker, blockColor: colors.workerLight, size: 12, weight: 400 },
+      ]
+    },
+    {
+      text: '游戏化机制', color: colors.worker, blockColor: colors.workerBlock, size: 15, weight: 600, expanded: false,
+      children: [
+        { text: '对标：无尽冬日', color: colors.worker, blockColor: colors.workerLight, size: 12, weight: 400 },
+        { text: '即时反馈+多巴胺驱动', color: colors.worker, blockColor: colors.workerLight, size: 12, weight: 400 },
+        { text: '技能树·经验值·升级路径', color: colors.worker, blockColor: colors.workerLight, size: 12, weight: 400 },
+        { text: '联盟科技→圈科技', color: colors.worker, blockColor: colors.workerLight, size: 12, weight: 400 },
+        { text: '互助加速·限时活动', color: colors.worker, blockColor: colors.workerLight, size: 12, weight: 400 },
+        { text: '同侪压力·集体赋能', color: colors.worker, blockColor: colors.workerLight, size: 12, weight: 400 },
+        { text: '个人任务+平台目标分红', color: colors.worker, blockColor: colors.workerLight, size: 12, weight: 400 },
+      ]
+    },
+    {
+      text: '号段经济', color: colors.linker, blockColor: colors.linkerBlock, size: 15, weight: 600, expanded: false,
+      children: [
+        { text: '号=资产·不是消费是投资', color: colors.linker, blockColor: colors.linkerLight, size: 12, weight: 400 },
+        { text: '号码稀缺性（靓号逻辑）', color: colors.linker, blockColor: colors.linkerLight, size: 12, weight: 400 },
+        { text: '权重积累=流量分配权', color: colors.linker, blockColor: colors.linkerLight, size: 12, weight: 400 },
+        { text: '可交易·权重跟着号走', color: colors.linker, blockColor: colors.linkerLight, size: 12, weight: 400 },
+      ]
+    },
+    {
+      text: '商业模型', color: colors.linker, blockColor: colors.linkerBlock, size: 15, weight: 600, expanded: false,
+      children: [
+        { text: '种子期：365×1000+保证金', color: colors.linker, blockColor: colors.linkerLight, size: 12, weight: 400 },
+        { text: '正式期：年费+保证金+抽成', color: colors.linker, blockColor: colors.linkerLight, size: 12, weight: 400 },
+        { text: '活动收入', color: colors.linker, blockColor: colors.linkerLight, size: 12, weight: 400 },
+        { text: '轻资产：成本内嵌交易', color: colors.linker, blockColor: colors.linkerLight, size: 12, weight: 400 },
+        { text: '南京年预估 836-1056万', color: colors.linker, blockColor: colors.linkerLight, size: 12, weight: 400 },
+      ]
+    },
+    {
+      text: '平台产品', color: colors.creator, blockColor: colors.creatorBlock, size: 15, weight: 600, expanded: false,
+      children: [
+        { text: '拓圈宇宙TopSpace（门面）', color: colors.creator, blockColor: colors.creatorLight, size: 12, weight: 400 },
+        { text: '微信小程序（交易·分润）', color: colors.creator, blockColor: colors.creatorLight, size: 12, weight: 400 },
+        { text: '互动工具矩阵\n测评/测试/指数卡', color: colors.creator, blockColor: colors.creatorLight, size: 12, weight: 400 },
+        { text: 'OPC内容矩阵 1000+抖音号', color: colors.creator, blockColor: colors.creatorLight, size: 12, weight: 400 },
+      ]
+    },
+    {
+      text: '组织架构\nOriginator：菜菜', color: colors.creator, blockColor: colors.creatorBlock, size: 15, weight: 600, expanded: false,
+      children: [
+        { text: '商务中心\n招募站·合作社', color: colors.linker, blockColor: colors.linkerBlock, size: 12, weight: 400, expanded: false,
+          children: [
+            { text: '招募站\n创造者招募·号段销售·入驻洽谈', color: colors.linker, blockColor: colors.linkerLight, size: 11, weight: 400 },
+            { text: '合作社\n赞助·异业合作·品牌联名·政府对接', color: colors.linker, blockColor: colors.linkerLight, size: 11, weight: 400 },
+          ]
+        },
+        { text: '市场中心\n品牌站·广播站·情报局·推广局', color: colors.seeker, blockColor: colors.seekerBlock, size: 12, weight: 400, expanded: false,
+          children: [
+            { text: '品牌站\n品牌定位·视觉体系·SOP·品牌故事', color: colors.seeker, blockColor: colors.seekerLight, size: 11, weight: 400 },
+            { text: '广播站\n抖音/小红书/视频号·投放策略', color: colors.seeker, blockColor: colors.seekerLight, size: 11, weight: 400 },
+            { text: '情报局\n社群·用户增长·数据分析·裂变', color: colors.seeker, blockColor: colors.seekerLight, size: 11, weight: 400 },
+            { text: '推广局\n线上线下推广·渠道合作·活动引流', color: colors.seeker, blockColor: colors.seekerLight, size: 11, weight: 400 },
+          ]
+        },
+        { text: '内容中心\n内容工厂·创意局·视觉车间·内容学院', color: colors.creator, blockColor: colors.creatorBlock, size: 12, weight: 400, expanded: false,
+          children: [
+            { text: '内容工厂\nOPC矩阵·推文·短视频脚本', color: colors.creator, blockColor: colors.creatorLight, size: 11, weight: 400 },
+            { text: '创意局\n文案·创意策划·话题营销', color: colors.creator, blockColor: colors.creatorLight, size: 11, weight: 400 },
+            { text: '视觉车间\n包装·海报·详情页·视频后期', color: colors.creator, blockColor: colors.creatorLight, size: 11, weight: 400 },
+            { text: '内容学院\n教创造者做内容·AI工具教学', color: colors.creator, blockColor: colors.creatorLight, size: 11, weight: 400 },
+          ]
+        },
+        { text: '产品中心\n实验室·AI研究院·算法·创新', color: colors.worker, blockColor: colors.workerBlock, size: 12, weight: 400, expanded: false,
+          children: [
+            { text: '实验室\nTopSpace/小程序/H5·前后端·支付', color: colors.worker, blockColor: colors.workerLight, size: 11, weight: 400 },
+            { text: 'AI研究院\nAI赋能·内容生成·客服诊断', color: colors.worker, blockColor: colors.workerLight, size: 11, weight: 400 },
+            { text: '算法实验室\n匹配·推荐·撮合·游戏化模型', color: colors.worker, blockColor: colors.workerLight, size: 11, weight: 400 },
+            { text: '创新实验室\n新玩法测试·原型验证', color: colors.worker, blockColor: colors.workerLight, size: 11, weight: 400 },
+          ]
+        },
+        { text: '体验中心\n碰撞中心·学习社·研究所', color: colors.accent, blockColor: colors.accentBlock, size: 12, weight: 400, expanded: false,
+          children: [
+            { text: '碰撞中心\n1000人挑战·市集·碰撞工坊', color: colors.accent, blockColor: colors.accentLight, size: 11, weight: 400 },
+            { text: '学习社\n赋能课程·知识体系·内训', color: colors.accent, blockColor: colors.accentLight, size: 11, weight: 400 },
+            { text: '研究所\n市场调研·商业模式·案例沉淀', color: colors.accent, blockColor: colors.accentLight, size: 11, weight: 400 },
+          ]
+        },
+        { text: '部落总部\n后勤站·账房', color: colors.textLight, blockColor: '#B0B0B0', size: 12, weight: 400, expanded: false,
+          children: [
+            { text: '后勤站\n行政·办公·物料采购', color: colors.textLight, blockColor: '#D0D0D0', size: 11, weight: 400 },
+            { text: '账房\n财务·法务·税务·分润结算', color: colors.textLight, blockColor: '#D0D0D0', size: 11, weight: 400 },
+          ]
+        },
+      ]
+    },
+    {
+      text: '三年路径', color: colors.accent, blockColor: colors.accentBlock, size: 15, weight: 600, expanded: false,
+      children: [
+        { text: '第一年\n南京打样·跑通模型', color: colors.accent, blockColor: colors.accentLight, size: 12, weight: 400 },
+        { text: '第二年\n复制3-5城', color: colors.accent, blockColor: colors.accentLight, size: 12, weight: 400 },
+        { text: '第三年\n10+城·全国平台', color: colors.accent, blockColor: colors.accentLight, size: 12, weight: 400 },
+      ]
+    },
+  ]
+};
+
+// ===== 布局引擎 =====
+const H_GAP = 190;
+const V_GAP = 10;
+const LEAF_V = 38;
+
+function countLeaves(node) {
+  if (!node.expanded || !node.children || node.children.length === 0) return 1;
+  return node.children.reduce((s, c) => s + countLeaves(c), 0);
+}
+
+function layout(node, x, yStart, yEnd) {
+  node.x = x;
+  node.cy = (yStart + yEnd) / 2;
+  
+  if (!node.expanded || !node.children || node.children.length === 0) return;
+  
+  const total = countLeaves(node);
+  const totalH = yEnd - yStart;
+  let curY = yStart;
+  
+  node.children.forEach(child => {
+    const leaves = countLeaves(child);
+    const h = (leaves / total) * totalH;
+    layout(child, x + H_GAP, curY, curY + h);
+    curY += h;
+  });
+}
+
+// ===== 绘制 =====
+function getVisibleNodes(node, list = []) {
+  list.push(node);
+  if (node.expanded && node.children) {
+    node.children.forEach(c => getVisibleNodes(c, list));
+  }
+  return list;
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return `${r},${g},${b}`;
+}
+
+function drawNode(node) {
+  const lines = node.text.split('\n');
+  const fs = node.size || 12;
+  const lineHeight = fs * 1.5;
+  const totalH = lines.length * lineHeight;
+  const weight = node.weight || 400;
+  
+  // 节点圆角矩形背景
+  const padX = fs * 0.75;
+  const padY = fs * 0.55;
+  const maxW = Math.max(...lines.map(l => ctx.measureText(l).width));
+  const bx = node.x - padX;
+  const by = node.cy - totalH/2 - padY;
+  const bw = maxW + padX * 2;
+  const bh = totalH + padY * 2;
+  const r = 8;
+  
+  // node.color = 文字色（加深版），node.blockColor = 图形色（柔和版）
+  const blockC = node.blockColor || node.color;
+  const textC = node.color;
+  
+  // 判断是不是根节点
+  const isRoot = node === data;
+  
+  if (isRoot) {
+    // 根节点：更大、更醒目
+    ctx.fillStyle = `rgba(${hexToRgb(blockC)}, 0.08)`;
+    ctx.beginPath();
+    ctx.roundRect(bx - 8, by - 6, bw + 16, bh + 12, 12);
+    ctx.fill();
+    
+    ctx.strokeStyle = `rgba(${hexToRgb(blockC)}, 0.2)`;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    
+    // 左侧色条（粗一些）
+    ctx.fillStyle = blockC;
+    ctx.beginPath();
+    ctx.roundRect(bx - 8, by - 6, 4, bh + 12, [12, 0, 0, 12]);
+    ctx.fill();
+  } else {
+    // 普通节点背景
+    ctx.fillStyle = `rgba(${hexToRgb(blockC)}, 0.06)`;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, bw, bh, r);
+    ctx.fill();
+    
+    // 细边框
+    ctx.strokeStyle = `rgba(${hexToRgb(blockC)}, 0.18)`;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    
+    // 左侧色条
+    ctx.fillStyle = blockC;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, 3, bh, [r, 0, 0, r]);
+    ctx.fill();
+  }
+  
+  // 文字（用加深色）
+  ctx.fillStyle = textC;
+  ctx.font = `${weight} ${fs}px -apple-system, "SF Pro Display", "PingFang SC", "Noto Sans SC", sans-serif`;
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+  
+  lines.forEach((line, i) => {
+    const ly = node.cy - totalH/2 + lineHeight/2 + i * lineHeight;
+    ctx.fillText(line, node.x, ly);
+  });
+  
+  // 展开/收起指示器
+  if (node.children && node.children.length > 0) {
+    const ix = node.x + maxW + padX + 10;
+    const iy = node.cy;
+    
+    // 小圆圈背景
+    ctx.fillStyle = `rgba(${hexToRgb(blockC)}, 0.08)`;
+    ctx.beginPath();
+    ctx.arc(ix + 2, iy, 8, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = textC;
+    ctx.font = '500 11px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(node.expanded ? '−' : '+', ix + 2, iy + 1);
+  }
+}
+
+function drawConnections(node) {
+  if (!node.expanded || !node.children) return;
+  
+  node.children.forEach(child => {
+    // 获取父节点文本宽度
+    const parentLines = node.text.split('\n');
+    const parentFs = node.size || 12;
+    const parentPadX = parentFs * 0.75;
+    const parentMaxW = Math.max(...parentLines.map(l => ctx.measureText(l).width));
+    const startX = node.x + parentMaxW + parentPadX + 20;
+    const endX = child.x;
+    const midX = (startX + endX) / 2;
+    
+    // 贝塞尔曲线——柔和的三顿半风格
+    ctx.beginPath();
+    ctx.moveTo(startX, node.cy);
+    ctx.bezierCurveTo(midX, node.cy, midX, child.cy, endX, child.cy);
+    ctx.strokeStyle = `rgba(${hexToRgb(child.color)}, 0.18)`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    
+    drawConnections(child);
+  });
+}
+
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  
+  // 白底背景
+  ctx.fillStyle = colors.bg;
+  ctx.fillRect(0, 0, W, H);
+  
+  // 极淡的装饰圆
+  const t = Date.now() / 15000;
+  for (let i = 0; i < 3; i++) {
+    const cx = W * (0.2 + i * 0.3);
+    const cy = H * 0.5 + Math.sin(t + i * 2) * 30;
+    const radius = 150 + i * 80;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${hexToRgb(colors.accent)}, 0.015)`;
+    ctx.fill();
+  }
+  
+  ctx.save();
+  ctx.translate(panX, panY);
+  ctx.scale(scale, scale);
+  
+  // 连线
+  drawConnections(data);
+  
+  // 节点
+  const nodes = getVisibleNodes(data);
+  nodes.forEach(n => drawNode(n));
+  
+  ctx.restore();
+}
+
+// ===== 交互 =====
+let panX = 60, panY = 0, scale = 1;
+let isDragging = false, lastX, lastY;
+let pinchDist = 0;
+
+function calcBounds() {
+  const nodes = getVisibleNodes(data);
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  nodes.forEach(n => {
+    if (n.x < minX) minX = n.x;
+    if (n.x > maxX) maxX = n.x + 200;
+    if (n.cy < minY) minY = n.cy;
+    if (n.cy > maxY) maxY = n.cy;
+  });
+  return { minX, maxX, minY, maxY };
+}
+
+function fitToScreen() {
+  const bounds = calcBounds();
+  const contentW = bounds.maxX - bounds.minX + 120;
+  const contentH = bounds.maxY - bounds.minY + 120;
+  
+  const scaleX = W / contentW;
+  const scaleY = H / contentH;
+  scale = Math.min(scaleX, scaleY, 1.2);
+  
+  panX = (W - contentW * scale) / 2 - bounds.minX * scale + 60 * scale;
+  panY = (H - contentH * scale) / 2 - bounds.minY * scale;
+}
+
+function findNodeAt(node, wx, wy) {
+  const fs = node.size || 12;
+  const lines = node.text.split('\n');
+  const padX = fs * 0.75;
+  const maxW = Math.max(...lines.map(l => ctx.measureText(l).width));
+  const bh = lines.length * fs * 1.5 + fs * 1.1;
+  
+  const bx = node.x - padX;
+  const by = node.cy - bh/2;
+  
+  if (wx >= bx && wx <= bx + maxW + padX * 2 && wy >= by && wy <= by + bh) {
+    return node;
+  }
+  
+  if (node.expanded && node.children) {
+    for (const c of node.children) {
+      const found = findNodeAt(c, wx, wy);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+canvas.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'touch' && e.touches && e.touches.length >= 2) return;
+  isDragging = true;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  canvas.setPointerCapture(e.pointerId);
+});
+
+canvas.addEventListener('pointermove', e => {
+  if (!isDragging) return;
+  panX += e.clientX - lastX;
+  panY += e.clientY - lastY;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  render();
+});
+
+canvas.addEventListener('pointerup', e => {
+  if (!isDragging) return;
+  const dx = Math.abs(e.clientX - lastX);
+  const dy = Math.abs(e.clientY - lastY);
+  
+  if (dx < 5 && dy < 5) {
+    const wx = (e.clientX - panX) / scale;
+    const wy = (e.clientY - panY) / scale;
+    const hit = findNodeAt(data, wx, wy);
+    if (hit && hit.children && hit.children.length > 0) {
+      hit.expanded = !hit.expanded;
+      layout(data, 0, 0, countLeaves(data) * LEAF_V);
+      fitToScreen();
+      render();
+    }
+  }
+  isDragging = false;
+});
+
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const zoomFactor = e.deltaY > 0 ? 0.92 : 1.08;
+  const newScale = Math.max(0.3, Math.min(3, scale * zoomFactor));
+  
+  const mx = e.clientX;
+  const my = e.clientY;
+  panX = mx - (mx - panX) * (newScale / scale);
+  panY = my - (my - panY) * (newScale / scale);
+  scale = newScale;
+  render();
+}, { passive: false });
+
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length === 2) {
+    pinchDist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+  }
+}, { passive: true });
+
+canvas.addEventListener('touchmove', e => {
+  if (e.touches.length === 2) {
+    const dist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    const ratio = dist / pinchDist;
+    const newScale = Math.max(0.3, Math.min(3, scale * ratio));
+    
+    const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    panX = cx - (cx - panX) * (newScale / scale);
+    panY = cy - (cy - panY) * (newScale / scale);
+    scale = newScale;
+    pinchDist = dist;
+    render();
+  }
+}, { passive: true });
+
+// 初始化
+layout(data, 0, 0, countLeaves(data) * LEAF_V);
+fitToScreen();
+render();
+</script>
+</body>
+</html>

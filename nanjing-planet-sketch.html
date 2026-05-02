@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>南京星球 · TopSpace</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #f5f0e8;
+  overflow: hidden;
+  font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  touch-action: none;
+  cursor: grab;
+}
+body:active { cursor: grabbing; }
+canvas { display: block; }
+
+.top-bar {
+  position: fixed; top: 0; left: 0; right: 0;
+  padding: 18px 24px; z-index: 10; pointer-events: none;
+}
+.top-bar h1 {
+  font-size: 20px; font-weight: 800;
+  color: #2a2a2a; letter-spacing: 6px;
+}
+.top-bar .sub {
+  font-size: 11px; color: #999; margin-top: 2px; letter-spacing: 2px;
+}
+
+.legend {
+  position: fixed; right: 14px; top: 50%; transform: translateY(-50%);
+  z-index: 10; pointer-events: none;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: #555;
+}
+.legend-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 2px solid #2a2a2a; flex-shrink: 0;
+}
+
+.tooltip {
+  position: fixed; z-index: 20; pointer-events: none;
+  background: #fffbe6; border: 2.5px solid #2a2a2a;
+  border-radius: 3px; padding: 6px 14px;
+  opacity: 0; transition: opacity 0.1s;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.12);
+}
+.tooltip.show { opacity: 1; }
+.tooltip .t-name { font-size: 13px; color: #2a2a2a; font-weight: 700; }
+.tooltip .t-cat { font-size: 10px; color: #999; margin-top: 1px; }
+
+.overlay {
+  position: fixed; inset: 0; z-index: 30;
+  background: rgba(245,240,232,0.88);
+  display: none; justify-content: center; align-items: center;
+}
+.overlay.show { display: flex; }
+.panel {
+  background: #fffdf5; border: 3px solid #2a2a2a;
+  border-radius: 5px; padding: 28px 24px;
+  width: min(340px, 88vw); max-height: 80vh; overflow-y: auto;
+  position: relative;
+  box-shadow: 5px 5px 0 rgba(0,0,0,0.1);
+  animation: popIn 0.2s ease-out;
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9) rotate(-2deg); }
+  to { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+.panel .close {
+  position: absolute; top: 8px; right: 10px;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: none; border: 2.5px solid #bbb;
+  color: #888; font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.panel .close:hover { border-color: #2a2a2a; color: #2a2a2a; }
+.panel .avatar-big {
+  width: 72px; height: 72px; border-radius: 50%;
+  margin: 0 auto 14px; display: flex; align-items: center; justify-content: center;
+  border: 3px solid #2a2a2a; font-size: 32px;
+}
+.panel .p-name {
+  font-size: 18px; font-weight: 800; color: #2a2a2a;
+  text-align: center; margin-bottom: 2px;
+}
+.panel .p-cat {
+  font-size: 11px; color: #aaa; text-align: center; margin-bottom: 14px;
+}
+.panel .p-divider { height: 2px; background: #2a2a2a; opacity: 0.15; margin: 12px 0; }
+.panel .p-row {
+  display: flex; justify-content: space-between;
+  font-size: 13px; color: #666; margin-bottom: 6px;
+}
+.panel .p-row .val { color: #2a2a2a; font-weight: 700; }
+.panel .p-bio { font-size: 13px; color: #777; line-height: 1.8; margin-top: 6px; }
+.panel .p-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.panel .p-tag {
+  padding: 3px 9px; border-radius: 3px;
+  font-size: 10px; color: #2a2a2a; font-weight: 600;
+  background: #fffbe6; border: 2px solid #2a2a2a;
+}
+.panel .p-na { text-align: center; font-size: 12px; color: #ccc; margin-top: 16px; }
+
+.stats-bar {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+  z-index: 10; pointer-events: none;
+  display: flex; gap: 22px;
+  background: #fffdf5; border: 2.5px solid #2a2a2a;
+  border-radius: 5px; padding: 7px 22px;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.08);
+}
+.stat { text-align: center; }
+.stat .num { font-size: 17px; font-weight: 800; color: #2a2a2a; }
+.stat .lbl { font-size: 9px; color: #999; margin-top: 1px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div class="top-bar">
+  <h1>TOPSPACE</h1>
+  <div class="sub">南京 · 001号星球</div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#e8b44c"></div>产品型</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#d96b6b"></div>门店型</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#5a9fd4"></div>内容型</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#9b7bbf"></div>服务型</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#5ba875"></div>活动型</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#d5d0c8"></div>探索者</div>
+</div>
+
+<div class="tooltip" id="tip">
+  <div class="t-name" id="tipName"></div>
+  <div class="t-cat" id="tipCat"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="panel" id="panel"></div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="num">154</div><div class="lbl">创造者</div></div>
+  <div class="stat"><div class="num">40</div><div class="lbl">探索者</div></div>
+  <div class="stat"><div class="num">194</div><div class="lbl">小伙伴</div></div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const tip = document.getElementById('tip');
+const tipName = document.getElementById('tipName');
+const tipCat = document.getElementById('tipCat');
+const overlay = document.getElementById('overlay');
+const panel = document.getElementById('panel');
+
+let W, H, cx, cy;
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  cx = W / 2; cy = H / 2;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ========== RUSTY LAKE STYLE ==========
+// Thick black ink outlines, flat colored fills, hand-drawn wobble
+// Like it was drawn with a thick marker on rough paper
+
+// Seeded random for consistent wobble
+function seededRand(seed) {
+  let s = seed;
+  return function() {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+// Hand-drawn circle with visible wobble (thick marker feel)
+function sketchCircle(x, y, r, seed) {
+  const seg = 24;
+  const rng = seededRand(seed);
+  ctx.beginPath();
+  for (let i = 0; i <= seg; i++) {
+    const a = (i / seg) * Math.PI * 2;
+    // Visible but not crazy wobble - feels hand-drawn
+    const w = (rng() - 0.5) * r * 0.06 + (rng() - 0.5) * r * 0.04;
+    const px = x + Math.cos(a) * (r + w);
+    const py = y + Math.sin(a) * (r + w);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+}
+
+// Hand-drawn wavy line
+function sketchLine(x1, y1, x2, y2, seed) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.sqrt(dx*dx + dy*dy);
+  const steps = Math.max(3, Math.floor(len / 18));
+  const rng = seededRand(seed);
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  for (let i = 1; i < steps; i++) {
+    const t = i / steps;
+    const wobble = (rng() - 0.5) * 2.5;
+    const nx = -dy / len, ny = dx / len;
+    ctx.lineTo(x1 + dx * t + nx * wobble, y1 + dy * t + ny * wobble);
+  }
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+}
+
+// Flat color fill (clean circle, no gradient at all)
+function flatFillCircle(x, y, r, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// ========== COLORS - Rusty Lake inspired ==========
+// Muted but distinct, warm palette - not too bright, not too grey
+const COLORS = {
+  product: '#e8b44c',  // 土黄/琥珀
+  store:   '#d96b6b',  // 铁锈红/砖红
+  content: '#5a9fd4',  // 灰蓝
+  service: '#9b7bbf',  // 灰紫
+  event:   '#5ba875',  // 灰绿/橄榄
+  worker:  '#a8a098',  // 暖灰
+  seeker:  '#d5d0c8'   // 浅灰
+};
+
+const CAT_LABELS = {
+  product: '产品型创造者', store: '门店型创造者', content: '内容型创造者',
+  service: '服务型创造者', event: '活动型创造者', worker: '工作者', seeker: '探索者'
+};
+
+const CAT_EMOJI = {
+  product: '🍵', store: '🏪', content: '📹', service: '🎯', event: '🎪', worker: '🛠', seeker: '·'
+};
+
+// ========== CREATOR DATA ==========
+const creatorNames = {
+  product: ['山间白茶','手作陶瓷','精酿工坊','植物香氛','手工皮具','有机蜂蜜','金陵折扇','非遗云锦','文创丝巾','手磨咖啡豆','天然酵种面包','独立首饰','手工皂艺','盐水鸭礼盒','古法酿酒','竹编手作','木工家具','蓝染布艺','限定甜品','陶艺工作室','茶叶定制','蜂蜡蜡烛','雨花茶','桂花糕坊','手工编织','漆器工坊','金陵刻经','雨花石艺','老卤鸭脖','石斛养生'],
+  store: ['隐逸茶舍','日式咖啡','独立书店','中古杂货铺','花艺工作室','精酿酒吧','烘焙实验室','复古唱片店','手工巧克力','小众香水馆','创意料理','茶陶空间','社区画廊','买手店','深夜食堂','猫咖','手冲咖啡站','城市阳台','手作甜品店','调香实验室','复古理发店','独立眼镜店','精酿啤酒屋','手作杂货铺','社区厨房','植物工作室','黑胶唱片行','独立文具铺','手工冰淇淋','古着衣铺'],
+  content: ['城市探索','美食vlog','播客主理人','摄影工作室','短视频编导','生活方式博主','旅行日记','读书频道','音乐制作人','街拍达人','科技测评','家居美学','亲子内容','非遗记录者','运动健身博主','独立纪录片','手账达人','街舞视频','宠物博主','咖啡文化','建筑探秘','独立漫画','声音设计师','影像诗人','城市写作者','艺术评论','植物科普','传统文化','青年视角','数字游民'],
+  service: ['品牌设计','空间设计','活动策划','商业摄影','包装设计','VI系统','用户运营','数据分析','法律顾问','财税服务','营销策划','新媒体运营','短视频制作','直播运营','私域运营','插画设计','IP孵化','电商代运营','社群运营','内容策划','商业顾问','投资对接','专利服务','人才推荐','技术外包'],
+  event: ['城市市集','艺术展览','音乐现场','读书沙龙','手作工坊','咖啡品鉴','摄影展','创意市集','户外露营','陶艺体验','红酒品鉴','非遗体验','电影放映','城市骑行','音乐节','话剧演出','亲子派对','跑团活动','瑜伽静修','旧物交换']
+};
+
+const detailInfo = {
+  '山间白茶': { bio: '来自高淳的山间白茶，手工采摘，自然晾晒。每一片茶叶都带着山风的气息。', tags: ['有机种植','手工制茶','茶文化','产地直供'], fans: 3200, deals: 186 },
+  '隐逸茶舍': { bio: '藏在老城区巷子里的茶舍，闹中取静。不卖网红奶茶，只做正正经经的茶。', tags: ['线下体验','新中式','茶空间'], fans: 5100, deals: 0 },
+  '城市探索': { bio: '用镜头记录南京每一个被忽略的角落。每条巷子都有自己的故事。', tags: ['城市文化','街拍','人文纪实'], fans: 28000, deals: 45 },
+  '品牌设计': { bio: '8年品牌设计经验，服务过50+本土品牌。好设计不是好看，是好用。', tags: ['品牌策略','视觉设计','VI系统'], fans: 4200, deals: 312 },
+  '城市市集': { bio: '每月一期的城市创意市集，已成功举办18期。聚集南京最有趣的独立品牌。', tags: ['线下活动','创意市集','社群运营'], fans: 15000, deals: 89 },
+  '精酿工坊': { bio: '南京本土精酿品牌，坚持小批量酿造。每一口都是南京的味道。', tags: ['精酿啤酒','本地品牌','手工酿造'], fans: 8500, deals: 520 },
+  '独立书店': { bio: '不是书店，是一个可以发呆的地方。欢迎来坐，不买也没关系。', tags: ['独立文化','阅读空间','社区书店'], fans: 12000, deals: 0 },
+  '美食vlog': { bio: '南京土著，吃了30年。只为记录那些真正好吃的苍蝇馆子和深夜食堂。', tags: ['美食','本地生活','短视频'], fans: 45000, deals: 120 },
+  '播客主理人': { bio: '《城市野人》播客主理人，每周更新。聊城市、聊人、聊那些有意思的事。', tags: ['播客','内容创作','访谈'], fans: 18000, deals: 67 },
+  '空间设计': { bio: '专注小空间大利用。30平米做出60平米的既视感。', tags: ['室内设计','空间优化','小户型'], fans: 6700, deals: 89 },
+  '摄影工作室': { bio: '不拍流水线证件照，只拍有温度的照片。', tags: ['商业摄影','人像','产品拍摄'], fans: 9200, deals: 234 },
+  '手工皮具': { bio: '一头牛到一只包，全程手工。追求每个作品都有手工的温度。', tags: ['手工皮具','原创设计','定制'], fans: 5600, deals: 340 },
+  '花艺工作室': { bio: '不卖节日花束，只做日常插花和空间花艺。让花回归日常。', tags: ['花艺','生活美学','体验课'], fans: 7800, deals: 156 },
+  '非遗云锦': { bio: '南京云锦第四代传承人，用现代设计语言重新演绎千年织造技艺。', tags: ['非遗传承','云锦','文化创新'], fans: 22000, deals: 78 },
+  '音乐现场': { bio: '南京独立音乐推广者。每月举办小型现场演出，支持本地原创音乐。', tags: ['独立音乐','现场演出','社群'], fans: 11000, deals: 45 },
+  '创意料理': { bio: '融合菜不是乱搭，是有逻辑的创造。每道菜都是一个故事。', tags: ['创意餐饮','融合菜','体验式消费'], fans: 8900, deals: 0 }
+};
+
+const seekerNames = [
+  'S-201','S-215','S-228','S-241','S-256',
+  'S-269','S-282','S-295','S-308','S-321',
+  'S-334','S-347','S-360','S-373','S-386',
+  'S-399','S-412','S-425','S-438','S-451',
+  'S-464','S-477','S-490','S-503','S-516',
+  'S-529','S-542','S-555','S-568','S-581',
+  'S-594','S-607','S-620','S-633','S-646',
+  'S-659','S-672','S-685','S-698','S-711'
+];
+
+// ========== BUILD NODES ==========
+const nodes = [];
+const SPHERE_R = 220;
+const SEEKER_R = 330;
+
+// Sphere distribution (Fibonacci sphere)
+function fibSphere(i, total, radius) {
+  const golden = Math.PI * (3 - Math.sqrt(5));
+  const baseY = 1 - (i / (total - 1)) * 2;
+  const y = Math.max(-0.95, Math.min(0.95, baseY));
+  const r = Math.sqrt(1 - y * y);
+  const theta = golden * i;
+  const jitter = 0.92 + (Math.sin(i * 7.3 + 1.1) * 0.5 + 0.5) * 0.16;
+  return {
+    x: Math.cos(theta) * r * radius * jitter,
+    y: y * radius * jitter,
+    z: Math.sin(theta) * r * radius * jitter
+  };
+}
+
+// Build all creators
+const catKeys = ['product','store','content','service','event'];
+catKeys.forEach(cat => {
+  creatorNames[cat].forEach((name, i) => {
+    const idx = nodes.length;
+    const hasDetail = detailInfo[name];
+    const size = hasDetail
+      ? 16 + Math.sin(idx * 2.3) * 5 + Math.cos(idx * 5.1) * 3
+      : 8 + Math.sin(idx * 3.7) * 3 + Math.cos(idx * 1.9) * 2;
+    nodes.push({
+      id: idx, name, cat,
+      baseSize: Math.max(6, size),
+      color: COLORS[cat],
+      emoji: CAT_EMOJI[cat],
+      isSeeker: false,
+      hasDetail: !!hasDetail,
+      detail: detailInfo[name] || null,
+      seed: idx * 137.5 + 42
+    });
+  });
+});
+
+// Build seekers
+seekerNames.forEach((name, i) => {
+  nodes.push({
+    id: nodes.length, name, cat: 'seeker',
+    baseSize: Math.max(2.5, 3.5 + Math.sin(i * 3.1) * 1.5),
+    color: COLORS.seeker,
+    emoji: CAT_EMOJI.seeker,
+    isSeeker: true, hasDetail: false, detail: null,
+    seed: (nodes.length + i) * 97.3 + 13
+  });
+});
+
+// Interleave positions so colors mix
+const creators = nodes.filter(n => !n.isSeeker);
+const seekers = nodes.filter(n => n.isSeeker);
+const buckets = {};
+catKeys.forEach(c => { buckets[c] = creators.filter(n => n.cat === c); });
+
+const interleaved = [];
+const queues = {};
+catKeys.forEach(c => { queues[c] = [...buckets[c]]; });
+let more = true;
+while (more) {
+  more = false;
+  catKeys.forEach(c => {
+    if (queues[c].length > 0) { interleaved.push(queues[c].shift()); more = true; }
+  });
+}
+interleaved.forEach((n, i) => {
+  const p = fibSphere(i, interleaved.length, SPHERE_R);
+  n.x = p.x; n.y = p.y; n.z = p.z;
+});
+seekers.forEach((n, i) => {
+  const p = fibSphere(i + 300, seekers.length, SEEKER_R);
+  n.x = p.x; n.y = p.y; n.z = p.z;
+});
+
+// ========== EDGES ==========
+const edges = [];
+const creatorNodes = nodes.filter(n => !n.isSeeker);
+const EDGE_DIST = 95;
+
+for (let i = 0; i < creatorNodes.length; i++) {
+  const a = creatorNodes[i];
+  const dists = [];
+  for (let j = 0; j < creatorNodes.length; j++) {
+    if (i === j) continue;
+    const b = creatorNodes[j];
+    const dx = a.x-b.x, dy = a.y-b.y, dz = a.z-b.z;
+    const d = Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if (d < EDGE_DIST) dists.push({j, d});
+  }
+  dists.sort((a,b) => a.d - b.d);
+  const maxC = 1 + Math.floor(Math.abs(Math.sin(i*2.7)) * 3);
+  for (let k = 0; k < Math.min(maxC, dists.length); k++) {
+    const iA = nodes.indexOf(a), iB = nodes.indexOf(creatorNodes[dists[k].j]);
+    const key = Math.min(iA,iB)+'-'+Math.max(iA,iB);
+    if (!edges.find(e => e.key === key))
+      edges.push({a: iA, b: iB, key, seed: iA*31+iB*17});
+  }
+}
+
+const seekerEdges = [];
+seekers.forEach((s, si) => {
+  let minD = Infinity, nearI = -1;
+  creators.forEach(c => {
+    const dx=s.x-c.x, dy=s.y-c.y, dz=s.z-c.z;
+    const d = Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if (d < minD) { minD = d; nearI = nodes.indexOf(c); }
+  });
+  if (nearI >= 0) seekerEdges.push({a: si, b: nearI, seed: si*53+7});
+});
+
+// ========== ROTATION & INPUT ==========
+let rotY = 0, rotX = 0.3, autoRot = 0.0012, zoom = 1;
+let dragging = false, lastX = 0, lastY = 0, velY = 0, velX = 0;
+
+function project(x, y, z) {
+  const cY = Math.cos(rotY), sY = Math.sin(rotY);
+  let rx = x*cY - z*sY, rz = x*sY + z*cY;
+  const cX = Math.cos(rotX), sX = Math.sin(rotX);
+  let ry = y*cX - rz*sX; rz = y*sX + rz*cX;
+  return { sx: cx + rx*zoom, sy: cy + ry*zoom, depth: rz };
+}
+
+let mouseX = -999, mouseY = -999, hoveredNode = null;
+
+canvas.addEventListener('mousedown', e => { dragging = true; lastX = e.clientX; lastY = e.clientY; velY = velX = 0; });
+canvas.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  if (dragging) {
+    velY = (e.clientX-lastX)*0.004; velX = (e.clientY-lastY)*0.004;
+    rotY += velY; rotX += velX;
+    rotX = Math.max(-1.2, Math.min(1.2, rotX));
+    lastX = e.clientX; lastY = e.clientY;
+  }
+});
+canvas.addEventListener('mouseup', () => dragging = false);
+canvas.addEventListener('mouseleave', () => { dragging = false; mouseX = -999; });
+canvas.addEventListener('wheel', e => { e.preventDefault(); zoom *= e.deltaY>0 ? 0.93 : 1.07; zoom = Math.max(0.4, Math.min(3, zoom)); }, {passive:false});
+canvas.addEventListener('click', () => { if (hoveredNode !== null) showDetail(nodes[hoveredNode]); });
+
+let lastTouchDist = 0, touchSX = 0, touchSY = 0;
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (e.touches.length === 1) {
+    dragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+    touchSX = lastX; touchSY = lastY; velY = velX = 0;
+  } else if (e.touches.length === 2) {
+    dragging = false;
+    const dx = e.touches[0].clientX-e.touches[1].clientX, dy = e.touches[0].clientY-e.touches[1].clientY;
+    lastTouchDist = Math.sqrt(dx*dx+dy*dy);
+  }
+}, {passive:false});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (e.touches.length === 1 && dragging) {
+    velY = (e.touches[0].clientX-lastX)*0.004; velX = (e.touches[0].clientY-lastY)*0.004;
+    rotY += velY; rotX += velX;
+    rotX = Math.max(-1.2, Math.min(1.2, rotX));
+    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+    mouseX = e.touches[0].clientX; mouseY = e.touches[0].clientY;
+  } else if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX-e.touches[1].clientX, dy = e.touches[0].clientY-e.touches[1].clientY;
+    const dist = Math.sqrt(dx*dx+dy*dy);
+    if (lastTouchDist > 0) { zoom *= dist/lastTouchDist; zoom = Math.max(0.4, Math.min(3, zoom)); }
+    lastTouchDist = dist;
+  }
+}, {passive:false});
+canvas.addEventListener('touchend', e => {
+  if (e.changedTouches.length === 1) {
+    const tx = e.changedTouches[0].clientX, ty = e.changedTouches[0].clientY;
+    if (Math.sqrt((tx-touchSX)**2+(ty-touchSY)**2) < 10 && hoveredNode !== null) showDetail(nodes[hoveredNode]);
+  }
+  dragging = false; lastTouchDist = 0;
+});
+
+// ========== DETAIL PANEL ==========
+function showDetail(node) {
+  let h = `<button class="close" onclick="closePanel()">✕</button>`;
+  h += `<div class="avatar-big" style="background:${node.color}">${node.emoji}</div>`;
+  h += `<div class="p-name">${node.name}</div>`;
+  h += `<div class="p-cat">${CAT_LABELS[node.cat]} · #${String(node.id+1).padStart(4,'0')}</div>`;
+  if (node.hasDetail && node.detail) {
+    const d = node.detail;
+    h += `<div class="p-divider"></div>`;
+    h += `<div class="p-row"><span>粉丝</span><span class="val">${d.fans.toLocaleString()}</span></div>`;
+    h += `<div class="p-row"><span>成交</span><span class="val">${d.deals} 笔</span></div>`;
+    h += `<div class="p-bio">${d.bio}</div>`;
+    h += `<div class="p-tags">${d.tags.map(t=>`<span class="p-tag">${t}</span>`).join('')}</div>`;
+  } else if (node.isSeeker) {
+    h += `<div class="p-divider"></div><div class="p-na">🚶 正在探索中...</div>`;
+  } else {
+    h += `<div class="p-divider"></div><div class="p-na">📝 详细信息待完善</div>`;
+  }
+  panel.innerHTML = h;
+  overlay.classList.add('show');
+}
+function closePanel() { overlay.classList.remove('show'); }
+overlay.addEventListener('click', e => { if (e.target === overlay) closePanel(); });
+
+// ========== PAPER BACKGROUND ==========
+const texCvs = document.createElement('canvas');
+const texCtx = texCvs.getContext('2d');
+function genPaper() {
+  texCvs.width = W; texCvs.height = H;
+  texCtx.fillStyle = '#f5f0e8';
+  texCtx.fillRect(0, 0, W, H);
+  const img = texCtx.getImageData(0, 0, W, H);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const n = (Math.random() - 0.5) * 10;
+    d[i] = Math.max(0, Math.min(255, d[i]+n));
+    d[i+1] = Math.max(0, Math.min(255, d[i+1]+n));
+    d[i+2] = Math.max(0, Math.min(255, d[i+2]+n));
+  }
+  texCtx.putImageData(img, 0, 0);
+}
+genPaper();
+window.addEventListener('resize', () => { resize(); genPaper(); });
+
+// ========== RENDER ==========
+let frame = 0;
+
+function draw() {
+  requestAnimationFrame(draw);
+  frame++;
+
+  ctx.drawImage(texCvs, 0, 0);
+
+  if (!dragging) {
+    rotY += autoRot + velY * 0.95;
+    rotX += velX * 0.95;
+    velY *= 0.95; velX *= 0.95;
+    rotX = Math.max(-1.2, Math.min(1.2, rotX));
+  }
+
+  const projected = nodes.map((n, i) => {
+    let py = n.y;
+    if (n.isSeeker) py += Math.sin(frame * 0.005 + i * 0.7) * 3;
+    const p = project(n.x, py, n.z);
+    return { ...p, node: n, idx: i };
+  });
+  projected.sort((a, b) => a.depth - b.depth);
+
+  // Hover detection
+  hoveredNode = null;
+  let bestD = 35;
+  projected.forEach(p => {
+    if (mouseX < 0) return;
+    const dx = mouseX - p.sx, dy = mouseY - p.sy;
+    const d = Math.sqrt(dx*dx + dy*dy);
+    const hitR = p.node.baseSize * zoom * 0.6 + 10;
+    if (d < hitR && d < bestD) { bestD = d; hoveredNode = p.idx; }
+  });
+
+  // Draw sphere outline (very subtle)
+  ctx.save();
+  ctx.globalAlpha = 0.06;
+  ctx.strokeStyle = '#2a2a2a';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([5, 7]);
+  sketchCircle(cx, cy, SPHERE_R * zoom * 0.88, 42);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Draw seeker edges
+  seekerEdges.forEach(e => {
+    const pa = projected.find(p => p.idx === e.a);
+    const pb = projected.find(p => p.idx === e.b);
+    if (!pa || !pb) return;
+    const alpha = Math.max(0, Math.min(0.06, 0.1 - ((pa.depth+pb.depth)/2) * 0.0003));
+    if (alpha < 0.01) return;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = '#888';
+    ctx.lineWidth = 0.8;
+    ctx.setLineDash([2, 4]);
+    sketchLine(pa.sx, pa.sy, pb.sx, pb.sy, e.seed);
+    ctx.setLineDash([]);
+    ctx.restore();
+  });
+
+  // Draw creator edges
+  edges.forEach(e => {
+    const pa = projected.find(p => p.idx === e.a);
+    const pb = projected.find(p => p.idx === e.b);
+    if (!pa || !pb) return;
+    if (pa.depth < -80 && pb.depth < -80) return;
+    const alpha = Math.max(0, Math.min(0.18, 0.3 - ((pa.depth+pb.depth)/2) * 0.0005));
+    if (alpha < 0.01) return;
+    const isH = hoveredNode !== null && (e.a === hoveredNode || e.b === hoveredNode);
+    ctx.save();
+    ctx.globalAlpha = isH ? Math.min(alpha*3, 0.5) : alpha;
+    ctx.strokeStyle = isH ? '#2a2a2a' : '#555';
+    ctx.lineWidth = isH ? 2 : 1;
+    ctx.lineCap = 'round';
+    sketchLine(pa.sx, pa.sy, pb.sx, pb.sy, e.seed);
+    ctx.restore();
+  });
+
+  // Draw nodes
+  projected.forEach(p => {
+    const n = p.node;
+    const df = Math.max(0.12, Math.min(1, (p.depth + SPHERE_R) / (SPHERE_R * 2)));
+    const size = n.baseSize * zoom * Math.max(0.45, df);
+    if (size < 1.5) return;
+
+    const isH = hoveredNode === p.idx;
+    const alpha = n.isSeeker ? df * 0.35 : df * 0.9;
+
+    ctx.save();
+    ctx.globalAlpha = isH ? 1 : alpha;
+
+    if (n.isSeeker) {
+      // Seekers: tiny dot + thin ring
+      ctx.fillStyle = '#bbb';
+      ctx.beginPath();
+      ctx.arc(p.sx, p.sy, Math.max(1.5, size * 0.3), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#aaa';
+      ctx.lineWidth = 0.8;
+      ctx.globalAlpha = alpha * 0.4;
+      sketchCircle(p.sx, p.sy, size, n.seed);
+      ctx.stroke();
+    } else {
+      // 1. Flat color fill (no gradient!)
+      flatFillCircle(p.sx, p.sy, size, n.color);
+
+      // 2. Bold black hand-drawn outline (the Rusty Lake signature)
+      ctx.strokeStyle = '#2a2a2a';
+      ctx.lineWidth = isH ? 3.5 : 2.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.globalAlpha = isH ? 1 : Math.min(alpha + 0.15, 0.85);
+      sketchCircle(p.sx, p.sy, size, n.seed);
+      ctx.stroke();
+
+      // 3. Emoji
+      if (size > 10) {
+        ctx.globalAlpha = isH ? 1 : alpha * 0.95;
+        ctx.font = `${Math.floor(size * 0.75)}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(n.emoji, p.sx, p.sy + 1);
+      }
+
+      // 4. Hover glow ring
+      if (isH) {
+        ctx.globalAlpha = 0.25;
+        ctx.strokeStyle = '#2a2a2a';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        ctx.arc(p.sx, p.sy, size + 9, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+    ctx.restore();
+  });
+
+  // Tooltip
+  if (hoveredNode !== null) {
+    const n = nodes[hoveredNode];
+    const p = projected.find(pp => pp.idx === hoveredNode);
+    if (p) {
+      tipName.textContent = n.emoji + ' ' + n.name;
+      tipCat.textContent = CAT_LABELS[n.cat];
+      let tx = p.sx + 18, ty = p.sy - 10;
+      if (tx + 150 > W) tx = p.sx - 165;
+      if (ty < 10) ty = 10;
+      tip.style.left = tx + 'px';
+      tip.style.top = ty + 'px';
+      tip.classList.add('show');
+    }
+    canvas.style.cursor = 'pointer';
+  } else {
+    tip.classList.remove('show');
+    canvas.style.cursor = dragging ? 'grabbing' : 'grab';
+  }
+}
+
+draw();
+</script>
+</body>
+</html>

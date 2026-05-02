@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOPOO · 拓圈组织架构</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #FAF9F7;
+    --text: #1A1A1A;
+    --text-light: #555555;
+    --text-lighter: #999999;
+    --border: #E8E6E3;
+    --border-light: #F0EEEB;
+    --card-bg: #FFFFFF;
+    --tag-bg: #F5F4F2;
+    /* 五色体系 */
+    --c-market: #5E9470;
+    --c-market-block: #7BAF8B;
+    --c-market-light: #EDF5EF;
+    --c-content: #C0633E;
+    --c-content-block: #D4785A;
+    --c-content-light: #FDF0EB;
+    --c-business: #C49A20;
+    --c-business-block: #D4A82E;
+    --c-business-light: #FBF5E5;
+    --c-product: #7D6B93;
+    --c-product-block: #9B8AAE;
+    --c-product-light: #F3EFF6;
+    --c-exp: #5A9DAF;
+    --c-exp-block: #7CB9C8;
+    --c-exp-light: #E8F4F7;
+    --c-hq: #8B7E6A;
+    --c-hq-block: #A89880;
+    --c-hq-light: #F5F2ED;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", "PingFang SC", "Noto Sans SC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* 容器 */
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* 顶部 */
+  .hero {
+    padding: 80px 0 60px;
+    text-align: center;
+  }
+  .hero-label {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--text-lighter);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .hero-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .hero-title span {
+    font-weight: 300;
+    color: var(--text-lighter);
+    font-size: 18px;
+    display: block;
+    margin-top: 6px;
+    letter-spacing: 3px;
+  }
+  .hero-slogan {
+    font-size: 13px;
+    color: var(--text-lighter);
+    letter-spacing: 1px;
+    margin-top: 20px;
+    padding: 10px 24px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    display: inline-block;
+  }
+
+  /* Originator */
+  .ceo-section {
+    text-align: center;
+    padding: 32px 0 48px;
+  }
+  .ceo-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 2px solid var(--border);
+  }
+  .ceo-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  .ceo-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .ceo-role {
+    font-size: 12px;
+    color: var(--text-lighter);
+    letter-spacing: 2px;
+  }
+  .ceo-line {
+    width: 1px;
+    height: 32px;
+    background: var(--border);
+    margin: 24px auto 0;
+  }
+
+  /* 中心模块 */
+  .centers {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 80px;
+  }
+
+  .center-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+  }
+  .center-card:hover {
+    box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+  }
+
+  .center-header {
+    display: flex;
+    align-items: center;
+    padding: 20px 24px;
+    cursor: pointer;
+    gap: 16px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .center-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .center-info {
+    flex: 1;
+  }
+  .center-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .center-sub {
+    font-size: 11px;
+    color: var(--text-lighter);
+    letter-spacing: 1px;
+  }
+  .center-count {
+    font-size: 11px;
+    color: var(--text-lighter);
+    background: var(--tag-bg);
+    padding: 4px 12px;
+    border-radius: 100px;
+    flex-shrink: 0;
+  }
+  .center-arrow {
+    font-size: 18px;
+    color: var(--text-lighter);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+  }
+  .center-card.open .center-arrow {
+    transform: rotate(90deg);
+  }
+
+  /* 部门列表 */
+  .dept-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+  }
+  .center-card.open .dept-list {
+    max-height: 2000px;
+  }
+  .dept-list-inner {
+    padding: 0 24px 20px;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .dept-item {
+    padding: 18px 0;
+    border-bottom: 1px solid var(--border-light);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .dept-item:last-child {
+    border-bottom: none;
+    padding-bottom: 4px;
+  }
+  .dept-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .dept-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .dept-name-box {
+    flex: 1;
+  }
+  .dept-name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .dept-trad {
+    font-size: 11px;
+    color: var(--text-lighter);
+    margin-top: 1px;
+  }
+  .dept-arrow {
+    font-size: 14px;
+    color: var(--text-lighter);
+    transition: transform 0.3s ease;
+  }
+  .dept-item.open .dept-arrow {
+    transform: rotate(90deg);
+  }
+
+  /* 部门详情 */
+  .dept-detail {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+  }
+  .dept-item.open .dept-detail {
+    max-height: 600px;
+  }
+  .dept-detail-inner {
+    padding: 14px 0 6px 48px;
+  }
+
+  .duties-title {
+    font-size: 11px;
+    color: var(--text-lighter);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+  .duty-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .duty-list li {
+    font-size: 13px;
+    color: var(--text-light);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.6;
+  }
+  .duty-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--text-lighter);
+  }
+
+  .worker-section {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--tag-bg);
+    border-radius: 10px;
+    display: flex;
+    gap: 16px;
+  }
+  .worker-col {
+    flex: 1;
+  }
+  .worker-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--text-lighter);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .worker-label.carbon { color: var(--c-content); }
+  .worker-label.silicon { color: var(--c-product); }
+  .worker-text {
+    font-size: 12px;
+    color: var(--text-light);
+    line-height: 1.5;
+  }
+
+  /* 底部 */
+  .footer {
+    text-align: center;
+    padding: 40px 0 60px;
+    font-size: 11px;
+    color: var(--text-lighter);
+    letter-spacing: 1px;
+  }
+  .footer-line {
+    width: 32px;
+    height: 1px;
+    background: var(--border);
+    margin: 0 auto 16px;
+  }
+
+  /* 响应式 */
+  @media (max-width: 480px) {
+    .hero-title { font-size: 24px; }
+    .center-header { padding: 16px 18px; }
+    .dept-list-inner { padding: 0 18px 16px; }
+    .dept-detail-inner { padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 顶部 -->
+  <div class="hero">
+    <div class="hero-label">TOPOO · 拓圈</div>
+    <h1 class="hero-title">组织架构<span>让小而美被世界看见</span></h1>
+    <div class="hero-slogan">商业研究所 · 产品试验田 · 创意落地场</div>
+  </div>
+
+  <!-- Originator -->
+  <div class="ceo-section">
+    <div class="ceo-avatar"><img src="C:/Users/Administrator/Desktop/拓圈角色/探索者seeker.png" alt="菜菜"></div>
+    <div class="ceo-name">菜菜</div>
+    <div class="ceo-role">拓荒者 · Originator</div>
+    <div class="ceo-line"></div>
+  </div>
+
+  <!-- 中心列表 -->
+  <div class="centers" id="centers"></div>
+
+  <!-- 底部 -->
+  <div class="footer">
+    <div class="footer-line"></div>
+    拓圈（南京）文化科技有限公司
+  </div>
+</div>
+
+<script>
+// v3 最新数据
+const orgData = [
+  {
+    name: '市场中心',
+    sub: 'MARKETING',
+    color: 'market',
+    departments: [
+      {
+        name: '品牌站',
+        trad: '品牌部',
+        icon: '⭐',
+        duties: [
+          '品牌定位维护（让小而美被世界看见）',
+          '视觉体系管理（五色体系、logo、品牌规范）',
+          '品牌介绍页、品牌手册更新维护',
+          'SOP规范制定和品牌故事输出',
+        ],
+        carbon: '创意策划、对外沟通',
+        silicon: '视觉设计、文案初稿',
+      },
+      {
+        name: '广播站',
+        trad: '新媒体运营部',
+        icon: '📻',
+        duties: [
+          '抖音/小红书/视频号日常运营',
+          '内容发布排期和投放策略',
+          '数据复盘（播放量、互动率、转化率）',
+          '热点追踪和话题策划',
+        ],
+        carbon: '策略决策、账号调性',
+        silicon: '数据监控、素材批量生产、发布执行',
+      },
+      {
+        name: '情报局',
+        trad: '用户运营部',
+        icon: '📡',
+        duties: [
+          '社群管理（微信群、星球群日常运营）',
+          '用户增长策略和数据追踪',
+          '用户画像分析、活跃度监控',
+          '游戏化数据统计（经验值、排名、积分）',
+        ],
+        carbon: '社群氛围、重点用户跟进',
+        silicon: '数据统计、自动提醒、日常回复',
+      },
+      {
+        name: '推广局',
+        trad: '市场推广部',
+        icon: '📢',
+        duties: [
+          '线上线下推广活动策划执行',
+          '渠道合作洽谈和维护',
+          '活动引流策略（拉新、促活、转化）',
+          '异业推广资源整合',
+        ],
+        carbon: '推广策略、渠道关系',
+        silicon: '投放执行、数据追踪',
+      },
+    ]
+  },
+  {
+    name: '内容中心',
+    sub: 'CONTENT',
+    color: 'content',
+    departments: [
+      {
+        name: '内容工厂',
+        trad: '内容制作部',
+        icon: '✍️',
+        duties: [
+          'OPC内容矩阵规划（1000+抖音号方向）',
+          '公众号推文撰写',
+          '短视频脚本创作',
+          '招募文案、活动文案、品牌文案',
+        ],
+        carbon: '创意方向、质量把控',
+        silicon: '初稿生成、批量改稿、多版本产出',
+      },
+      {
+        name: '创意局',
+        trad: '创意策划部',
+        icon: '💡',
+        duties: [
+          '活动文案策划',
+          '品牌文案创意',
+          '话题营销策划',
+          '创意方向把控',
+        ],
+        carbon: '创意方向、概念输出',
+        silicon: '文案初稿、素材生成',
+      },
+      {
+        name: '视觉车间',
+        trad: '视觉设计部',
+        icon: '🎨',
+        duties: [
+          '创造者产品包装设计',
+          '海报/主图/详情页设计',
+          '视频后期制作',
+          '品牌视觉物料输出',
+        ],
+        carbon: '设计方向、审美把控',
+        silicon: '批量出图、排版、基础修图',
+      },
+    ]
+  },
+  {
+    name: '商务中心',
+    sub: 'BUSINESS',
+    color: 'business',
+    departments: [
+      {
+        name: '招募站',
+        trad: '商务拓展部',
+        icon: '🎯',
+        duties: [
+          '全角色招募（Seeker、Creator、Worker、Linker）',
+          '入驻洽谈和签约',
+          '商业模型讲解和演示',
+        ],
+        carbon: '关系维护、商务谈判',
+        silicon: '数据资料整理、初步筛选',
+      },
+      {
+        name: '合作社',
+        trad: '商务合作部',
+        icon: '🤝',
+        duties: [
+          '赞助洽谈',
+          '异业合作对接',
+          '品牌联名策划',
+          '政府/园区对接协调',
+        ],
+        carbon: '关系维护、合作谈判',
+        silicon: '资料整理、方案输出',
+      },
+    ]
+  },
+  {
+    name: '产品中心',
+    sub: 'PRODUCT',
+    color: 'product',
+    departments: [
+      {
+        name: '技术部',
+        trad: '产品技术部',
+        icon: '🔧',
+        duties: [
+          'TopSpace拓圈宇宙网页产品规划与设计',
+          '微信小程序功能设计与开发',
+          'H5互动页面开发（身份卡、基因测试等）',
+          '前后端开发、服务器部署运维',
+          '支付系统、分润系统接入',
+        ],
+        carbon: '产品方向、用户体验、技术选型',
+        silicon: '代码开发、功能迭代、bug修复、部署',
+      },
+      {
+        name: 'AI研究院',
+        trad: 'AI研发部',
+        icon: '🤖',
+        duties: [
+          'AI工具探索和应用落地',
+          '创造者AI赋能工具开发',
+          'AI内容生成能力建设（文案/视觉/视频）',
+          'AI客服、AI助手、AI诊断工具',
+        ],
+        carbon: 'AI方向判断、效果评估',
+        silicon: '模型调优、能力集成、自动化流程',
+      },
+      {
+        name: '算法实验室',
+        trad: '算法策略部',
+        icon: '🧮',
+        duties: [
+          '星球匹配算法（性格/价值观/技能多维匹配）',
+          '角色推荐算法（基因测试→推荐最合适角色）',
+          '智能撮合算法（Worker-创造者任务匹配）',
+          '推荐算法（探索者推荐合适星球和内容）',
+          '游戏化数据模型（经验值/积分/排名计算逻辑）',
+        ],
+        carbon: '算法逻辑设计、规则制定',
+        silicon: '模型训练、数据验证、迭代优化',
+      },
+      {
+        name: '创新实验室',
+        trad: '创新孵化部',
+        icon: '🚀',
+        duties: [
+          '新玩法测试（新的游戏化机制、互动形式）',
+          '新功能原型快速验证',
+          '行业创新案例研究和借鉴',
+        ],
+        carbon: '创新方向判断、可行性评估',
+        silicon: '快速原型开发、A/B测试',
+      },
+    ]
+  },
+  {
+    name: '体验中心',
+    sub: 'EXPERIENCE',
+    color: 'exp',
+    departments: [
+      {
+        name: '拓圈无界',
+        trad: '活动策划部',
+        icon: '💥',
+        duties: [
+          '1000人挑战系列活动策划执行',
+          '线下市集、碰撞工坊、快闪活动',
+          '活动SOP制定和复盘',
+          '线下空间运营（国创园根据地）',
+        ],
+        carbon: '策划执行、现场把控',
+        silicon: '方案输出、物料设计、数据统计',
+      },
+      {
+        name: '学习社',
+        trad: '培训教育部',
+        icon: '📚',
+        duties: [
+          '【内部培训】新成员入职培训',
+          '【内部培训】AI工具使用教学',
+          '【内部培训】商业思维和方法论',
+          '【内部培训】短视频拍摄与剪辑技能',
+          '【内部培训】文案写作训练',
+          '【外部课程】《人工智能培训师》',
+          '【外部课程】《AI应用工程师》',
+          '【外部课程】《工信部职业认证》',
+          '【外部课程】《如何成为OPC超级个体》',
+        ],
+        carbon: '授课、课程设计、外部合作洽谈',
+        silicon: '课件制作、知识库维护、学员答疑',
+      },
+      {
+        name: '商业研究所',
+        trad: '商业研究部',
+        icon: '📊',
+        duties: [
+          '市场调研和行业分析',
+          '商业模式研究和迭代',
+          '创造者成功案例沉淀',
+          '南京/全国市场测算模型维护',
+        ],
+        carbon: '研究方向、结论判断',
+        silicon: '数据收集、报告撰写、趋势分析',
+      },
+    ]
+  },
+  {
+    name: '部落总部',
+    sub: 'HEADQUARTERS',
+    color: 'hq',
+    departments: [
+      {
+        name: '后勤站',
+        trad: '行政部',
+        icon: '🏠',
+        duties: [
+          '行政事务、办公管理',
+          '物料采购和管理',
+          '日常流程保障',
+        ],
+        carbon: '决策、协调',
+        silicon: '流程自动化、提醒、记录',
+      },
+      {
+        name: '账房',
+        trad: '财务法务部',
+        icon: '💰',
+        duties: [
+          '财务管理、收支记录',
+          '合同管理、法律风险把控',
+          '税务申报',
+          '创造者保证金、分润结算',
+        ],
+        carbon: '审批、决策',
+        silicon: '记账、报表生成、合规检查',
+      },
+    ]
+  },
+];
+
+// 渲染
+const container = document.getElementById('centers');
+
+orgData.forEach((center, ci) => {
+  const card = document.createElement('div');
+  card.className = 'center-card';
+  card.dataset.index = ci;
+
+  const deptCount = center.departments.length;
+  const colorVar = `--c-${center.color}`;
+
+  card.innerHTML = `
+    <div class="center-header" onclick="toggleCenter(${ci})">
+      <div class="center-dot" style="background: var(${colorVar}-block)"></div>
+      <div class="center-info">
+        <div class="center-name">${center.name}</div>
+        <div class="center-sub">${center.sub}</div>
+      </div>
+      <div class="center-count">${deptCount} 个部门</div>
+      <div class="center-arrow">›</div>
+    </div>
+    <div class="dept-list">
+      <div class="dept-list-inner">
+        ${center.departments.map((dept, di) => `
+          <div class="dept-item" data-ci="${ci}" data-di="${di}" onclick="toggleDept(this)">
+            <div class="dept-top">
+              <div class="dept-icon" style="background: var(${colorVar}-light)">${dept.icon}</div>
+              <div class="dept-name-box">
+                <div class="dept-name">${dept.name}</div>
+                <div class="dept-trad">${dept.trad}</div>
+              </div>
+              <div class="dept-arrow">›</div>
+            </div>
+            <div class="dept-detail">
+              <div class="dept-detail-inner">
+                <div class="duties-title">职责</div>
+                <ul class="duty-list">
+                  ${dept.duties.map(d => `<li>${d}</li>`).join('')}
+                </ul>
+                <div class="worker-section">
+                  <div class="worker-col">
+                    <div class="worker-label carbon">碳基 WORKER</div>
+                    <div class="worker-text">${dept.carbon}</div>
+                  </div>
+                  <div class="worker-col">
+                    <div class="worker-label silicon">硅基 AI</div>
+                    <div class="worker-text">${dept.silicon}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  container.appendChild(card);
+});
+
+function toggleCenter(index) {
+  const cards = document.querySelectorAll('.center-card');
+  cards[index].classList.toggle('open');
+}
+
+function toggleDept(el) {
+  el.classList.toggle('open');
+  event.stopPropagation();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
+<title>拓圈大陆世界观</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #060a14;
+  color: #e0e6f0;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  touch-action: none;
+}
+
+#canvas {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+#canvas:active { cursor: grabbing; }
+
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  text-align: center;
+  padding: 20px;
+  z-index: 100;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(6,10,20,0.95) 0%, transparent 100%);
+}
+.header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 6px;
+}
+.header .sub {
+  font-size: 12px;
+  color: #6b7394;
+  margin-top: 6px;
+  letter-spacing: 2px;
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 100;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(6,10,20,0.9) 0%, transparent 100%);
+  padding: 30px 20px 20px;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+.continent-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+.continent-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.hint {
+  position: fixed;
+  bottom: 50px;
+  left: 0; right: 0;
+  text-align: center;
+  z-index: 100;
+  pointer-events: none;
+  font-size: 10px;
+  color: #2d3553;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>拓圈大陆世界观</h1>
+  <div class="sub">Topoo Continent · 创造者的宇宙</div>
+</div>
+
+<div class="bottom-bar">
+  <div class="continent-tag"><div class="continent-dot" style="background:#6C5CE7"></div><span style="color:#6C5CE7">南京·创造</span></div>
+  <div class="continent-tag"><div class="continent-dot" style="background:#00B894;opacity:0.4"></div><span style="color:#3d5e52">苏州·美学</span></div>
+  <div class="continent-tag"><div class="continent-dot" style="background:#0984E3;opacity:0.3"></div><span style="color:#2d4a63">杭州·流动</span></div>
+  <div class="continent-tag"><div class="continent-dot" style="background:#00CEC9;opacity:0.2"></div><span style="color:#2d4a47">成都·自在</span></div>
+  <div class="continent-tag"><div class="continent-dot" style="background:#636e72;opacity:0.2"></div><span style="color:#3d4547">更多大陆…</span></div>
+</div>
+
+<div class="hint">双指缩放 · 单指拖动 · 探索大陆</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W, H, dpr;
+let time = 0;
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ===== 背景星星 =====
+const stars = [];
+for (let i = 0; i < 300; i++) {
+  stars.push({
+    x: Math.random() * 3000 - 500,
+    y: Math.random() * 2000 - 500,
+    r: Math.random() * 1.5 + 0.3,
+    twinkle: Math.random() * Math.PI * 2,
+    speed: Math.random() * 0.02 + 0.005,
+  });
+}
+
+// ===== 大陆数据 =====
+const continents = [
+  {
+    name: '南京大陆',
+    theme: '创造',
+    x: 0, y: 0,
+    color: '#6C5CE7',
+    glowColor: 'rgba(108,92,231,0.3)',
+    alpha: 1,
+    radius: 200,
+    unlocked: true,
+    planets: [
+      { name: '手作星', angle: -30, dist: 70, r: 14, color: '#a29bfe' },
+      { name: '茶饮星', angle: 45, dist: 80, r: 16, color: '#a29bfe' },
+      { name: '内容星', angle: 120, dist: 65, r: 12, color: '#a29bfe' },
+      { name: '设计星', angle: 200, dist: 75, r: 13, color: '#a29bfe' },
+      { name: '青年星', angle: 280, dist: 60, r: 11, color: '#a29bfe' },
+      { name: '美食星', angle: 160, dist: 90, r: 10, color: '#a29bfe' },
+    ],
+    landmarks: ['国创园'],
+    creatorCount: '500',
+    seekerCount: '10000',
+  },
+  {
+    name: '苏州大陆',
+    theme: '美学',
+    x: 380, y: -120,
+    color: '#00B894',
+    glowColor: 'rgba(0,184,148,0.15)',
+    alpha: 0.35,
+    radius: 160,
+    unlocked: false,
+    planets: [
+      { name: '???', angle: 0, dist: 60, r: 10, color: '#00B894' },
+      { name: '???', angle: 90, dist: 70, r: 10, color: '#00B894' },
+      { name: '???', angle: 180, dist: 55, r: 10, color: '#00B894' },
+      { name: '???', angle: 270, dist: 65, r: 10, color: '#00B894' },
+    ],
+    landmarks: ['???'],
+    creatorCount: '???',
+    seekerCount: '???',
+  },
+  {
+    name: '杭州大陆',
+    theme: '流动',
+    x: 340, y: 200,
+    color: '#0984E3',
+    glowColor: 'rgba(9,132,227,0.08)',
+    alpha: 0.2,
+    radius: 140,
+    unlocked: false,
+    planets: [
+      { name: '???', angle: 45, dist: 50, r: 8, color: '#0984E3' },
+      { name: '???', angle: 165, dist: 55, r: 8, color: '#0984E3' },
+      { name: '???', angle: 285, dist: 45, r: 8, color: '#0984E3' },
+    ],
+    landmarks: ['???'],
+    creatorCount: '???',
+    seekerCount: '???',
+  },
+  {
+    name: '成都大陆',
+    theme: '自在',
+    x: -100, y: 320,
+    color: '#00CEC9',
+    glowColor: 'rgba(0,206,201,0.05)',
+    alpha: 0.12,
+    radius: 120,
+    unlocked: false,
+    planets: [],
+    landmarks: ['???'],
+    creatorCount: '???',
+    seekerCount: '???',
+  },
+  {
+    name: '???',
+    theme: '???',
+    x: -350, y: -200,
+    color: '#636e72',
+    glowColor: 'rgba(99,110,114,0.03)',
+    alpha: 0.08,
+    radius: 100,
+    unlocked: false,
+    planets: [],
+    landmarks: [],
+    creatorCount: '?',
+    seekerCount: '?',
+  },
+  {
+    name: '???',
+    theme: '???',
+    x: 500, y: -50,
+    color: '#636e72',
+    glowColor: 'rgba(99,110,114,0.03)',
+    alpha: 0.06,
+    radius: 80,
+    unlocked: false,
+    planets: [],
+    landmarks: [],
+    creatorCount: '?',
+    seekerCount: '?',
+  },
+];
+
+// ===== 大陆之间的航线 =====
+const routes = [
+  { from: 0, to: 1, color: '#6C5CE7' },
+  { from: 0, to: 2, color: '#6C5CE7' },
+  { from: 0, to: 3, color: '#6C5CE7' },
+];
+
+// ===== 交互 =====
+let panX, panY, scale;
+let isDragging = false, lastX, lastY, pinchDist = 0;
+let tapStart = null;
+
+function fitView() {
+  scale = Math.min(W / 900, H / 700) * 0.85;
+  panX = W / 2 - 100 * scale;
+  panY = H / 2 + 20 * scale;
+}
+fitView();
+
+canvas.addEventListener('pointerdown', e => {
+  isDragging = true;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  tapStart = { x: e.clientX, y: e.clientY, time: Date.now() };
+  canvas.setPointerCapture(e.pointerId);
+});
+
+canvas.addEventListener('pointermove', e => {
+  if (!isDragging) return;
+  panX += e.clientX - lastX;
+  panY += e.clientY - lastY;
+  lastX = e.clientX;
+  lastY = e.clientY;
+});
+
+canvas.addEventListener('pointerup', e => {
+  isDragging = false;
+  tapStart = null;
+});
+
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const f = e.deltaY > 0 ? 0.92 : 1.08;
+  const ns = Math.max(0.3, Math.min(3, scale * f));
+  panX = e.clientX - (e.clientX - panX) * (ns / scale);
+  panY = e.clientY - (e.clientY - panY) * (ns / scale);
+  scale = ns;
+}, { passive: false });
+
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length === 2) {
+    pinchDist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+  }
+}, { passive: true });
+
+canvas.addEventListener('touchmove', e => {
+  if (e.touches.length === 2) {
+    const d = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    const r = d / pinchDist;
+    const ns = Math.max(0.3, Math.min(3, scale * r));
+    const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    panX = cx - (cx - panX) * (ns / scale);
+    panY = cy - (cy - panY) * (ns / scale);
+    scale = ns;
+    pinchDist = d;
+  }
+}, { passive: true });
+
+// ===== 绘制函数 =====
+function hexToRgba(hex, a) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function drawStars() {
+  stars.forEach(s => {
+    const a = 0.3 + Math.sin(time * s.speed + s.twinkle) * 0.3;
+    ctx.fillStyle = `rgba(200,210,240,${a})`;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+function drawContinent(c) {
+  const cx = c.x, cy = c.y;
+  
+  // 大陆光晕
+  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, c.radius * 1.8);
+  glow.addColorStop(0, hexToRgba(c.color, 0.12 * c.alpha));
+  glow.addColorStop(0.5, hexToRgba(c.color, 0.05 * c.alpha));
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(cx, cy, c.radius * 1.8, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // 大陆边界圈（虚线）
+  ctx.save();
+  ctx.setLineDash([4, 6]);
+  ctx.strokeStyle = hexToRgba(c.color, 0.25 * c.alpha);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, c.radius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+  
+  // 大陆中心核心
+  const coreGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 25);
+  coreGlow.addColorStop(0, hexToRgba(c.color, 0.6 * c.alpha));
+  coreGlow.addColorStop(1, hexToRgba(c.color, 0));
+  ctx.fillStyle = coreGlow;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 25, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // 中心亮点
+  ctx.fillStyle = hexToRgba(c.color, 0.9 * c.alpha);
+  ctx.beginPath();
+  ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+  ctx.fill();
+  
+  // 大陆名称
+  ctx.fillStyle = hexToRgba(c.color, c.alpha);
+  ctx.font = `700 14px -apple-system, "PingFang SC", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText(c.name, cx, cy + 35);
+  
+  // 主题
+  ctx.font = `400 11px -apple-system, "PingFang SC", sans-serif`;
+  ctx.fillStyle = hexToRgba(c.color, 0.5 * c.alpha);
+  ctx.fillText(`「${c.theme}」`, cx, cy + 54);
+  
+  // 地标
+  if (c.landmarks.length > 0 && c.landmarks[0] !== '???') {
+    ctx.font = `400 10px -apple-system, "PingFang SC", sans-serif`;
+    ctx.fillStyle = hexToRgba(c.color, 0.35 * c.alpha);
+    ctx.fillText(`📍 ${c.landmarks[0]}`, cx, cy + 72);
+  }
+  
+  // 星球
+  c.planets.forEach((p, i) => {
+    const px = cx + Math.cos(p.angle * Math.PI / 180) * p.dist;
+    const py = cy + Math.sin(p.angle * Math.PI / 180) * p.dist;
+    
+    // 轨道线
+    ctx.strokeStyle = hexToRgba(c.color, 0.06 * c.alpha);
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, p.dist, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // 星球光晕
+    const pg = ctx.createRadialGradient(px, py, 0, px, py, p.r * 2.5);
+    pg.addColorStop(0, hexToRgba(p.color, 0.3 * c.alpha));
+    pg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = pg;
+    ctx.beginPath();
+    ctx.arc(px, py, p.r * 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 星球本体
+    ctx.fillStyle = hexToRgba(p.color, 0.8 * c.alpha);
+    ctx.beginPath();
+    ctx.arc(px, py, p.r * c.alpha, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // 星球名
+    if (c.alpha > 0.3) {
+      ctx.font = `400 9px -apple-system, "PingFang SC", sans-serif`;
+      ctx.fillStyle = hexToRgba(p.color, 0.5 * c.alpha);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(p.name, px, py + p.r + 4);
+    }
+  });
+  
+  // 数据标签（仅已解锁）
+  if (c.unlocked) {
+    ctx.font = `400 9px -apple-system, "PingFang SC", sans-serif`;
+    ctx.fillStyle = hexToRgba(c.color, 0.35);
+    ctx.textAlign = 'center';
+    ctx.fillText(`创造者 ${c.creatorCount} · 探索者 ${c.seekerCount}`, cx, cy - 20);
+    
+    // 状态标签
+    ctx.fillStyle = hexToRgba(c.color, 0.7);
+    ctx.font = `600 9px -apple-system, "PingFang SC", sans-serif`;
+    ctx.fillText('已解锁 ✓', cx, cy - 34);
+  } else {
+    ctx.fillStyle = hexToRgba(c.color, 0.25);
+    ctx.font = `400 10px -apple-system, "PingFang SC", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('即将解锁', cx, cy - 15);
+  }
+}
+
+function drawRoutes() {
+  routes.forEach(route => {
+    const a = continents[route.from];
+    const b = continents[route.to];
+    
+    // 航线虚线
+    ctx.save();
+    ctx.setLineDash([6, 8]);
+    
+    const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+    grad.addColorStop(0, hexToRgba(route.color, 0.2));
+    grad.addColorStop(0.5, hexToRgba(route.color, 0.05));
+    grad.addColorStop(1, hexToRgba(b.color, 0.08));
+    
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    
+    // 贝塞尔曲线
+    const mx = (a.x + b.x) / 2;
+    const my = (a.y + b.y) / 2 - 30;
+    ctx.quadraticCurveTo(mx, my, b.x, b.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+    
+    // 流动粒子
+    const progress = ((time * 0.003) % 1);
+    const t = progress;
+    const px = (1-t)*(1-t)*a.x + 2*(1-t)*t*mx + t*t*b.x;
+    const py = (1-t)*(1-t)*a.y + 2*(1-t)*t*my + t*t*b.y;
+    
+    ctx.fillStyle = hexToRgba(route.color, 0.6);
+    ctx.beginPath();
+    ctx.arc(px, py, 2, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+// ===== 角色图例 =====
+function drawRoleLegend(x, y) {
+  const roles = [
+    { name: '星旅人', sub: 'Wanderer', color: '#636e72' },
+    { name: '冒险者', sub: 'Seeker', color: '#00B894' },
+    { name: '造物主', sub: 'Creator', color: '#6C5CE7' },
+    { name: '锻造师', sub: 'Worker', color: '#0984E3' },
+    { name: '引航员', sub: 'Linker', color: '#E17055' },
+  ];
+  
+  ctx.font = `600 10px -apple-system, "PingFang SC", sans-serif`;
+  ctx.fillStyle = '#4a5072';
+  ctx.textAlign = 'left';
+  ctx.fillText('大陆角色', x, y);
+  
+  roles.forEach((r, i) => {
+    const ry = y + 18 + i * 20;
+    ctx.fillStyle = r.color;
+    ctx.beginPath();
+    ctx.arc(x + 4, ry, 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.font = `600 10px -apple-system, "PingFang SC", sans-serif`;
+    ctx.fillStyle = hexToRgba(r.color, 0.8);
+    ctx.textAlign = 'left';
+    ctx.fillText(r.name, x + 14, ry + 3);
+    
+    ctx.font = `400 9px -apple-system, sans-serif`;
+    ctx.fillStyle = hexToRgba(r.color, 0.4);
+    ctx.fillText(r.sub, x + 52, ry + 3);
+  });
+}
+
+// ===== 主循环 =====
+function animate() {
+  time++;
+  ctx.clearRect(0, 0, W, H);
+  
+  // 背景
+  ctx.fillStyle = '#060a14';
+  ctx.fillRect(0, 0, W, H);
+  
+  ctx.save();
+  ctx.translate(panX, panY);
+  ctx.scale(scale, scale);
+  
+  drawStars();
+  drawRoutes();
+  
+  // 从远到近画大陆
+  const sorted = [...continents].sort((a, b) => a.alpha - b.alpha);
+  sorted.forEach(c => drawContinent(c));
+  
+  drawRoleLegend(-430, -120);
+  
+  ctx.restore();
+  
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+</body>
+</html>

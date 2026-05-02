@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拓圈全局关系图</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f0f13;
+    color: #e0e0e0;
+    font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    padding: 40px 20px;
+    min-height: 100vh;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  h1 {
+    text-align: center;
+    font-size: 28px;
+    color: #fff;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 48px;
+  }
+
+  /* 时间轴 */
+  .timeline {
+    display: flex;
+    gap: 0;
+    margin-bottom: 48px;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, #6c5ce7, #a29bfe, #74b9ff, #00cec9, #55efc4, #ffeaa7);
+  }
+  .phase {
+    flex: 1;
+    text-align: center;
+    padding: 0 8px;
+    position: relative;
+  }
+  .phase-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin: 14px auto;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0 12px currentColor;
+  }
+  .phase:nth-child(1) .phase-dot { background: #6c5ce7; color: #6c5ce7; }
+  .phase:nth-child(2) .phase-dot { background: #a29bfe; color: #a29bfe; }
+  .phase:nth-child(3) .phase-dot { background: #74b9ff; color: #74b9ff; }
+  .phase:nth-child(4) .phase-dot { background: #00cec9; color: #00cec9; }
+  .phase:nth-child(5) .phase-dot { background: #55efc4; color: #55efc4; }
+  .phase:nth-child(6) .phase-dot { background: #ffeaa7; color: #ffeaa7; }
+  .phase-label {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 4px;
+  }
+  .phase-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .phase-desc {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+  }
+
+  /* 核心公式 */
+  .formula-box {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid #6c5ce7;
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 48px;
+    text-align: center;
+  }
+  .formula-title {
+    font-size: 14px;
+    color: #6c5ce7;
+    margin-bottom: 16px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+  .formula {
+    font-size: 22px;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+  .formula .highlight { color: #a29bfe; }
+  .formula .arrow { color: #6c5ce7; margin: 0 12px; }
+  .formula-sub {
+    font-size: 13px;
+    color: #888;
+    line-height: 1.8;
+  }
+
+  /* 三层结构 */
+  .layers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 48px;
+  }
+
+  .layer-card {
+    background: #1a1a24;
+    border-radius: 16px;
+    padding: 28px;
+    border: 1px solid #2a2a3a;
+  }
+  .layer-card.full { grid-column: 1 / -1; }
+
+  .layer-tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .tag-fire { background: #6c5ce7; color: #fff; }
+  .tag-build { background: #00cec9; color: #fff; }
+  .tag-grow { background: #55efc4; color: #1a1a24; }
+  .tag-connect { background: #ffeaa7; color: #1a1a24; }
+
+  .layer-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .layer-desc {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+
+  /* 人群网格 */
+  .people-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .people-item {
+    background: #12121a;
+    border: 1px solid #2a2a3a;
+    border-radius: 10px;
+    padding: 14px;
+    transition: border-color 0.3s;
+  }
+  .people-item:hover { border-color: #6c5ce7; }
+  .people-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e0e0e0;
+    margin-bottom: 4px;
+  }
+  .people-pain {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.5;
+  }
+  .people-want {
+    font-size: 12px;
+    color: #6c5ce7;
+    margin-top: 4px;
+  }
+
+  /* 双向赋能 */
+  .flow-section {
+    background: #1a1a24;
+    border-radius: 16px;
+    padding: 32px;
+    border: 1px solid #2a2a3a;
+    margin-bottom: 48px;
+  }
+  .flow-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .flow-box {
+    background: #12121a;
+    border: 1px solid #3a3a4a;
+    border-radius: 12px;
+    padding: 16px 20px;
+    text-align: center;
+    min-width: 180px;
+  }
+  .flow-box-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .flow-box-desc {
+    font-size: 12px;
+    color: #888;
+  }
+  .flow-arrow {
+    font-size: 24px;
+    color: #6c5ce7;
+    flex-shrink: 0;
+  }
+  .flow-arrow-label {
+    font-size: 11px;
+    color: #6c5ce7;
+    display: block;
+    text-align: center;
+    margin-top: -4px;
+  }
+
+  /* 人物关系 */
+  .stakeholders {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .stake-card {
+    background: #1a1a24;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid #2a2a3a;
+  }
+  .stake-icon { font-size: 32px; margin-bottom: 8px; }
+  .stake-name { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .stake-role { font-size: 12px; color: #888; margin-bottom: 8px; }
+  .stake-action {
+    font-size: 11px;
+    color: #a29bfe;
+    background: #12121a;
+    border-radius: 8px;
+    padding: 8px;
+    line-height: 1.5;
+  }
+
+  /* 优先级矩阵 */
+  .priority-matrix {
+    margin-bottom: 48px;
+  }
+  .matrix-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+  .matrix-grid {
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr;
+    gap: 1px;
+    background: #2a2a3a;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .matrix-header {
+    background: #22222e;
+    padding: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    text-align: center;
+  }
+  .matrix-cell {
+    background: #1a1a24;
+    padding: 12px;
+    font-size: 12px;
+    color: #ccc;
+    line-height: 1.5;
+  }
+  .matrix-label {
+    background: #22222e;
+    padding: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #a29bfe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .priority-high { border-left: 3px solid #6c5ce7; }
+  .priority-mid { border-left: 3px solid #74b9ff; }
+  .priority-low { border-left: 3px solid #55efc4; }
+
+  /* 底部一句话 */
+  .bottom-line {
+    text-align: center;
+    padding: 40px 0;
+    border-top: 1px solid #2a2a3a;
+  }
+  .bottom-quote {
+    font-size: 20px;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .bottom-sub {
+    font-size: 13px;
+    color: #666;
+  }
+
+  @media (max-width: 768px) {
+    .layers { grid-template-columns: 1fr; }
+    .stakeholders { grid-template-columns: 1fr 1fr; }
+    .timeline { flex-wrap: wrap; }
+    .phase { flex: 0 0 33%; margin-bottom: 16px; }
+    .matrix-grid { grid-template-columns: 60px 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>拓圈 Topoo · 全局关系图</h1>
+  <div class="subtitle">短期挑战带动长期平台，双向赋能，自生长飞轮</div>
+
+  <!-- 时间轴 -->
+  <div class="timeline">
+    <div class="phase">
+      <div class="phase-label">现在</div>
+      <div class="phase-dot"></div>
+      <div class="phase-title">起号+招募</div>
+      <div class="phase-desc">个人号Day1发布<br>冷启动投放<br>私域激活</div>
+    </div>
+    <div class="phase">
+      <div class="phase-label">4/27 - 5/9</div>
+      <div class="phase-dot"></div>
+      <div class="phase-title">每日更新</div>
+      <div class="phase-desc">真实数据公开<br>碰壁+破局记录<br>张明军预告</div>
+    </div>
+    <div class="phase">
+      <div class="phase-label">5/10 - 5/17</div>
+      <div class="phase-dot"></div>
+      <div class="phase-title">6场活动</div>
+      <div class="phase-desc">线下课交付<br>现场vlog<br>学员反馈收集</div>
+    </div>
+    <div class="phase">
+      <div class="phase-label">5月下</div>
+      <div class="phase-dot"></div>
+      <div class="phase-title">筛选+沉淀</div>
+      <div class="phase-desc">跑出来的案例<br>拓圈会员转化<br>OPC号铺设</div>
+    </div>
+    <div class="phase">
+      <div class="phase-label">6-8月</div>
+      <div class="phase-dot"></div>
+      <div class="phase-title">生态搭建</div>
+      <div class="phase-desc">创造者入驻<br>工作者培训<br>角色体系运转</div>
+    </div>
+    <div class="phase">
+      <div class="phase-label">长期</div>
+      <div class="phase-dot"></div>
+      <div class="phase-title">自生长</div>
+      <div class="phase-desc">飞轮效应<br>复制到新城市<br>全国平台成型</div>
+    </div>
+  </div>
+
+  <!-- 核心公式 -->
+  <div class="formula-box">
+    <div class="formula-title">核心逻辑</div>
+    <div class="formula">
+      1000人挑战 <span class="arrow">→</span>
+      <span class="highlight">内容声量 + 真实案例 + 种子用户</span>
+      <span class="arrow">→</span>
+      拓圈启动
+    </div>
+    <div class="formula-sub">
+      短期事件不是目的，是拓圈冷启动的引擎。活动带来的人、内容、数据，全部沉淀为拓圈的资产。
+    </div>
+  </div>
+
+  <!-- 双向赋能关系 -->
+  <div class="flow-section">
+    <div class="flow-title">双向赋能关系</div>
+
+    <div class="flow-row">
+      <div class="flow-box">
+        <div class="flow-box-title">📱 个人短视频号</div>
+        <div class="flow-box-desc">菜菜从0起号<br>记录1000人挑战全过程</div>
+      </div>
+      <div>
+        <div class="flow-arrow">⟷</div>
+        <div class="flow-arrow-label">互相引流</div>
+      </div>
+      <div class="flow-box">
+        <div class="flow-box-title">🎯 1000人挑战活动</div>
+        <div class="flow-box-desc">视频内容带动报名<br>活动过程产出视频素材</div>
+      </div>
+      <div>
+        <div class="flow-arrow">⟷</div>
+        <div class="flow-arrow-label">人流沉淀</div>
+      </div>
+      <div class="flow-box">
+        <div class="flow-box-title">🌐 拓圈Topoo平台</div>
+        <div class="flow-box-desc">活动学员→拓圈会员<br>个人号粉丝→拓圈关注者</div>
+      </div>
+    </div>
+
+    <div class="flow-row">
+      <div class="flow-box">
+        <div class="flow-box-title">🏢 OPC商户服务</div>
+        <div class="flow-box-desc">抖音服务商身份<br>26家商户运营中</div>
+      </div>
+      <div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-arrow-label">案例+渠道</div>
+      </div>
+      <div class="flow-box">
+        <div class="flow-box-title">🎭 活动内容素材</div>
+        <div class="flow-box-desc">商户作为活动案例<br>商户资源帮助招募</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 关键角色 -->
+  <div class="stakeholders">
+    <div class="stake-card">
+      <div class="stake-icon">👤</div>
+      <div class="stake-name">菜菜（苏菜菜）</div>
+      <div class="stake-role">发起人 / 内容主引擎</div>
+      <div class="stake-action">个人IP + 串联所有资源<br>1000人挑战第一视角</div>
+    </div>
+    <div class="stake-card">
+      <div class="stake-icon">🎤</div>
+      <div class="stake-name">张明军</div>
+      <div class="stake-role">讲师 / 流量副引擎</div>
+      <div class="stake-action">百万粉丝背书<br>课程交付+粉丝引流</div>
+    </div>
+    <div class="stake-card">
+      <div class="stake-icon">🏛️</div>
+      <div class="stake-name">江苏省文化产业协会</div>
+      <div class="stake-role">官方支持 / 信任背书</div>
+      <div class="stake-action">活动合规性+权威性<br>文创/文旅资源对接</div>
+    </div>
+    <div class="stake-card">
+      <div class="stake-icon">🏢</div>
+      <div class="stake-name">璞玉+振业</div>
+      <div class="stake-role">执行团队 / 资源方</div>
+      <div class="stake-action">抖音服务商身份<br>高校+商户资源</div>
+    </div>
+  </div>
+
+  <!-- 目标人群 + 优先级 -->
+  <div class="layers">
+    <div class="layer-card">
+      <span class="layer-tag tag-fire">🔴 第一优先级</span>
+      <div class="layer-title">文旅 / 非遗 / 文创从业者</div>
+      <div class="layer-desc">你有国创园、文创大赛、省文协资源，这个赛道是你的根据地</div>
+      <div class="people-grid">
+        <div class="people-item">
+          <div class="people-name">非遗手艺人</div>
+          <div class="people-pain">有手艺没流量</div>
+          <div class="people-want">短视频放大影响力</div>
+        </div>
+        <div class="people-item">
+          <div class="people-name">文创IP负责人</div>
+          <div class="people-pain">产品好但没人知道</div>
+          <div class="people-want">打造品牌IP</div>
+        </div>
+        <div class="people-item">
+          <div class="people-name">景区运营</div>
+          <div class="people-pain">依赖传统渠道获客</div>
+          <div class="people-want">短视频引流到线下</div>
+        </div>
+        <div class="people-item">
+          <div class="people-name">文旅公司</div>
+          <div class="people-pain">研学/活动招募难</div>
+          <div class="people-want">建立信任背书</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-card">
+      <span class="layer-tag tag-build">🟡 第二优先级</span>
+      <div class="layer-title">教培 / 艺术培训 / 实体店老板</div>
+      <div class="layer-desc">线下获客成本越来越高，短视频是刚需</div>
+      <div class="people-grid">
+        <div class="people-item">
+          <div class="people-name">艺术培训机构</div>
+          <div class="people-pain">线下生源枯竭</div>
+          <div class="people-want">线上引流+名师IP</div>
+        </div>
+        <div class="people-item">
+          <div class="people-name">餐饮/美业门店</div>
+          <div class="people-pain">只等客人上门</div>
+          <div class="people-want">同城流量+到店核销</div>
+        </div>
+        <div class="people-item">
+          <div class="people-name">大健康/养生</div>
+          <div class="people-pain">门店获客成本高</div>
+          <div class="people-want">低信任成本获客</div>
+        </div>
+        <div class="people-item">
+          <div class="people-name">房产/汽车中介</div>
+          <div class="people-pain">传统广告无效</div>
+          <div class="people-want">短视频获客线索</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-card">
+      <span class="layer-tag tag-grow">🟢 第三优先级</span>
+      <div class="layer-title">年轻人 / 想副业 / 想转型</div>
+      <div class="layer-desc">25-35岁，还在折腾的人——拓圈最想要的那批</div>
+      <div class="people-grid">
+        <div class="people-item">
+          <div class="people-name">上班族想做副业</div>
+          <div class="people-pain">缺赛道缺方法</div>
+          <div class="people-want">系统赋能+快速起号</div>
+        </div>
+        <div class="people-item">
+          <div class="people-name">宝妈/全职想赚钱</div>
+          <div class="people-pain">想兼顾家庭+收入</div>
+          <div class="people-want">居家可做的IP</div>
+        </div>
+        <div class="people-item">
+          <div class="people-name">想做个人IP的年轻人</div>
+          <div class="people-pain">有想法不会表达</div>
+          <div class="people-want">定位+内容+变现</div>
+        </div>
+        <div class="people-item">
+          <div class="people-name">自媒体小白</div>
+          <div class="people-pain">自己摸索太慢</div>
+          <div class="people-want">有人带有人陪跑</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layer-card">
+      <span class="layer-tag tag-connect">🔵 长期沉淀</span>
+      <div class="layer-title">体制内 / 知识付费 / 资源对接</div>
+      <div class="layer-desc">付费意愿强但决策周期长，适合长期培育</div>
+      <div class="people-grid">
+        <div class="people-item">
+          <div class="people-name">体制内想做副业</div>
+          <div class="people-pain">怕违规，要体面</div>
+          <div class="people-want">合规稳定的增量收入</div>
+        </div>
+        <div class="people-item">
+          <div class="people-name">讲师/社群主</div>
+          <div class="people-pain">有课但缺流量池</div>
+          <div class="people-want">公域引流放大销量</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 人群×活动 映射 -->
+  <div class="flow-section">
+    <div class="flow-title">人从哪来？——1000人来源拆解</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+
+      <div class="flow-box" style="border-left: 3px solid #6c5ce7;">
+        <div class="flow-box-title">🎬 个人号内容引流</div>
+        <div class="flow-box-desc">Day1-N视频系列<br>张明军口播背书<br>预计贡献：200-300人</div>
+      </div>
+
+      <div class="flow-box" style="border-left: 3px solid #a29bfe;">
+        <div class="flow-box-title">🤝 文创/文旅资源定向</div>
+        <div class="flow-box-desc">国创园合作方<br>文创大赛参与者<br>省文协推荐名单<br>预计贡献：150-200人</div>
+      </div>
+
+      <div class="flow-box" style="border-left: 3px solid #74b9ff;">
+        <div class="flow-box-title">📢 OPC商户裂变</div>
+        <div class="flow-box-desc">26家服务商户<br>商户推荐客户/员工<br>商户社群转发<br>预计贡献：100-150人</div>
+      </div>
+
+      <div class="flow-box" style="border-left: 3px solid #00cec9;">
+        <div class="flow-box-title">🎓 高校/创业社群</div>
+        <div class="flow-box-desc">振业高校资源<br>创业园区社群<br>大学生直播大赛选手<br>预计贡献：100-150人</div>
+      </div>
+
+      <div class="flow-box" style="border-left: 3px solid #55efc4;">
+        <div class="flow-box-title">📢 抖音投流+薯条</div>
+        <div class="flow-box-desc">定向投放南京<br>兴趣标签：短视频/创业<br>预计贡献：150-200人</div>
+      </div>
+
+      <div class="flow-box" style="border-left: 3px solid #ffeaa7;">
+        <div class="flow-box-title">🔄 现场裂变</div>
+        <div class="flow-box-desc">到场学员转介绍<br>现场发朋友圈/抖音<br>限时优惠带朋友<br>预计贡献：100-150人</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 闭环 -->
+  <div class="formula-box" style="background: linear-gradient(135deg, #1a2a1a 0%, #162e21 100%); border-color: #00cec9;">
+    <div class="formula-title" style="color: #00cec9;">飞轮闭环</div>
+    <div class="formula" style="font-size: 18px;">
+      1000人到场 <span class="arrow">→</span> 筛选种子用户 <span class="arrow">→</span> 赋能起号 <span class="arrow">→</span> 跑出标杆案例 <span class="arrow">→</span> 案例吸引更多人 <span class="arrow">→</span> 拓圈自生长
+    </div>
+    <div class="formula-sub">
+      1000人里不需要1000个成功案例。跑出来5-10个就够了。<br>
+      这5-10个人就是拓圈最强的武器——他们证明"跟着拓圈真的能做到"。<br>
+      <br>
+      <strong style="color:#fff;">活动结束 = 拓圈真正开始。</strong>
+    </div>
+  </div>
+
+  <div class="bottom-line">
+    <div class="bottom-quote">先跑通最小闭环，自生长作为愿景不作为对外主打</div>
+    <div class="bottom-sub">拓圈 Topoo · 2026.4.27</div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>拓圈 · 探索 vs 喂养</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+    background: #f5f3ef;
+    color: #2d2d2d;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+  }
+
+  /* 顶部品牌区 */
+  .card-header {
+    padding: 32px 28px 20px;
+    text-align: center;
+  }
+
+  .brand-tag {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #999;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
+
+  .card-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1a1a1a;
+    letter-spacing: 1px;
+    line-height: 1.4;
+  }
+
+  .card-subtitle {
+    font-size: 13px;
+    color: #888;
+    margin-top: 8px;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* 对比区 */
+  .comparison {
+    padding: 8px 20px 24px;
+  }
+
+  .compare-block {
+    padding: 24px 0;
+  }
+
+  .compare-block + .compare-block {
+    border-top: 1px solid #f0eeeb;
+  }
+
+  .compare-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .label-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-feed { background: #ccc; }
+  .dot-explore { background: #2d2d2d; }
+
+  .label-text {
+    font-size: 15px;
+    font-weight: 500;
+    color: #1a1a1a;
+    letter-spacing: 1px;
+  }
+
+  .label-text-en {
+    font-size: 11px;
+    color: #bbb;
+    font-weight: 300;
+    margin-left: 4px;
+    letter-spacing: 0;
+  }
+
+  .compare-items {
+    list-style: none;
+    padding-left: 16px;
+  }
+
+  .compare-items li {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.8;
+    font-weight: 300;
+    position: relative;
+    padding-left: 12px;
+  }
+
+  .compare-items.feed li {
+    color: #999;
+  }
+
+  .compare-items.explore li {
+    color: #333;
+    font-weight: 400;
+  }
+
+  .compare-items li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 11px;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+  }
+
+  .compare-items.feed li::before {
+    background: #ddd;
+  }
+
+  .compare-items.explore li::before {
+    background: #2d2d2d;
+  }
+
+  /* 中间分隔 VS */
+  .vs-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 0;
+  }
+
+  .vs-text {
+    font-size: 11px;
+    color: #ccc;
+    letter-spacing: 4px;
+    font-weight: 300;
+  }
+
+  /* 底部金句 */
+  .card-footer {
+    padding: 20px 28px 28px;
+    text-align: center;
+  }
+
+  .core-message {
+    font-size: 16px;
+    color: #1a1a1a;
+    font-weight: 500;
+    line-height: 1.8;
+    letter-spacing: 0.5px;
+  }
+
+  .core-message .highlight {
+    color: #2d2d2d;
+    font-weight: 600;
+  }
+
+  .brand-logo {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .logo-circle {
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid #ccc;
+    border-radius: 50%;
+    position: relative;
+  }
+
+  .logo-circle::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid #ccc;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .logo-text {
+    font-size: 12px;
+    color: #999;
+    letter-spacing: 2px;
+    font-weight: 300;
+  }
+
+  /* 底部极细线 */
+  .bottom-line {
+    width: 40px;
+    height: 1px;
+    background: #e0ddd8;
+    margin: 16px auto 0;
+  }
+
+  /* 动画 */
+  .compare-block {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  .compare-block:nth-child(2) {
+    animation-delay: 0.3s;
+  }
+
+  .compare-block:nth-child(3) {
+    animation-delay: 0.5s;
+  }
+
+  .compare-block:nth-child(4) {
+    animation-delay: 0.6s;
+  }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-footer {
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.8s forwards;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-header">
+    <div class="brand-tag">TOPOO · PHILOSOPHY</div>
+    <div class="card-title">你被喂养，还是你在探索？</div>
+    <div class="card-subtitle">两种截然不同的多巴胺质地</div>
+  </div>
+
+  <div class="comparison">
+    <!-- 喂养 -->
+    <div class="compare-block">
+      <div class="compare-label">
+        <div class="label-dot dot-feed"></div>
+        <span class="label-text">被动喂养</span>
+        <span class="label-text-en">Being Fed</span>
+      </div>
+      <ul class="compare-items feed">
+        <li>算法比你更了解你</li>
+        <li>不用思考，不用选择</li>
+        <li>多巴胺由外界触发</li>
+        <li>刷完之后，只剩空虚</li>
+        <li>人越来越像数据</li>
+      </ul>
+    </div>
+
+    <div class="vs-divider">
+      <span class="vs-text">VS</span>
+    </div>
+
+    <!-- 探索 -->
+    <div class="compare-block">
+      <div class="compare-label">
+        <div class="label-dot dot-explore"></div>
+        <span class="label-text">主动探索</span>
+        <span class="label-text-en">Exploring</span>
+      </div>
+      <ul class="compare-items explore">
+        <li>你面前有很多星球</li>
+        <li>没人告诉你该去哪</li>
+        <li>自己走，自己看，自己感受</li>
+        <li>找到同频的人和事</li>
+        <li>你找到了自己</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <div class="core-message">
+      拓圈要把<span class="highlight">"人"</span>这个字<br>还给你
+    </div>
+    <div class="brand-logo">
+      <div class="logo-circle"></div>
+      <span class="logo-text">TOPOO</span>
+    </div>
+    <div class="bottom-line"></div>
+  </div>
+</div>
+
+</body>
+</html>

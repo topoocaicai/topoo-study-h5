@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>南京星球 · Topoo Planet</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a12;
+  overflow: hidden;
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+  touch-action: none;
+  cursor: grab;
+}
+body:active { cursor: grabbing; }
+canvas { display: block; }
+
+.top-bar {
+  position: fixed; top: 0; left: 0; right: 0;
+  padding: 20px 24px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  z-index: 10; pointer-events: none;
+}
+.top-bar h1 {
+  font-size: 13px; font-weight: 400;
+  color: rgba(255,255,255,0.5); letter-spacing: 5px;
+}
+.top-bar .sub {
+  font-size: 10px; color: rgba(255,255,255,0.2);
+  margin-top: 3px; letter-spacing: 2px;
+}
+
+.legend {
+  position: fixed; right: 14px; top: 50%; transform: translateY(-50%);
+  z-index: 10; pointer-events: none;
+  display: flex; flex-direction: column; gap: 9px;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 9px; color: rgba(255,255,255,0.4);
+}
+.legend-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tooltip {
+  position: fixed; z-index: 20; pointer-events: none;
+  background: rgba(15,15,25,0.95);
+  border: 1.5px solid rgba(255,255,255,0.12);
+  border-radius: 6px; padding: 7px 12px;
+  backdrop-filter: blur(8px);
+  opacity: 0; transition: opacity 0.2s;
+  max-width: 200px;
+}
+.tooltip.show { opacity: 1; }
+.tooltip .t-name { font-size: 13px; color: #eee; font-weight: 500; }
+.tooltip .t-cat { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+.overlay {
+  position: fixed; inset: 0; z-index: 30;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(5px);
+  display: none; justify-content: center; align-items: center;
+}
+.overlay.show { display: flex; }
+.panel {
+  background: rgba(15,15,25,0.97);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px; padding: 26px 22px;
+  width: min(350px, 88vw); max-height: 80vh; overflow-y: auto;
+  position: relative;
+  animation: slideUp 0.25s ease-out;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(25px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.panel .close {
+  position: absolute; top: 10px; right: 12px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  border: none; color: rgba(255,255,255,0.4);
+  font-size: 15px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.panel .close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.panel .avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  margin: 0 auto 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  border: 1.5px solid rgba(255,255,255,0.15);
+}
+.panel .p-name {
+  font-size: 17px; font-weight: 600; color: #eee;
+  text-align: center; margin-bottom: 3px;
+}
+.panel .p-cat {
+  font-size: 11px; color: rgba(255,255,255,0.35);
+  text-align: center; margin-bottom: 14px;
+}
+.panel .p-divider {
+  height: 1px; background: rgba(255,255,255,0.06);
+  margin: 14px 0;
+}
+.panel .p-row {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: rgba(255,255,255,0.45);
+  margin-bottom: 7px;
+}
+.panel .p-row .val { color: rgba(255,255,255,0.8); }
+.panel .p-bio {
+  font-size: 12px; color: rgba(255,255,255,0.45);
+  line-height: 1.7; margin-top: 8px;
+}
+.panel .p-tags {
+  display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;
+}
+.panel .p-tag {
+  padding: 2px 8px; border-radius: 3px;
+  font-size: 9px; color: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.panel .p-na {
+  text-align: center; font-size: 12px;
+  color: rgba(255,255,255,0.2); margin-top: 20px;
+}
+
+.stats-bar {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+  z-index: 10; pointer-events: none;
+  display: flex; gap: 20px;
+  background: rgba(10,10,18,0.85);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px; padding: 7px 18px;
+  backdrop-filter: blur(8px);
+}
+.stat { text-align: center; }
+.stat .num { font-size: 15px; font-weight: 600; color: rgba(255,255,255,0.85); }
+.stat .lbl { font-size: 8px; color: rgba(255,255,255,0.25); margin-top: 1px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div class="top-bar">
+  <div>
+    <h1>TOPSPACE</h1>
+    <div class="sub">NANJING · 001</div>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#e8a838"></div>产品型</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e07090"></div>门店型</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#5090d0"></div>内容型</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#8870c0"></div>服务型</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#40a878"></div>活动型</div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(255,255,255,0.15);border:1px dashed rgba(255,255,255,0.2)"></div>探索者</div>
+</div>
+
+<div class="tooltip" id="tip">
+  <div class="t-name" id="tipName"></div>
+  <div class="t-cat" id="tipCat"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="panel" id="panel"></div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="num">96</div><div class="lbl">CREATORS</div></div>
+  <div class="stat"><div class="num">40</div><div class="lbl">SEEKERS</div></div>
+  <div class="stat"><div class="num">136</div><div class="lbl">TOTAL</div></div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const tip = document.getElementById('tip');
+const tipName = document.getElementById('tipName');
+const tipCat = document.getElementById('tipCat');
+const overlay = document.getElementById('overlay');
+const panel = document.getElementById('panel');
+
+let W, H, cx, cy;
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  cx = W / 2; cy = H / 2;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ========== SKETCH UTILS ==========
+function sketchCircle(x, y, r, seed, irregularity) {
+  const irr = irregularity || 0.05;
+  ctx.beginPath();
+  const seg = Math.max(12, Math.floor(r * 0.8));
+  for (let i = 0; i <= seg; i++) {
+    const a = (i / seg) * Math.PI * 2;
+    // Seeded pseudo-random wobble
+    const wobble = Math.sin(seed * 13.7 + i * 2.3) * r * irr + Math.cos(seed * 7.1 + i * 3.7) * r * irr * 0.5;
+    const jr = r + wobble;
+    const px = x + Math.cos(a) * jr;
+    const py = y + Math.sin(a) * jr;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+}
+
+function sketchLine(x1, y1, x2, y2, seed) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.sqrt(dx*dx + dy*dy);
+  const steps = Math.max(2, Math.floor(len / 20));
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps;
+    const j = Math.sin(seed * 5.3 + i * 4.1) * 1.2;
+    ctx.lineTo(x1 + dx * t + j, y1 + dy * t + j);
+  }
+  ctx.stroke();
+}
+
+// ========== PALETTE (muted, sketch-friendly on dark bg) ==========
+const COLORS = {
+  product: { fill: '#e8a838', dark: '#a07020', glow: 'rgba(232,168,56,' },
+  store:   { fill: '#e07090', dark: '#a04860', glow: 'rgba(224,112,144,' },
+  content: { fill: '#5090d0', dark: '#305880', glow: 'rgba(80,144,208,' },
+  service: { fill: '#8870c0', dark: '#584080', glow: 'rgba(136,112,192,' },
+  event:   { fill: '#40a878', dark: '#287050', glow: 'rgba(64,168,120,' },
+  worker:  { fill: '#778899', dark: '#4a5568', glow: 'rgba(119,136,153,' },
+  seeker:  { fill: '#556677', dark: '#3a4a5a', glow: 'rgba(85,102,119,' }
+};
+
+const CAT_LABELS = {
+  product: '产品型创造者', store: '门店型创造者', content: '内容型创造者',
+  service: '服务型创造者', event: '活动型创造者', worker: '工作者', seeker: '探索者'
+};
+
+// ========== DATA ==========
+const creatorNames = {
+  product: ['山间白茶','手作陶瓷','精酿工坊','植物香氛','手工皮具','有机蜂蜜','金陵折扇','非遗云锦','文创丝巾','手磨咖啡豆','天然酵种面包','独立首饰','手工皂艺','盐水鸭礼盒','古法酿酒','竹编手作','木工家具','蓝染布艺','限定甜品','陶艺工作室','茶叶定制','蜂蜡蜡烛'],
+  store: ['隐逸茶舍','日式咖啡','独立书店','中古杂货铺','花艺工作室','精酿酒吧','烘焙实验室','复古唱片店','手工巧克力','小众香水馆','创意料理','茶陶空间','社区画廊','买手店','深夜食堂','猫咖','手冲咖啡站','城市阳台'],
+  content: ['城市探索','美食vlog','播客主理人','摄影工作室','短视频编导','生活方式博主','旅行日记','读书频道','音乐制作人','街拍达人','科技测评','家居美学','亲子内容','非遗记录者','运动健身博主','独立纪录片','手账达人','街舞视频','宠物博主','咖啡文化'],
+  service: ['品牌设计','空间设计','活动策划','商业摄影','包装设计','VI系统','用户运营','数据分析','法律顾问','财税服务','营销策划','新媒体运营','短视频制作','直播运营','私域运营'],
+  event: ['城市市集','艺术展览','音乐现场','读书沙龙','手作工坊','咖啡品鉴','摄影展','创意市集','户外露营','陶艺体验','红酒品鉴','非遗体验','电影放映','城市骑行']
+};
+
+const detailInfo = {
+  '山间白茶': { bio: '来自高淳的山间白茶，手工采摘，自然晾晒。每一片茶叶都带着山风的气息。', tags: ['有机种植','手工制茶','茶文化','产地直供'], fans: 3200, deals: 186 },
+  '隐逸茶舍': { bio: '藏在老城区巷子里的茶舍，闹中取静。不卖网红奶茶，只做正正经经的茶。', tags: ['线下体验','新中式','茶空间'], fans: 5100, deals: 0 },
+  '城市探索': { bio: '用镜头记录南京每一个被忽略的角落。每条巷子都有自己的故事。', tags: ['城市文化','街拍','人文纪实'], fans: 28000, deals: 45 },
+  '品牌设计': { bio: '8年品牌设计经验，服务过50+本土品牌。好设计不是好看，是好用。', tags: ['品牌策略','视觉设计','VI系统'], fans: 4200, deals: 312 },
+  '城市市集': { bio: '每月一期的城市创意市集，已成功举办18期。聚集南京最有趣的独立品牌。', tags: ['线下活动','创意市集','社群运营'], fans: 15000, deals: 89 },
+  '精酿工坊': { bio: '南京本土精酿品牌，坚持小批量酿造。每一口都是南京的味道。', tags: ['精酿啤酒','本地品牌','手工酿造'], fans: 8500, deals: 520 },
+  '独立书店': { bio: '不是书店，是一个可以发呆的地方。欢迎来坐，不买也没关系。', tags: ['独立文化','阅读空间','社区书店'], fans: 12000, deals: 0 },
+  '美食vlog': { bio: '南京土著，吃了30年。只为记录那些真正好吃的苍蝇馆子和深夜食堂。', tags: ['美食','本地生活','短视频'], fans: 45000, deals: 120 },
+  '播客主理人': { bio: '《城市野人》播客主理人，每周更新。聊城市、聊人、聊那些有意思的事。', tags: ['播客','内容创作','访谈'], fans: 18000, deals: 67 },
+  '空间设计': { bio: '专注小空间大利用。30平米做出60平米的既视感。', tags: ['室内设计','空间优化','小户型'], fans: 6700, deals: 89 },
+  '摄影工作室': { bio: '不拍流水线证件照，只拍有温度的照片。', tags: ['商业摄影','人像','产品拍摄'], fans: 9200, deals: 234 },
+  '手工皮具': { bio: '一头牛到一只包，全程手工。追求每个作品都有手工的温度。', tags: ['手工皮具','原创设计','定制'], fans: 5600, deals: 340 },
+  '花艺工作室': { bio: '不卖节日花束，只做日常插花和空间花艺。让花回归日常。', tags: ['花艺','生活美学','体验课'], fans: 7800, deals: 156 },
+  '非遗云锦': { bio: '南京云锦第四代传承人，用现代设计语言重新演绎千年织造技艺。', tags: ['非遗传承','云锦','文化创新'], fans: 22000, deals: 78 },
+  '音乐现场': { bio: '南京独立音乐推广者。每月举办小型现场演出，支持本地原创音乐。', tags: ['独立音乐','现场演出','社群'], fans: 11000, deals: 45 },
+  '创意料理': { bio: '融合菜不是乱搭，是有逻辑的创造。每道菜都是一个故事。', tags: ['创意餐饮','融合菜','体验式消费'], fans: 8900, deals: 0 }
+};
+
+const seekerNames = [];
+for (let i = 0; i < 40; i++) seekerNames.push('Seeker-' + (200 + i * 15 + Math.floor(Math.random() * 8)));
+
+// ========== BUILD NODES ==========
+const nodes = [];
+const SPHERE_R = 210;
+const SEEKER_R = 330;
+let nodeId = 0;
+
+// Random-ish distribution on sphere (more organic than Fibonacci)
+function organicSphere(i, total, radius) {
+  // Mix of fibonacci + random perturbation for organic feel
+  const golden = Math.PI * (3 - Math.sqrt(5));
+  const baseY = 1 - (i / (total - 1)) * 2;
+  const y = baseY + (Math.sin(i * 7.3) * 0.15 + Math.cos(i * 3.1) * 0.1); // perturbation
+  const clampedY = Math.max(-0.95, Math.min(0.95, y));
+  const r = Math.sqrt(1 - clampedY * clampedY);
+  const theta = golden * i + Math.sin(i * 2.7) * 0.3; // angle perturbation
+  return {
+    x: Math.cos(theta) * r * radius,
+    y: clampedY * radius,
+    z: Math.sin(theta) * r * radius
+  };
+}
+
+function addCreators(cat, names) {
+  for (let i = 0; i < names.length; i++) {
+    const pos = organicSphere(nodeId, 100, SPHERE_R);
+    const hasDetail = detailInfo[names[i]];
+    // Varied sizes - more organic
+    const sizeBase = hasDetail ? 8 : 5;
+    const sizeVar = Math.sin(nodeId * 3.7) * 2 + Math.cos(nodeId * 1.3) * 1.5;
+    nodes.push({
+      id: nodeId++,
+      name: names[i],
+      cat,
+      x: pos.x, y: pos.y, z: pos.z,
+      baseSize: Math.max(3.5, sizeBase + sizeVar),
+      color: COLORS[cat],
+      isSeeker: false,
+      hasDetail: !!hasDetail,
+      detail: detailInfo[names[i]] || null,
+      seed: nodeId * 0.73 + Math.random() * 100
+    });
+  }
+}
+
+function addSeekers(names) {
+  for (let i = 0; i < names.length; i++) {
+    const pos = organicSphere(i, names.length, SEEKER_R);
+    const sizeVar = Math.sin(i * 4.1) * 0.8;
+    nodes.push({
+      id: nodeId++,
+      name: names[i],
+      cat: 'seeker',
+      x: pos.x, y: pos.y, z: pos.z,
+      baseSize: Math.max(2.5, 3.5 + sizeVar),
+      color: COLORS.seeker,
+      isSeeker: true,
+      hasDetail: false,
+      detail: null,
+      seed: nodeId * 0.73 + Math.random() * 100
+    });
+  }
+}
+
+const catKeys = ['product','store','content','service','event'];
+catKeys.forEach(cat => addCreators(cat, creatorNames[cat]));
+addSeekers(seekerNames);
+
+// ========== EDGES (sparse, organic) ==========
+const edges = [];
+const creatorNodes = nodes.filter(n => !n.isSeeker);
+
+for (let i = 0; i < creatorNodes.length; i++) {
+  const a = creatorNodes[i];
+  const dists = [];
+  for (let j = 0; j < creatorNodes.length; j++) {
+    if (i === j) continue;
+    const b = creatorNodes[j];
+    const dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z;
+    dists.push({ j, dist: Math.sqrt(dx*dx + dy*dy + dz*dz) });
+  }
+  dists.sort((a, b) => a.dist - b.dist);
+  const count = 1 + Math.floor(Math.sin(i * 2.3) * 1.5 + 1.5); // 1-3 connections
+  for (let k = 0; k < Math.min(count, 3); k++) {
+    if (dists[k].dist > 145) continue;
+    const idxA = nodes.indexOf(a);
+    const idxB = nodes.indexOf(creatorNodes[dists[k].j]);
+    const key = Math.min(idxA, idxB) + '-' + Math.max(idxA, idxB);
+    if (!edges.find(e => e.key === key)) {
+      edges.push({ a: idxA, b: idxB, key, seed: i * 7 + k });
+    }
+  }
+}
+
+// Seeker edges
+const seekerEdges = [];
+nodes.forEach((s, si) => {
+  if (!s.isSeeker) return;
+  let minDist = Infinity, nearestIdx = -1;
+  creatorNodes.forEach((c, ci) => {
+    const dx = s.x - c.x, dy = s.y - c.y, dz = s.z - c.z;
+    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+    if (dist < minDist) { minDist = dist; nearestIdx = nodes.indexOf(c); }
+  });
+  seekerEdges.push({ a: si, b: nearestIdx, seed: si });
+});
+
+// ========== ROTATION ==========
+let rotY = 0, rotX = 0.3;
+let autoRotSpeed = 0.0018;
+let zoom = 1;
+let isDragging = false, lastX = 0, lastY = 0;
+let velY = 0, velX = 0;
+
+function project(x, y, z) {
+  const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+  let rx = x * cosY - z * sinY;
+  let rz = x * sinY + z * cosY;
+  const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+  let ry = y * cosX - rz * sinX;
+  rz = y * sinX + rz * cosX;
+  return { sx: cx + rx * zoom, sy: cy + ry * zoom, depth: rz };
+}
+
+// ========== INPUT ==========
+let mouseX = 0, mouseY = 0;
+let hoveredNode = null;
+
+canvas.addEventListener('mousedown', e => { isDragging = true; lastX = e.clientX; lastY = e.clientY; velY = 0; velX = 0; });
+canvas.addEventListener('mousemove', e => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  if (isDragging) {
+    velY = (e.clientX - lastX) * 0.003; velX = (e.clientY - lastY) * 0.003;
+    rotY += velY; rotX += velX;
+    rotX = Math.max(-1.2, Math.min(1.2, rotX));
+    lastX = e.clientX; lastY = e.clientY;
+  }
+});
+canvas.addEventListener('mouseup', () => isDragging = false);
+canvas.addEventListener('mouseleave', () => isDragging = false);
+canvas.addEventListener('wheel', e => { e.preventDefault(); zoom *= e.deltaY > 0 ? 0.92 : 1.08; zoom = Math.max(0.4, Math.min(3, zoom)); }, { passive: false });
+canvas.addEventListener('click', e => { if (hoveredNode !== null && !isDragging) showDetail(nodes[hoveredNode]); });
+
+let lastTouchDist = 0;
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (e.touches.length === 1) { isDragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; velY = 0; velX = 0; }
+  else if (e.touches.length === 2) { isDragging = false; const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY; lastTouchDist = Math.sqrt(dx*dx+dy*dy); }
+}, { passive: false });
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (e.touches.length === 1 && isDragging) {
+    velY = (e.touches[0].clientX - lastX) * 0.003; velX = (e.touches[0].clientY - lastY) * 0.003;
+    rotY += velY; rotX += velX; rotX = Math.max(-1.2, Math.min(1.2, rotX));
+    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+    mouseX = e.touches[0].clientX; mouseY = e.touches[0].clientY;
+  } else if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX; const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.sqrt(dx*dx+dy*dy); if (lastTouchDist > 0) { zoom *= dist / lastTouchDist; zoom = Math.max(0.4, Math.min(3, zoom)); } lastTouchDist = dist;
+  }
+}, { passive: false });
+canvas.addEventListener('touchend', e => { isDragging = false; lastTouchDist = 0; });
+
+// ========== DETAIL PANEL ==========
+function showDetail(node) {
+  const c = node.color.fill;
+  let html = `<button class="close" onclick="closePanel()">✕</button>`;
+  html += `<div class="avatar" style="background:radial-gradient(circle at 35% 35%, ${c}, ${node.color.dark})"></div>`;
+  html += `<div class="p-name">${node.name}</div>`;
+  html += `<div class="p-cat">${CAT_LABELS[node.cat]} · #${String(node.id+1).padStart(4,'0')}</div>`;
+  if (node.hasDetail && node.detail) {
+    const d = node.detail;
+    html += `<div class="p-divider"></div>`;
+    html += `<div class="p-row"><span>粉丝</span><span class="val">${d.fans.toLocaleString()}</span></div>`;
+    html += `<div class="p-row"><span>成交</span><span class="val">${d.deals} 笔</span></div>`;
+    html += `<div class="p-bio">${d.bio}</div>`;
+    html += `<div class="p-tags">${d.tags.map(t => `<span class="p-tag">${t}</span>`).join('')}</div>`;
+  } else if (node.isSeeker) {
+    html += `<div class="p-divider"></div><div class="p-na">🚶 正在探索中...</div>`;
+  } else {
+    html += `<div class="p-divider"></div><div class="p-na">📝 详细信息待完善</div>`;
+  }
+  panel.innerHTML = html; overlay.classList.add('show');
+}
+function closePanel() { overlay.classList.remove('show'); }
+overlay.addEventListener('click', e => { if (e.target === overlay) closePanel(); });
+
+// ========== RENDER ==========
+let frame = 0;
+
+function draw() {
+  requestAnimationFrame(draw);
+  frame++;
+  ctx.clearRect(0, 0, W, H);
+
+  // Dark background with subtle gradient
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.7);
+  bg.addColorStop(0, '#0e0e1a');
+  bg.addColorStop(1, '#070710');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Auto rotate
+  if (!isDragging) {
+    rotY += autoRotSpeed + velY * 0.95;
+    rotX += velX * 0.95;
+    velY *= 0.95; velX *= 0.95;
+    rotX = Math.max(-1.2, Math.min(1.2, rotX));
+  }
+
+  // Project all nodes
+  const projected = nodes.map((n, i) => {
+    let px = n.x, py = n.y, pz = n.z;
+    if (n.isSeeker) py += Math.sin(frame * 0.005 + i * 0.6) * 5;
+    const p = project(px, py, pz);
+    return { ...p, node: n, idx: i };
+  });
+
+  projected.sort((a, b) => a.depth - b.depth);
+
+  // Find hovered
+  hoveredNode = null;
+  let hoverDist = 22;
+  projected.forEach(p => {
+    const dx = mouseX - p.sx, dy = mouseY - p.sy;
+    const d = Math.sqrt(dx*dx + dy*dy);
+    const hitR = p.node.baseSize * zoom + 6;
+    if (d < hitR && d < hoverDist) { hoverDist = d; hoveredNode = p.idx; }
+  });
+
+  // Ambient glow
+  const ag = ctx.createRadialGradient(cx, cy, 0, cx, cy, SPHERE_R * zoom * 1.6);
+  ag.addColorStop(0, 'rgba(232,168,56,0.025)');
+  ag.addColorStop(0.4, 'rgba(136,112,192,0.015)');
+  ag.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = ag;
+  ctx.fillRect(0, 0, W, H);
+
+  // Draw seeker edges (dashed, faint, sketchy)
+  seekerEdges.forEach(e => {
+    const pa = projected.find(p => p.idx === e.a);
+    const pb = projected.find(p => p.idx === e.b);
+    if (!pa || !pb) return;
+    const avgDepth = (pa.depth + pb.depth) / 2;
+    const alpha = Math.max(0, Math.min(0.06, 0.1 - avgDepth * 0.0002));
+    if (alpha < 0.005) return;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = 'rgba(85,102,119,1)';
+    ctx.lineWidth = 0.5;
+    ctx.setLineDash([3, 7]);
+    sketchLine(pa.sx, pa.sy, pb.sx, pb.sy, e.seed);
+    ctx.setLineDash([]);
+    ctx.restore();
+  });
+
+  // Draw creator edges (sketchy pencil lines)
+  edges.forEach(e => {
+    const pa = projected.find(p => p.idx === e.a);
+    const pb = projected.find(p => p.idx === e.b);
+    if (!pa || !pb) return;
+    if (pa.depth < -60 && pb.depth < -60) return;
+    const avgDepth = (pa.depth + pb.depth) / 2;
+    const alpha = Math.max(0, Math.min(0.12, 0.22 - avgDepth * 0.0004));
+    if (alpha < 0.005) return;
+    const isH = hoveredNode !== null && (e.a === hoveredNode || e.b === hoveredNode);
+    ctx.save();
+    ctx.globalAlpha = isH ? Math.min(alpha * 2.5, 0.4) : alpha;
+    ctx.strokeStyle = isH ? 'rgba(255,255,255,0.7)' : 'rgba(200,200,220,0.5)';
+    ctx.lineWidth = isH ? 1 : 0.6;
+    sketchLine(pa.sx, pa.sy, pb.sx, pb.sy, e.seed);
+    ctx.restore();
+  });
+
+  // Draw nodes
+  projected.forEach(p => {
+    const n = p.node;
+    const depthFactor = Math.max(0.1, Math.min(1, (p.depth + SPHERE_R) / (SPHERE_R * 2)));
+    const size = n.baseSize * zoom * Math.max(0.4, depthFactor);
+    if (size < 1.5) return;
+
+    const isHovered = hoveredNode === p.idx;
+    const alpha = n.isSeeker ? depthFactor * 0.4 : depthFactor * 0.9;
+    const col = n.color;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    // Soft glow
+    if (!n.isSeeker && size > 3) {
+      const glowR = size * (isHovered ? 4 : 2.2);
+      const glowAlpha = (isHovered ? 0.3 : 0.12);
+      const glow = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, glowR);
+      glow.addColorStop(0, col.glow + glowAlpha + ')');
+      glow.addColorStop(1, col.glow + '0)');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(p.sx, p.sy, glowR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Filled circle (slightly sketchy edge)
+    const fillGrad = ctx.createRadialGradient(
+      p.sx - size * 0.25, p.sy - size * 0.3, size * 0.1,
+      p.sx, p.sy, size
+    );
+    fillGrad.addColorStop(0, col.fill);
+    fillGrad.addColorStop(0.6, col.dark);
+    fillGrad.addColorStop(1, col.dark);
+    ctx.fillStyle = fillGrad;
+    sketchCircle(p.sx, p.sy, size, n.seed, 0.04);
+    ctx.fill();
+
+    // Sketchy border (pencil line feel)
+    ctx.strokeStyle = isHovered ? 'rgba(255,255,255,0.6)' : `rgba(255,255,255,${alpha * 0.2})`;
+    ctx.lineWidth = isHovered ? 1.5 : 0.7;
+    sketchCircle(p.sx, p.sy, size, n.seed, 0.04);
+    ctx.stroke();
+
+    // Highlight (top-left light reflection)
+    if (size > 4 && !n.isSeeker) {
+      const hlGrad = ctx.createRadialGradient(
+        p.sx - size * 0.3, p.sy - size * 0.35, 0,
+        p.sx - size * 0.2, p.sy - size * 0.25, size * 0.55
+      );
+      hlGrad.addColorStop(0, `rgba(255,255,255,${alpha * 0.3})`);
+      hlGrad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = hlGrad;
+      ctx.beginPath();
+      ctx.arc(p.sx, p.sy, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Seeker dashed border
+    if (n.isSeeker && size > 2) {
+      ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.15})`;
+      ctx.lineWidth = 0.5;
+      ctx.setLineDash([2, 4]);
+      sketchCircle(p.sx, p.sy, size + 2, n.seed + 50, 0.05);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Hover extra glow
+    if (isHovered) {
+      ctx.globalAlpha = 0.06;
+      ctx.fillStyle = col.fill;
+      ctx.beginPath();
+      ctx.arc(p.sx, p.sy, size + 10, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  });
+
+  // Tooltip
+  if (hoveredNode !== null) {
+    const n = nodes[hoveredNode];
+    const p = projected.find(pp => pp.idx === hoveredNode);
+    if (p) {
+      tipName.textContent = n.name;
+      tipCat.textContent = CAT_LABELS[n.cat];
+      let tx = p.sx + 18, ty = p.sy - 10;
+      if (tx + 150 > W) tx = p.sx - 160;
+      if (ty < 10) ty = 10;
+      tip.style.left = tx + 'px'; tip.style.top = ty + 'px';
+      tip.classList.add('show');
+    }
+    canvas.style.cursor = 'pointer';
+  } else {
+    tip.classList.remove('show');
+    canvas.style.cursor = isDragging ? 'grabbing' : 'grab';
+  }
+}
+
+draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拓圈·整体框架</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background: #0a0e1a;
+    color: #e0e6f0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    text-align: center;
+    padding: 48px 20px 24px;
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(232,180,76,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  .logo-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #e8b44c, #d96b6b);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 900; color: #fff;
+    letter-spacing: -1px;
+  }
+  .brand-cn {
+    font-size: 42px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #e8b44c, #f0d080);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .brand-en {
+    font-size: 16px;
+    color: rgba(232,180,76,0.5);
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    font-weight: 300;
+  }
+  .header-tagline {
+    margin-top: 12px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 2px;
+  }
+
+  /* ===== STATS BAR ===== */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    padding: 16px 20px;
+    margin: 0 auto 32px;
+    max-width: 900px;
+    flex-wrap: wrap;
+  }
+  .stat-item {
+    text-align: center;
+    padding: 12px 20px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    min-width: 120px;
+  }
+  .stat-num {
+    font-size: 28px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #5aa0d4, #9b7bbf);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 4px;
+  }
+
+  /* ===== MAIN LAYOUT ===== */
+  .framework {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ===== SECTION ===== */
+  .section {
+    margin-bottom: 48px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    overflow: hidden;
+    position: relative;
+  }
+  .section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent, #e8b44c), transparent);
+    opacity: 0.4;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 28px 16px;
+  }
+  .section-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .section-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 2px;
+  }
+  .section-body {
+    padding: 0 28px 28px;
+  }
+
+  /* ===== POSITIONING ===== */
+  .positioning-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .pos-card {
+    padding: 20px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .pos-card .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 8px;
+  }
+  .pos-card .value {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+  .pos-card .desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.45);
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+
+  /* ===== MISSION ===== */
+  .mission-box {
+    text-align: center;
+    padding: 32px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(232,180,76,0.06), rgba(217,107,107,0.04));
+    border: 1px solid rgba(232,180,76,0.12);
+  }
+  .mission-box .big {
+    font-size: 26px;
+    font-weight: 900;
+    color: #e8b44c;
+    line-height: 1.4;
+  }
+  .mission-box .sub {
+    font-size: 14px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+  .mission-three {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .mission-item {
+    padding: 16px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    text-align: center;
+  }
+  .mission-item .icon { font-size: 28px; margin-bottom: 8px; }
+  .mission-item .name { font-size: 15px; font-weight: 700; }
+  .mission-item .desc { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+  /* ===== ROLE PYRAMID ===== */
+  .role-flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    overflow-x: auto;
+    padding: 8px 0;
+  }
+  .role-card {
+    flex: 1;
+    min-width: 200px;
+    padding: 20px 16px;
+    text-align: center;
+    position: relative;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    margin: 0 4px;
+    transition: all 0.3s;
+  }
+  .role-card:hover {
+    background: rgba(255,255,255,0.06);
+    transform: translateY(-4px);
+  }
+  .role-arrow {
+    flex-shrink: 0;
+    width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.2);
+    font-size: 20px;
+  }
+  .role-emoji { font-size: 32px; margin-bottom: 8px; }
+  .role-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .role-en {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .role-price {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .role-desc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.5;
+  }
+
+  /* ===== CIRCLE SYSTEM ===== */
+  .circle-arch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .circle-level {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+  .circle-tag {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .circle-line {
+    flex: 1;
+    height: 2px;
+    border-radius: 1px;
+    position: relative;
+  }
+  .circle-line::after {
+    content: '→';
+    position: absolute;
+    right: -4px; top: -11px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.2);
+  }
+  .circle-detail {
+    width: 100%;
+    padding: 20px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .circle-ratio {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .ratio-chip {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    background: rgba(255,255,255,0.05);
+  }
+  .ratio-chip b { font-weight: 700; }
+
+  /* ===== GAMIFICATION ===== */
+  .game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .game-card {
+    padding: 20px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .game-card .head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .game-card .head .icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .game-card .head .name {
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .game-card .head .ref {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+  }
+  .game-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .game-card ul li {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.5;
+  }
+  .game-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--accent, #e8b44c);
+    font-weight: 700;
+  }
+
+  /* ===== NUMBER SYSTEM ===== */
+  .num-tri {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .num-col {
+    padding: 20px;
+    border-radius: 14px;
+    text-align: center;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .num-col .icon { font-size: 28px; margin-bottom: 8px; }
+  .num-col .name { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+  .num-col .desc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    line-height: 1.6;
+    text-align: left;
+  }
+
+  /* ===== CREATOR TYPES ===== */
+  .creator-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .creator-type {
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.3s;
+  }
+  .creator-type:hover {
+    background: rgba(255,255,255,0.06);
+    transform: scale(1.03);
+  }
+  .creator-type .icon { font-size: 28px; margin-bottom: 6px; }
+  .creator-type .name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .creator-type .desc { font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.4; }
+  .creator-formula {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(232,180,76,0.06), rgba(90,160,212,0.04));
+    border: 1px dashed rgba(232,180,76,0.2);
+    text-align: center;
+  }
+  .formula-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e8b44c;
+  }
+  .formula-desc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  /* ===== REVENUE ===== */
+  .revenue-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .rev-card {
+    padding: 16px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .rev-card .name {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .rev-card .amount {
+    font-size: 22px;
+    font-weight: 900;
+  }
+  .rev-card .note {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 4px;
+  }
+
+  /* ===== TECH ARCH ===== */
+  .tech-arch {
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
+  }
+  .tech-box {
+    flex: 1;
+    padding: 20px;
+    border-radius: 14px;
+    text-align: center;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .tech-box .icon { font-size: 32px; margin-bottom: 8px; }
+  .tech-box .name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .tech-box .role {
+    font-size: 13px;
+    color: #e8b44c;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .tech-box ul {
+    list-style: none;
+    text-align: left;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.8;
+  }
+  .tech-box ul li::before {
+    content: '• ';
+    color: rgba(255,255,255,0.25);
+  }
+  .tech-arrow {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: rgba(255,255,255,0.15);
+  }
+
+  /* ===== VISUAL SYSTEM ===== */
+  .visual-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .visual-card {
+    padding: 20px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.3s;
+  }
+  .visual-card:hover {
+    background: rgba(255,255,255,0.06);
+    transform: translateY(-4px);
+  }
+  .visual-card .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .visual-card .name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .visual-card .scene {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 10px;
+  }
+  .visual-card .features {
+    list-style: none;
+    padding: 0;
+  }
+  .visual-card .features li {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    padding: 3px 0;
+    padding-left: 14px;
+    position: relative;
+  }
+  .visual-card .features li::before {
+    content: '✦';
+    position: absolute;
+    left: 0;
+    font-size: 8px;
+    color: var(--accent, #e8b44c);
+  }
+
+  /* ===== TIMELINE ===== */
+  .timeline {
+    position: relative;
+    padding-left: 32px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 11px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #e8b44c, #d96b6b, #5a9fd4);
+    border-radius: 1px;
+  }
+  .tl-item {
+    position: relative;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+  }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -27px; top: 20px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--dot-color, #e8b44c);
+    border: 2px solid #0a0e1a;
+  }
+  .tl-year {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dot-color, #e8b44c);
+    margin-bottom: 4px;
+  }
+  .tl-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.6);
+  }
+
+  /* ===== COMPANY ===== */
+  .company-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .company-card {
+    padding: 20px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .company-card .name {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .company-card .type {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .company-card .desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.6;
+  }
+
+  /* ===== CHALLENGE ===== */
+  .challenge-box {
+    padding: 20px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .challenge-box .info-list {
+    list-style: none;
+    padding: 0;
+  }
+  .challenge-box .info-list li {
+    padding: 6px 0;
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .challenge-box .info-list li:last-child { border-bottom: none; }
+  .challenge-box .info-list b {
+    color: rgba(255,255,255,0.7);
+    font-weight: 600;
+  }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    text-align: center;
+    padding: 32px 20px 48px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.2);
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .brand-cn { font-size: 32px; }
+    .stats-bar { gap: 12px; }
+    .stat-item { min-width: 100px; padding: 10px 14px; }
+    .stat-num { font-size: 22px; }
+    .role-flow { flex-direction: column; align-items: center; }
+    .role-arrow { transform: rotate(90deg); }
+    .num-tri, .visual-grid, .challenge-box, .tech-arch { grid-template-columns: 1fr; flex-direction: column; }
+    .tech-arrow { transform: rotate(90deg); }
+    .mission-three { grid-template-columns: 1fr; }
+    .revenue-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo-row">
+    <div class="logo-icon">T</div>
+    <span class="brand-cn">拓圈</span>
+  </div>
+  <div class="brand-en">T O P O O</div>
+  <div class="header-tagline">全域共生的创造者加速器</div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-num">20W</div>
+    <div class="stat-label">漫游者目标</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">1W</div>
+    <div class="stat-label">探索者目标</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">500</div>
+    <div class="stat-label">创造者目标</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">5</div>
+    <div class="stat-label">创造者类型</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">3-5</div>
+    <div class="stat-label">星球数量</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">~964W</div>
+    <div class="stat-label">首年预估利润</div>
+  </div>
+</div>
+
+<!-- MAIN FRAMEWORK -->
+<div class="framework">
+
+  <!-- 1. 定位与使命 -->
+  <div class="section" style="--accent:#e8b44c">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(232,180,76,0.12)">🎯</div>
+      <div>
+        <div class="section-title" style="color:#e8b44c">定位与使命</div>
+        <div class="section-sub">Positioning & Mission</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="positioning-grid">
+        <div class="pos-card">
+          <div class="label">终极定位</div>
+          <div class="value" style="color:#e8b44c">成长体系 × 资源网络 × 品牌</div>
+          <div class="desc">不是单纯的媒体/平台/活动公司，三者的融合体。每个角色看到的切面不同，底层是同一个东西。</div>
+        </div>
+        <div class="pos-card">
+          <div class="label">本质</div>
+          <div class="value" style="color:#5aa0d4">创造者加速器</div>
+          <div class="desc">输入有潜力但没跑通的人 → 输出能稳定变现的成熟创造者。抖音解决"曝光"，拓圈解决"从被看见到能变现的完整路径"。</div>
+        </div>
+        <div class="pos-card">
+          <div class="label">核心壁垒</div>
+          <div class="value" style="color:#d96b6b">概率筛选 + 幸存者放大</div>
+          <div class="desc">大量种子 → 平台赋能 → 大部分没跑出来 → 跑出来的放大成案例 → 案例吸引更多人。赋能体系把成功率从1%拉到4-5%。</div>
+        </div>
+      </div>
+
+      <div class="mission-box" style="margin-top:20px">
+        <div class="big">让小而美被世界看见</div>
+        <div class="sub">产品试验田 · 商业研究所 · 落地场</div>
+        <div class="mission-three">
+          <div class="mission-item">
+            <div class="icon">🌱</div>
+            <div class="name">试验田</div>
+            <div class="desc">有想法在这试</div>
+          </div>
+          <div class="mission-item">
+            <div class="icon">🔬</div>
+            <div class="name">研究所</div>
+            <div class="desc">有数据有反馈有方法论</div>
+          </div>
+          <div class="mission-item">
+            <div class="icon">🚀</div>
+            <div class="name">落地场</div>
+            <div class="desc">从想法到产品到变现全链路</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 角色体系 -->
+  <div class="section" style="--accent:#5aa0d4">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(90,160,212,0.12)">👥</div>
+      <div>
+        <div class="section-title" style="color:#5aa0d4">五层角色体系</div>
+        <div class="section-sub">Role System — 从漫游到链接的完整路径</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="role-flow">
+        <div class="role-card" style="border-color:rgba(232,180,76,0.15)">
+          <div class="role-emoji">🚶</div>
+          <div class="role-name" style="color:#e8b44c">漫游者</div>
+          <div class="role-en">Wanderer</div>
+          <div class="role-price" style="background:rgba(232,180,76,0.12);color:#e8b44c">免费</div>
+          <div class="role-desc">已注意到拓圈，开始了解。注册后生成身份卡（带编号），可分享朋友圈。</div>
+        </div>
+        <div class="role-arrow">→</div>
+        <div class="role-card" style="border-color:rgba(90,160,212,0.15)">
+          <div class="role-emoji">🔍</div>
+          <div class="role-name" style="color:#5aa0d4">探索者</div>
+          <div class="role-en">Seeker</div>
+          <div class="role-price" style="background:rgba(90,160,212,0.12);color:#5aa0d4">种子365 / 正式599/年</div>
+          <div class="role-desc">已付费加入，有编号，在找方向。可升级为创造者/工作者/链接者。</div>
+        </div>
+        <div class="role-arrow">→</div>
+        <div class="role-card" style="border-color:rgba(217,107,107,0.15)">
+          <div class="role-emoji">🎨</div>
+          <div class="role-name" style="color:#d96b6b">创造者</div>
+          <div class="role-en">Creator</div>
+          <div class="role-price" style="background:rgba(217,107,107,0.12);color:#d96b6b">种子2000保证金 / 正式2999+5000</div>
+          <div class="role-desc">有东西要卖的人——产品/内容/服务/门店/活动。号段=资产，可增值交易。</div>
+        </div>
+        <div class="role-arrow">→</div>
+        <div class="role-card" style="border-color:rgba(155,123,191,0.15)">
+          <div class="role-emoji">⚙️</div>
+          <div class="role-name" style="color:#9b7bbf">工作者</div>
+          <div class="role-en">Worker</div>
+          <div class="role-price" style="background:rgba(155,123,191,0.12);color:#9b7bbf">0元进入，从收入扣999</div>
+          <div class="role-desc">碳基（品牌运营/创意执行/商业对接/数据策略）+ 硅基（AI五大模块）。工作室制。</div>
+        </div>
+        <div class="role-arrow">→</div>
+        <div class="role-card" style="border-color:rgba(91,168,117,0.15)">
+          <div class="role-emoji">🔗</div>
+          <div class="role-name" style="color:#5ba875">链接者</div>
+          <div class="role-en">Linker</div>
+          <div class="role-price" style="background:rgba(91,168,117,0.12);color:#5ba875">0元进入，从分润扣1200</div>
+          <div class="role-desc">搭桥/推广/撮合。拿交易额1-2%分成，顶级可拿整个城市的交易分成。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 圈与星球 -->
+  <div class="section" style="--accent:#9b7bbf">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(155,123,191,0.12)">🪐</div>
+      <div>
+        <div class="section-title" style="color:#9b7bbf">圈 × 星球体系</div>
+        <div class="section-sub">Circle & Planet — 城市拆分为圈，圈是自运转的微型拓圈</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="circle-arch">
+        <div class="circle-level">
+          <div class="circle-tag" style="background:rgba(155,123,191,0.12);color:#9b7bbf">小圈 · 星球</div>
+          <div class="circle-line" style="background:rgba(155,123,191,0.3)"></div>
+          <div class="circle-tag" style="background:rgba(90,160,212,0.12);color:#5aa0d4">大圈 · 星系</div>
+          <div class="circle-line" style="background:rgba(90,160,212,0.3)"></div>
+          <div class="circle-tag" style="background:rgba(217,107,107,0.12);color:#d96b6b">城市圈 · 星域</div>
+          <div class="circle-line" style="background:rgba(217,107,107,0.3)"></div>
+          <div class="circle-tag" style="background:rgba(232,180,76,0.12);color:#e8b44c">全国 · 宇宙</div>
+        </div>
+      </div>
+
+      <div class="circle-detail" style="margin-top:20px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:8px">一个星球的配比</div>
+        <div class="circle-ratio">
+          <div class="ratio-chip"><b>Creator</b> 8-12人 · 品类不重复</div>
+          <div class="ratio-chip"><b>Seeker</b> 50-80人</div>
+          <div class="ratio-chip"><b>Worker</b> 3-5人 · 工作室制</div>
+          <div class="ratio-chip"><b>Linker</b> 1-2人</div>
+          <div class="ratio-chip"><b>Wanderer</b> 不限</div>
+        </div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:12px;line-height:1.6">
+          南京12个区 → 约18个星球（每区1-2个）→ 前3个月建1个原始星球100个Creator先跑 → 跑通后自然分叉<br>
+          品类不重复原则：一个星球内创造者品类互不重叠，圈内零内耗<br>
+          加入机制：系统推荐 + 自己选择双选，退出有冷却期（防跳圈）
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 游戏化机制 -->
+  <div class="section" style="--accent:#d96b6b">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(217,107,107,0.12)">🎮</div>
+      <div>
+        <div class="section-title" style="color:#d96b6b">游戏化机制</div>
+        <div class="section-sub">Gamification — 底层战略，参考无尽冬日 + 原神/塞尔达</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="game-grid">
+        <div class="game-card">
+          <div class="head">
+            <div class="icon" style="background:rgba(232,180,76,0.12)">⚡</div>
+            <div><div class="name">圈科技</div><div class="ref">← 联盟科技</div></div>
+          </div>
+          <ul>
+            <li>成员贡献积分升级圈科技</li>
+            <li>全圈享受加成（内容权重+10%）</li>
+            <li>集体的力量反哺个体</li>
+          </ul>
+        </div>
+        <div class="game-card">
+          <div class="head">
+            <div class="icon" style="background:rgba(217,107,107,0.12)">🏆</div>
+            <div><div class="name">圈月度挑战赛</div><div class="ref">← 联盟大作战</div></div>
+          </div>
+          <ul>
+            <li>按集体积分排名，Top3获平台赋能</li>
+            <li>大V资源 / 推流 / 曝光 / 分红</li>
+            <li>只有原始成员贡献积分（防跳圈）</li>
+          </ul>
+        </div>
+        <div class="game-card">
+          <div class="head">
+            <div class="icon" style="background:rgba(90,160,212,0.12)">🤝</div>
+            <div><div class="name">拓圈互助</div><div class="ref">← 互助加速</div></div>
+          </div>
+          <ul>
+            <li>创造者发内容 → Seeker帮忙转发</li>
+            <li>Worker帮创造者做任务</li>
+            <li>双方都得积分，低成本社交破冰</li>
+          </ul>
+        </div>
+        <div class="game-card">
+          <div class="head">
+            <div class="icon" style="background:rgba(155,123,191,0.12)">🏪</div>
+            <div><div class="name">圈商店</div><div class="ref">← 联盟商店</div></div>
+          </div>
+          <ul>
+            <li>贡献值换权益/商品/资源</li>
+            <li>与平台目标奖励联动</li>
+            <li>集体达标后全员按等级分红</li>
+          </ul>
+        </div>
+        <div class="game-card">
+          <div class="head">
+            <div class="icon" style="background:rgba(91,168,117,0.12)">🗺️</div>
+            <div><div class="name">地图探索</div><div class="ref">← 原神/塞尔达</div></div>
+          </div>
+          <ul>
+            <li>迷雾战争：未探索区域被覆盖</li>
+            <li>传送锚点：解锁据点可快速传送</li>
+            <li>插旗标记：标记感兴趣的创造者</li>
+            <li>探索进度：解锁据点百分比</li>
+          </ul>
+        </div>
+        <div class="game-card">
+          <div class="head">
+            <div class="icon" style="background:rgba(232,180,76,0.12)">📅</div>
+            <div><div class="name">活动节奏</div><div class="ref">适度原则</div></div>
+          </div>
+          <ul>
+            <li>周挑战 → 月度挑战赛 → 季度黑马榜 → 城市圈对抗</li>
+            <li>参加是锦上添花不是保命必需</li>
+            <li>不参加没损失，参加了有额外奖励</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 号段经济 -->
+  <div class="section" style="--accent:#e8b44c">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(232,180,76,0.12)">💎</div>
+      <div>
+        <div class="section-title" style="color:#e8b44c">号段经济模型</div>
+        <div class="section-sub">Number Economy — 号 = 资产，不是消费，是投资</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="num-tri">
+        <div class="num-col" style="border-color:rgba(232,180,76,0.15)">
+          <div class="icon">🔢</div>
+          <div class="name" style="color:#e8b44c">稀缺性</div>
+          <div class="desc">1-10号预留拍卖给大佬，号码越靠前越值钱。类似QQ靓号/车牌号逻辑。</div>
+        </div>
+        <div class="num-col" style="border-color:rgba(90,160,212,0.15)">
+          <div class="icon">📈</div>
+          <div class="name" style="color:#5aa0d4">权重积累</div>
+          <div class="desc">越早进来，内容积累越多、交易量越大、等级越高 → 流量分配权。</div>
+        </div>
+        <div class="num-col" style="border-color:rgba(91,168,117,0.15)">
+          <div class="icon">🔄</div>
+          <div class="name" style="color:#5ba875">可交易</div>
+          <div class="desc">不想做了可以卖号，权重跟着号走。私下交易（微信群/闲鱼/当面），平台不介入。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 创造者体系 -->
+  <div class="section" style="--accent:#d96b6b">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(217,107,107,0.12)">🎨</div>
+      <div>
+        <div class="section-title" style="color:#d96b6b">创造者体系</div>
+        <div class="section-sub">Creator System — 五类型 + 核心公式 + 赋能路径</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="creator-grid">
+        <div class="creator-type">
+          <div class="icon">📦</div>
+          <div class="name" style="color:#e8b44c">产品型</div>
+          <div class="desc">实体商品/线上产品，投放爆品</div>
+        </div>
+        <div class="creator-type">
+          <div class="icon">🏪</div>
+          <div class="name" style="color:#5aa0d4">门店型</div>
+          <div class="desc">咖啡店/茶叶店/手作店，拓圈引流到店</div>
+        </div>
+        <div class="creator-type">
+          <div class="icon">🎪</div>
+          <div class="name" style="color:#9b7bbf">活动型</div>
+          <div class="desc">展览/市集/活动，拓圈帮招募+推广</div>
+        </div>
+        <div class="creator-type">
+          <div class="icon">🎬</div>
+          <div class="name" style="color:#d96b6b">内容型</div>
+          <div class="desc">拍视频/做IP，内容就是产品</div>
+        </div>
+        <div class="creator-type">
+          <div class="icon">💡</div>
+          <div class="name" style="color:#5ba875">服务型</div>
+          <div class="desc">设计/策划/咨询/创意，技能变现</div>
+        </div>
+      </div>
+
+      <div class="creator-formula">
+        <div class="formula-text">灵魂 → 外挂大脑（AI）→ 拓圈（落地）→ 共鸣</div>
+        <div class="formula-desc">
+          创造者拥有灵魂（唯一不可替代）· AI是外挂大脑（天马行空）· 拓圈帮想法在现实中落地站稳<br>
+          AI在赛博空间完成闭环 · 拓圈在现实空间完成闭环 · 两者互补<br>
+          <b>本质：任何有价值的东西，都可以在拓圈里流通 · 前期一定一定是精品，要挑选</b>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 视觉系统 -->
+  <div class="section" style="--accent:#5aa0d4">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(90,160,212,0.12)">🖥️</div>
+      <div>
+        <div class="section-title" style="color:#5aa0d4">三大视觉战场</div>
+        <div class="section-sub">Visual System — 三种风格，三个场景</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="visual-grid">
+        <div class="visual-card" style="border-color:rgba(232,180,76,0.15)">
+          <div class="tag" style="background:rgba(232,180,76,0.12);color:#e8b44c">核心产品</div>
+          <div class="name" style="color:#e8b44c">🗺️ 游戏大陆地图</div>
+          <div class="scene">TopSpace主界面 · 用户日常使用</div>
+          <ul class="features">
+            <li>原神/塞尔达风格大世界</li>
+            <li>迷雾战争 + 传送锚点</li>
+            <li>插旗标记 + 探索进度</li>
+            <li>据点建筑 + 探索者AI漫游</li>
+            <li>拖拽缩放 + 小地图</li>
+          </ul>
+        </div>
+        <div class="visual-card" style="border-color:rgba(90,160,212,0.15)">
+          <div class="tag" style="background:rgba(90,160,212,0.12);color:#5aa0d4">B端展示</div>
+          <div class="name" style="color:#5aa0d4">📊 数据仪表盘</div>
+          <div class="scene">投资人/合作伙伴/Pitch</div>
+          <ul class="features">
+            <li>深色宇宙底 + 荧光青色</li>
+            <li>六边形节点 + 数据粒子流动</li>
+            <li>HUD信息面板 + 扫描线</li>
+            <li>创造者索引 + 活跃度图表</li>
+            <li>实时数据统计大屏</li>
+          </ul>
+        </div>
+        <div class="visual-card" style="border-color:rgba(155,123,191,0.15)">
+          <div class="tag" style="background:rgba(155,123,191,0.12);color:#9b7bbf">内容传播</div>
+          <div class="name" style="color:#9b7bbf">📖 漫画分格</div>
+          <div class="scene">公众号/社交媒体/日报</div>
+          <ul class="features">
+            <li>完整漫画叙事排版</li>
+            <li>半调网点 + 速度线</li>
+            <li>对话气泡 + 音效字</li>
+            <li>每创造者独立画格场景</li>
+            <li>可做连载/周报/CTA</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. 技术架构 -->
+  <div class="section" style="--accent:#5ba875">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(91,168,117,0.12)">🛠️</div>
+      <div>
+        <div class="section-title" style="color:#5ba875">技术架构</div>
+        <div class="section-sub">Tech Architecture — 前端双端 + 后端轻量</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="tech-arch">
+        <div class="tech-box" style="border-color:rgba(232,180,76,0.15)">
+          <div class="icon">🌐</div>
+          <div class="name">TopSpace</div>
+          <div class="role">门面 · 吸引力</div>
+          <ul>
+            <li>游戏大陆地图（主界面）</li>
+            <li>星空展示 / 星球详情</li>
+            <li>创造者信息展示</li>
+            <li>视觉效果拉满</li>
+            <li>数据看板（B端）</li>
+          </ul>
+        </div>
+        <div class="tech-arrow">⇄</div>
+        <div class="tech-box" style="border-color:rgba(90,160,212,0.15)">
+          <div class="icon">📱</div>
+          <div class="name">微信小程序</div>
+          <div class="role">交易场 · 功能</div>
+          <ul>
+            <li>注册登录 / 支付交易</li>
+            <li>分润系统 / 号段管理</li>
+            <li>创造者后台（上架/定价/库存）</li>
+            <li>游戏化任务系统</li>
+            <li>圈内社交 / 消息</li>
+          </ul>
+        </div>
+        <div class="tech-arrow">⇄</div>
+        <div class="tech-box" style="border-color:rgba(91,168,117,0.15)">
+          <div class="icon">☁️</div>
+          <div class="name">后端</div>
+          <div class="role">LeanCloud / Supabase</div>
+          <ul>
+            <li>前期月成本 0-100元</li>
+            <li>用户数据 / 商品数据</li>
+            <li>交易 / 分润逻辑</li>
+            <li>游戏化积分系统</li>
+            <li>微信支付商户号对接</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. 商业模型 -->
+  <div class="section" style="--accent:#e8b44c">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(232,180,76,0.12)">💰</div>
+      <div>
+        <div class="section-title" style="color:#e8b44c">商业模型</div>
+        <div class="section-sub">Revenue Model — 多元收入，第一年预估利润~964万</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="revenue-grid">
+        <div class="rev-card">
+          <div class="name">种子期收入</div>
+          <div class="amount" style="color:#e8b44c">~365万</div>
+          <div class="note">1000 Seeker × 365 + 100 Creator × 2000<br>+ 活动收入</div>
+        </div>
+        <div class="rev-card">
+          <div class="name">正式期年费</div>
+          <div class="amount" style="color:#5aa0d4">~149万</div>
+          <div class="note">Seeker 599/年 + Creator 2999/年<br>+ Worker 2999/年</div>
+        </div>
+        <div class="rev-card">
+          <div class="name">活动收入</div>
+          <div class="amount" style="color:#d96b6b">~540万</div>
+          <div class="note">每月2-4场 × 500人 × 199元<br>+ 定制活动</div>
+        </div>
+        <div class="rev-card">
+          <div class="name">交易抽成</div>
+          <div class="amount" style="color:#9b7bbf">待测算</div>
+          <div class="note">创造者交易额抽成<br>+ Linker分润体系</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;padding:16px;border-radius:12px;background:rgba(255,255,255,0.02);font-size:13px;color:rgba(255,255,255,0.4);line-height:1.7">
+        <b style="color:rgba(255,255,255,0.6)">两层奖励机制：</b>
+        ① 个人任务奖励 → 经验值/积分兑换权益/商品/分红
+        ② 平台目标奖励 → 平台设定阶段目标（Wanderer达5万、月交易破100万）→ 达标后全员按等级/贡献度分红
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. 1000人挑战 + 时间线 -->
+  <div class="section" style="--accent:#d96b6b">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(217,107,107,0.12)">📅</div>
+      <div>
+        <div class="section-title" style="color:#d96b6b">时间线 & 当前项目</div>
+        <div class="section-sub">Timeline & Current Projects</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="challenge-box">
+        <div>
+          <div style="font-size:16px;font-weight:700;margin-bottom:12px;color:#d96b6b">🔥 拓圈·1000人挑战</div>
+          <ul class="info-list">
+            <li><b>活动：</b>南京国创园 6场短视频+AI主题活动</li>
+            <li><b>时间：</b>2026年5月10-17日</li>
+            <li><b>票价：</b>199元/天</li>
+            <li><b>讲师：</b>百万粉科技博主张明军</li>
+            <li><b>内容形式：</b>每日录Day视频，曼波AI配音+字幕</li>
+            <li><b>发布平台：</b>抖音 / 小红书 / 视频号</li>
+            <li><b>策略：</b>先攒4-5期合集再投抖加，对比数据</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:16px;font-weight:700;margin-bottom:12px;color:#5aa0d4">🗺️ TopSpace 原神风格地图</div>
+          <ul class="info-list">
+            <li><b>定位：</b>TopSpace核心产品界面</li>
+            <li><b>风格：</b>原神/塞尔达大世界探索</li>
+            <li><b>已实现：</b>demo版本（迷雾/锚点/插旗/缩放）</li>
+            <li><b>状态：</b>待菜菜确认后继续深化</li>
+            <li><b>技术：</b>纯HTML/CSS/JS Canvas</li>
+            <li><b>部署：</b>GitHub Pages（零成本）</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="timeline" style="margin-top:24px">
+        <div class="tl-item" style="--dot-color:#e8b44c">
+          <div class="tl-year">第一年 · 南京打样</div>
+          <div class="tl-text">前3个月建1个原始星球100个Creator跑通模型 → 跑通后自然分叉 → 完善游戏化机制 + 号段经济验证</div>
+        </div>
+        <div class="tl-item" style="--dot-color:#5aa0d4">
+          <div class="tl-year">第二年 · 3-5城复制</div>
+          <div class="tl-text">复制南京模型到杭州/上海等城市 → 每个城市一张新大陆地图 → 跨城市圈对抗</div>
+        </div>
+        <div class="tl-item" style="--dot-color:#d96b6b">
+          <div class="tl-year">第三年 · 10+城全国平台</div>
+          <div class="tl-text">全国一张大地图 → 跨城交易/跨城合作 → 自生长生态成型 → 创造者可跨城开分号</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. 组织架构 -->
+  <div class="section" style="--accent:#5ba875">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(91,168,117,0.12)">🏢</div>
+      <div>
+        <div class="section-title" style="color:#5ba875">组织架构</div>
+        <div class="section-sub">Organization — 集群/联盟概念，不是一个公司</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="company-grid">
+        <div class="company-card" style="border-color:rgba(232,180,76,0.15)">
+          <div class="name" style="color:#e8b44c">拓圈（南京）文化科技有限公司</div>
+          <div class="type" style="background:rgba(232,180,76,0.12);color:#e8b44c">品牌主体 · 注册中</div>
+          <div class="desc">拓圈品牌主体公司。菜菜是核心发起人和灵魂人物。负责品牌运营、平台建设、生态管理。</div>
+        </div>
+        <div class="company-card" style="border-color:rgba(90,160,212,0.15)">
+          <div class="name" style="color:#5aa0d4">南京璞玉网络技术有限公司</div>
+          <div class="type" style="background:rgba(90,160,212,0.12);color:#5aa0d4">合伙人公司</div>
+          <div class="desc">承办抖音电商相关活动（如618策略宣贯会）。玉石珠宝文创行业方向。</div>
+        </div>
+        <div class="company-card" style="border-color:rgba(217,107,107,0.15)">
+          <div class="name" style="color:#d96b6b">南京振业</div>
+          <div class="type" style="background:rgba(217,107,107,0.12);color:#d96b6b">合伙人公司</div>
+          <div class="desc">负责大学生直播大赛等高校方向活动。高校资源对接。</div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+        <div style="padding:16px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04)">
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px;color:#9b7bbf">📚 学习社</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.3)">= 培训部</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:6px">内部修炼内功 + 集成优质培训内容</div>
+        </div>
+        <div style="padding:16px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04)">
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px;color:#5ba875">🌐 拓圈无界</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.3)">= 市场部</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:6px">活动/媒体发声，活动品牌名称"拓圈无界"</div>
+        </div>
+        <div style="padding:16px;border-radius:12px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04)">
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px;color:#e8b44c">🎤 采访栏目</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.3)">名称待定</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:6px">候选："不废话局"/"你被T了"，待菜菜拍板</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12. 底层哲学 -->
+  <div class="section" style="--accent:#9b7bbf">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(155,123,191,0.12)">🧬</div>
+      <div>
+        <div class="section-title" style="color:#9b7bbf">底层哲学</div>
+        <div class="section-sub">Core Philosophy — 拓圈的DNA</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+        <div style="padding:20px;border-radius:14px;background:rgba(255,255,255,0.03)">
+          <div style="font-size:15px;font-weight:700;margin-bottom:8px;color:#e8b44c">🎮 游戏化是底层战略</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.45);line-height:1.7">用游戏的思维做拓圈平台。即时反馈+多巴胺驱动。学中玩，玩中学。游戏化做内核，商业化做外衣。</div>
+        </div>
+        <div style="padding:20px;border-radius:14px;background:rgba(255,255,255,0.03)">
+          <div style="font-size:15px;font-weight:700;margin-bottom:8px;color:#5aa0d4">🎯 增值型 vs 消耗型</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.45);line-height:1.7">无尽冬日是消耗型（虚拟数字无真实价值），拓圈是增值型（学真本事、建真实人脉、做真实产品）。就算没赚到钱，学到的东西和认识的人也是用户的。</div>
+        </div>
+        <div style="padding:20px;border-radius:14px;background:rgba(255,255,255,0.03)">
+          <div style="font-size:15px;font-weight:700;margin-bottom:8px;color:#d96b6b">✨ 筛选而非拉人</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.45);line-height:1.7">不是"求人来"，是"筛选谁来"。有趣的地方才有裂变可能。都是无聊混资源的人反而容易做烂了。前期一定一定一定是精品。</div>
+        </div>
+        <div style="padding:20px;border-radius:14px;background:rgba(255,255,255,0.03)">
+          <div style="font-size:15px;font-weight:700;margin-bottom:8px;color:#9b7bbf">🔨 不是课堂是工地</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.45);line-height:1.7">网上博主教方法论但没法帮落地。拓圈不是教你而是陪你做。菜菜自己做拓圈就是最好的例子：有想法→做框架→做内容→做形式→找人落地。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  TOPOO · 拓圈 · 让小而美被世界看见<br>
+  <span style="opacity:0.5;margin-top:4px;display:inline-block">2026.04.29 · 整体框架梳理 v1</span>
+</div>
+
+</body>
+</html>

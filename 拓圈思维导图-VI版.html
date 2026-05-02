@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOPOO 拓圈 · 思维导图 · VI版</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  /* ── VI 色彩体系 ── */
+  --bg: #F5F0E8;          /* 暖白纸张 */
+  --ink: #1A1A1A;          /* 墨黑 */
+  --gray: #888780;         /* 灰石 */
+  --divider: #E8E6E3;      /* 浅灰分隔 */
+
+  --fire: #D96B6B;         /* 市场/门店 */
+  --fire-l: #F5E0E0;
+  --fire-d: #B85050;
+
+  --water: #4A9EB8;        /* 内容 */
+  --water-l: #DAEEF5;
+  --water-d: #357A95;
+
+  --gold: #E8B44C;         /* 商务/服务 */
+  --gold-l: #F7EFD5;
+  --gold-d: #C49520;
+
+  --wood: #A0B87A;         /* 产品 */
+  --wood-l: #EBF2E0;
+  --wood-d: #7D9A58;
+
+  --earth: #9B7BBF;        /* 体验/活动 */
+  --earth-l: #EDE8F5;
+  --earth-d: #7A5CA0;
+
+  --tribe: #8B7E6A;        /* 部落 */
+  --tribe-l: #EDE8DC;
+
+  /* 星空底（仅局部使用） */
+  --space: #0B0F1E;
+  --nebula: #151B33;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+  font-size: 15px;
+  min-width: 1440px;
+  overflow-x: auto;
+}
+
+.page {
+  padding: 64px 48px 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* ── 页眉 ── */
+.header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.header h1 {
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: 10px;
+  color: var(--ink);
+}
+.header h1 span {
+  font-family: Georgia, serif;
+  color: var(--gold);
+}
+.header p {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--gray);
+  letter-spacing: 4px;
+}
+
+/* ── 核心标签行 ── */
+.core-banner {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.pill {
+  padding: 7px 20px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  border: 1px solid;
+}
+.pill-gold  { background: var(--gold-l);  border-color: rgba(232,180,76,0.4);  color: var(--gold-d); }
+.pill-fire  { background: var(--fire-l);  border-color: rgba(217,107,107,0.4); color: var(--fire-d); }
+.pill-water { background: var(--water-l); border-color: rgba(74,158,184,0.4);  color: var(--water-d); }
+.pill-earth { background: var(--earth-l); border-color: rgba(155,123,191,0.4); color: var(--earth-d); }
+.pill-gray  { background: white;          border-color: var(--divider);        color: var(--gray); }
+
+/* ── 通用卡片 ── */
+.card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid var(--divider);
+  overflow: hidden;
+}
+.card-head {
+  padding: 18px 24px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--divider);
+}
+.card-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.card-title { font-size: 15px; font-weight: 700; }
+.card-en { font-size: 11px; color: var(--gray); letter-spacing: 1px; margin-top: 2px; }
+.card-body { padding: 16px 20px; }
+
+/* 卡片左边框色 */
+.card.fire  { border-left: 3px solid var(--fire); }
+.card.water { border-left: 3px solid var(--water); }
+.card.gold  { border-left: 3px solid var(--gold); }
+.card.wood  { border-left: 3px solid var(--wood); }
+.card.earth { border-left: 3px solid var(--earth); }
+.card.tribe { border-left: 3px solid var(--tribe); }
+
+/* 图标底色 */
+.ci-fire  { background: var(--fire-l); }
+.ci-water { background: var(--water-l); }
+.ci-gold  { background: var(--gold-l); }
+.ci-wood  { background: var(--wood-l); }
+.ci-earth { background: var(--earth-l); }
+.ci-tribe { background: var(--tribe-l); }
+.ci-gray  { background: #f0f0ee; }
+
+/* ── 标签 ── */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+.tag-fire  { background: var(--fire-l);  color: var(--fire-d); }
+.tag-water { background: var(--water-l); color: var(--water-d); }
+.tag-gold  { background: var(--gold-l);  color: var(--gold-d); }
+.tag-wood  { background: var(--wood-l);  color: var(--wood-d); }
+.tag-earth { background: var(--earth-l); color: var(--earth-d); }
+.tag-gray  { background: #f0f0ee;        color: var(--gray); }
+
+/* ── 步骤流 ── */
+.steps {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.step {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: #f0f0ee;
+  border: 1px solid var(--divider);
+  color: var(--ink);
+}
+.step-arrow { font-size: 10px; color: var(--divider); }
+
+/* ── Info 列表 ── */
+.info-list { display: flex; flex-direction: column; gap: 6px; }
+.info-item {
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--divider);
+  line-height: 1.55;
+}
+.info-item .lbl {
+  font-size: 10px;
+  color: var(--gray);
+  display: block;
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+}
+
+.divider-h { height: 1px; background: var(--divider); margin: 12px 0; }
+
+/* ── 主三列 ── */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  width: 100%;
+  max-width: 1500px;
+  margin-bottom: 20px;
+}
+
+/* ── 二列 ── */
+.two-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  width: 100%;
+  max-width: 1500px;
+  margin-bottom: 20px;
+}
+
+/* ── 全宽行 ── */
+.full-row {
+  width: 100%;
+  max-width: 1500px;
+  margin-bottom: 20px;
+}
+
+/* ── 区块标题 ── */
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--gray);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--divider);
+}
+
+/* ── 角色卡 专用 ── */
+.role-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid var(--divider);
+  display: flex;
+  flex-direction: column;
+}
+.role-card .rh {
+  padding: 18px 20px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--divider);
+}
+.role-card .ri {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.role-card .rt { font-size: 15px; font-weight: 700; }
+.role-card .ren { font-size: 10px; color: var(--gray); letter-spacing: 1px; margin-top: 1px; }
+.role-card .rb { padding: 14px 18px; flex: 1; }
+.role-card .rdesc { font-size: 12px; color: var(--gray); line-height: 1.65; margin-bottom: 10px; }
+
+/* 角色上色 */
+.role-wanderer { border-left: 3px solid var(--gray); }
+.role-wanderer .ri { background: #f0f0ee; }
+.role-seeker { border-left: 3px solid var(--water); }
+.role-seeker .ri { background: var(--water-l); }
+.role-creator { border-left: 3px solid var(--gold); }
+.role-creator .ri { background: var(--gold-l); }
+.role-worker { border-left: 3px solid var(--wood); }
+.role-worker .ri { background: var(--wood-l); }
+.role-linker { border-left: 3px solid var(--earth); }
+.role-linker .ri { background: var(--earth-l); }
+.role-pioneer { border-left: 3px solid var(--fire); }
+.role-pioneer .ri { background: var(--fire-l); }
+
+/* ── 五行卡 ── */
+.wuxing-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  width: 100%;
+  max-width: 1500px;
+  margin-bottom: 20px;
+}
+.wx-card {
+  border-radius: 12px;
+  padding: 20px 16px;
+  text-align: center;
+  border: 1px solid;
+}
+.wx-card .wx-em { font-size: 28px; margin-bottom: 8px; }
+.wx-card .wx-el { font-size: 18px; font-weight: 800; margin-bottom: 3px; }
+.wx-card .wx-type { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+.wx-card .wx-desc { font-size: 11px; line-height: 1.6; opacity: 0.7; }
+.wx-fire  { background: var(--fire-l);  border-color: rgba(217,107,107,0.3); color: var(--fire-d); }
+.wx-water { background: var(--water-l); border-color: rgba(74,158,184,0.3);  color: var(--water-d); }
+.wx-wood  { background: var(--wood-l);  border-color: rgba(160,184,122,0.3); color: var(--wood-d); }
+.wx-earth { background: var(--earth-l); border-color: rgba(155,123,191,0.3); color: var(--earth-d); }
+.wx-gold  { background: var(--gold-l);  border-color: rgba(232,180,76,0.3);  color: var(--gold-d); }
+
+/* ── 数字目标（星空底局部） ── */
+.target-dark {
+  background: var(--space);
+  border-radius: 16px;
+  padding: 28px 32px;
+  color: white;
+}
+.target-dark h3 { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.9); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+.target-dark h3::before { content:''; display:block; width:3px; height:14px; background:var(--gold); border-radius:2px; }
+.targets-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.tgt {
+  flex: 1; min-width: 100px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 16px 14px;
+  text-align: center;
+}
+.tgt .tlbl { font-size: 11px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 6px; }
+.tgt .tnum { font-size: 24px; font-weight: 900; line-height: 1; }
+.tgt .tmay { font-size: 11px; margin-top: 6px; }
+.tgt-w .tnum { color: rgba(255,255,255,0.7); }
+.tgt-s .tnum { color: var(--water); }
+.tgt-c .tnum { color: var(--gold); }
+.tgt-wk .tnum { color: var(--wood); }
+.tgt-l .tnum { color: var(--earth); }
+.tgt-rev { margin-top: 14px; display:flex; gap:10px; }
+.rev-item {
+  flex:1;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+}
+.rev-item .rlbl { font-size: 10px; color: rgba(255,255,255,0.3); margin-bottom: 6px; }
+.rev-item .rnum { font-size: 22px; font-weight: 900; }
+.rev-item .runit { font-size: 11px; color: rgba(255,255,255,0.4); }
+.rev-creator .rnum { color: var(--fire); }
+.rev-seeker  .rnum { color: var(--water); }
+.rev-total   .rnum { color: var(--gold); }
+
+/* ── 组织架构 ── */
+.org-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+.org-col { border-radius: 12px; border: 1px solid; overflow: hidden; }
+.org-head { padding: 12px 14px; font-size: 12px; font-weight: 700; display:flex; align-items:center; gap:6px; }
+.org-depts { padding: 6px 10px 10px; }
+.org-dept { font-size: 11px; padding: 5px 0; border-top: 1px solid; display: flex; align-items: center; gap: 5px; }
+.org-dept:first-child { border-top: none; }
+
+.org-market { border-color: rgba(217,107,107,0.25); }
+.org-market .org-head { background: var(--fire-l); color: var(--fire-d); }
+.org-market .org-dept { border-color: rgba(217,107,107,0.1); color: #444; }
+.org-content { border-color: rgba(74,158,184,0.25); }
+.org-content .org-head { background: var(--water-l); color: var(--water-d); }
+.org-content .org-dept { border-color: rgba(74,158,184,0.1); color: #444; }
+.org-biz { border-color: rgba(232,180,76,0.25); }
+.org-biz .org-head { background: var(--gold-l); color: var(--gold-d); }
+.org-biz .org-dept { border-color: rgba(232,180,76,0.1); color: #444; }
+.org-product { border-color: rgba(160,184,122,0.25); }
+.org-product .org-head { background: var(--wood-l); color: var(--wood-d); }
+.org-product .org-dept { border-color: rgba(160,184,122,0.1); color: #444; }
+.org-exp { border-color: rgba(155,123,191,0.25); }
+.org-exp .org-head { background: var(--earth-l); color: var(--earth-d); }
+.org-exp .org-dept { border-color: rgba(155,123,191,0.1); color: #444; }
+.org-tribe { border-color: rgba(139,126,106,0.25); }
+.org-tribe .org-head { background: var(--tribe-l); color: var(--tribe); }
+.org-tribe .org-dept { border-color: rgba(139,126,106,0.1); color: #444; }
+
+/* ── 三年路线图 ── */
+.roadmap-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.rm-item {
+  background: white;
+  border: 1px solid var(--divider);
+  border-radius: 16px;
+  padding: 24px 22px;
+}
+.rm-year { font-size: 40px; font-weight: 900; color: var(--divider); line-height: 1; margin-bottom: 8px; }
+.rm-tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 100px; margin-bottom: 10px; }
+.rm-y1 .rm-tag { background: var(--fire-l); color: var(--fire-d); }
+.rm-y2 .rm-tag { background: var(--water-l); color: var(--water-d); }
+.rm-y3 .rm-tag { background: var(--gold-l); color: var(--gold-d); }
+.rm-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+.rm-list { list-style: none; }
+.rm-list li { font-size: 12px; color: var(--gray); padding: 4px 0; border-top: 1px solid var(--divider); display: flex; align-items: flex-start; gap: 6px; }
+.rm-list li::before { content: '→'; color: var(--gold-d); font-size: 10px; margin-top: 2px; flex-shrink: 0; }
+
+/* ── 核心理念大横幅（星空底） ── */
+.idea-banner {
+  background: var(--space);
+  border-radius: 16px;
+  padding: 28px 32px;
+  color: white;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.idea-item { padding: 0 20px; border-right: 1px solid rgba(255,255,255,0.07); }
+.idea-item:last-child { border-right: none; }
+.idea-num { font-size: 32px; font-weight: 900; color: rgba(255,255,255,0.06); line-height: 1; margin-bottom: 8px; }
+.idea-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.idea-desc { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.7; }
+
+/* ── 商业模型 ── */
+.biz-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.biz-box {
+  background: var(--bg);
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  padding: 16px;
+}
+.biz-box .blbl { font-size: 11px; color: var(--gray); margin-bottom: 4px; }
+.biz-box .bnum { font-size: 22px; font-weight: 900; color: var(--gold-d); }
+.biz-box .bdesc { font-size: 11px; color: var(--gray); margin-top: 4px; line-height: 1.5; }
+
+/* ── 号段模型 ── */
+.num-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.num-box {
+  background: var(--bg);
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  padding: 16px;
+}
+.num-box .nlbl { font-size: 10px; color: var(--gray); letter-spacing: 2px; margin-bottom: 6px; }
+.num-box h4 { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+.num-box p { font-size: 12px; color: var(--gray); line-height: 1.6; }
+.num-box .nhigh { color: var(--gold-d); font-weight: 600; }
+
+/* ── 页脚 ── */
+.footer {
+  margin-top: 40px;
+  text-align: center;
+  padding-top: 32px;
+  border-top: 1px solid var(--divider);
+  width: 100%;
+  max-width: 1500px;
+}
+.footer-brand { font-size: 20px; font-weight: 900; letter-spacing: 4px; }
+.footer-brand span { font-family: Georgia, serif; color: var(--gold); }
+.footer-note { font-size: 12px; color: var(--gray); margin-top: 6px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ── 页眉 ── -->
+<div class="header">
+  <h1>T<span>OPOO</span> 拓圈</h1>
+  <p>让小而美被世界看见 · 全域共生平台 · 2026</p>
+</div>
+
+<!-- ── 核心标签 ── -->
+<div class="core-banner">
+  <div class="pill pill-gold">商业研究所</div>
+  <div class="pill pill-water">产品试验田</div>
+  <div class="pill pill-earth">创意落地场</div>
+  <div class="pill pill-fire">抖音电商官方服务商</div>
+  <div class="pill pill-gray">拓圈（南京）文化科技有限公司</div>
+  <div class="pill pill-gray">南京发起 · 全国扩张</div>
+</div>
+
+<!-- ── S1: 核心理念 ── -->
+<div class="full-row">
+  <div class="section-label">01 · CORE PHILOSOPHY · 核心理念</div>
+  <div class="idea-banner">
+    <div class="idea-item">
+      <div class="idea-num">01</div>
+      <div class="idea-title">长期主义</div>
+      <div class="idea-desc">不急功近利，愿意花时间打磨自己和产品，相信慢就是快。拓圈不是流量收割机。</div>
+    </div>
+    <div class="idea-item">
+      <div class="idea-num">02</div>
+      <div class="idea-title">探索精神</div>
+      <div class="idea-desc">知道自己是谁，或正在寻找自己是谁。给你空间自己去发现，没人告诉你该往哪走。</div>
+    </div>
+    <div class="idea-item">
+      <div class="idea-num">03</div>
+      <div class="idea-title">同频共振</div>
+      <div class="idea-desc">相信碰撞的力量，愿意跟一群人一起走。不是一个人单打独斗，是找到真正同频的伙伴。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── S2: 角色体系 ── -->
+<div class="full-row">
+  <div class="section-label">02 · ROLE SYSTEM · 六层角色体系</div>
+  <div class="main-grid" style="grid-template-columns: repeat(6,1fr)">
+
+    <div class="role-card role-wanderer">
+      <div class="rh">
+        <div class="ri">🌫️</div>
+        <div><div class="rt">漫游者</div><div class="ren">WANDERER</div></div>
+      </div>
+      <div class="rb">
+        <div class="rdesc">已注意拓圈，初步了解，路过星空的旅人</div>
+        <div class="tag tag-gray">🆓 完全免费</div>
+        <div class="divider-h"></div>
+        <div class="info-list">
+          <div class="info-item"><span class="lbl">特权</span>自动生成身份卡+编号</div>
+          <div class="info-item"><span class="lbl">行动</span>自由浏览·可分享朋友圈</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="role-card role-seeker">
+      <div class="rh">
+        <div class="ri">🔍</div>
+        <div><div class="rt">探索者</div><div class="ren">SEEKER</div></div>
+      </div>
+      <div class="rb">
+        <div class="rdesc">付费加入，有编号，有意图地寻找方向</div>
+        <div class="tag tag-water">种子¥365 / 正式¥599/年</div>
+        <div class="divider-h"></div>
+        <div class="info-list">
+          <div class="info-item"><span class="lbl">升级三线</span>任务线 / 付费线 / 积分线</div>
+          <div class="info-item"><span class="lbl">奖励</span>季度可能返现50-100元</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="role-card role-creator">
+      <div class="rh">
+        <div class="ri">⚡</div>
+        <div><div class="rt">创造者</div><div class="ren">CREATOR</div></div>
+      </div>
+      <div class="rb">
+        <div class="rdesc">有东西要卖，做产品/内容/IP，在拓圈变现</div>
+        <div class="tag tag-gold">种子保证金¥2000可退</div>
+        <div class="divider-h"></div>
+        <div class="info-list">
+          <div class="info-item"><span class="lbl">分身</span>一号多身份，各自独立运营</div>
+          <div class="info-item"><span class="lbl">资产</span>号段可交易，越早越值钱</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="role-card role-worker">
+      <div class="rh">
+        <div class="ri">🔧</div>
+        <div><div class="rt">工作者</div><div class="ren">WORKER</div></div>
+      </div>
+      <div class="rb">
+        <div class="rdesc">辅助创造者，碳基用货币，硅基用token</div>
+        <div class="tag tag-wood">0元入 · 从任务扣保证金999</div>
+        <div class="divider-h"></div>
+        <div class="info-list">
+          <div class="info-item"><span class="lbl">晋升</span>见习→正式→资深→导师级</div>
+          <div class="info-item"><span class="lbl">协作</span>AI做70% · 人做30%关键判断</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="role-card role-linker">
+      <div class="rh">
+        <div class="ri">🕊️</div>
+        <div><div class="rt">链接者</div><div class="ren">LINKER</div></div>
+      </div>
+      <div class="rb">
+        <div class="rdesc">搭桥/推广/撮合，介绍创造者进来分交易额</div>
+        <div class="tag tag-earth">0元入 · 从分润扣保证金1200</div>
+        <div class="divider-h"></div>
+        <div class="info-list">
+          <div class="info-item"><span class="lbl">收入</span>交易额1-2%分成，等级越高比例越高</div>
+          <div class="info-item"><span class="lbl">顶级</span>可拿整个城市交易分成</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="role-card role-pioneer">
+      <div class="rh">
+        <div class="ri">🚀</div>
+        <div><div class="rt">开拓者</div><div class="ren">PIONEER</div></div>
+      </div>
+      <div class="rb">
+        <div class="rdesc">满级玩家终极形态，建造并运营自己的星球</div>
+        <div class="tag tag-fire">晋升制 · 满级解锁</div>
+        <div class="divider-h"></div>
+        <div class="info-list">
+          <div class="info-item"><span class="lbl">权力</span>制定星球规则和文化方向</div>
+          <div class="info-item"><span class="lbl">收益</span>星球交易按比例分成</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── S3: 创造者五行 ── -->
+<div class="full-row">
+  <div class="section-label">03 · CREATOR TYPES · 五行创造者</div>
+  <div class="wuxing-row">
+    <div class="wx-card wx-water">
+      <div class="wx-em">💧</div>
+      <div class="wx-el">水</div>
+      <div class="wx-type">内容型</div>
+      <div class="wx-desc">无形流到任何角落，渗透种草，流动即传播。短视频/KOL/IP</div>
+    </div>
+    <div class="wx-card wx-wood">
+      <div class="wx-em">🌱</div>
+      <div class="wx-el">木</div>
+      <div class="wx-type">产品型</div>
+      <div class="wx-desc">从种子到果实，需要水（内容）和阳光滋养生长。实体/线上商品</div>
+    </div>
+    <div class="wx-card wx-fire">
+      <div class="wx-em">🔥</div>
+      <div class="wx-el">火</div>
+      <div class="wx-type">门店型</div>
+      <div class="wx-desc">门店是火塘，人聚集，有固定位置有真实温度。咖啡/茶/手作</div>
+    </div>
+    <div class="wx-card wx-earth">
+      <div class="wx-em">🌍</div>
+      <div class="wx-el">土</div>
+      <div class="wx-type">活动型</div>
+      <div class="wx-desc">承载万物，是所有创造类型的场地和地基。展览/市集/工作坊</div>
+    </div>
+    <div class="wx-card wx-gold">
+      <div class="wx-em">⚙️</div>
+      <div class="wx-el">金</div>
+      <div class="wx-type">服务型</div>
+      <div class="wx-desc">精准切割需求，高价值硬通货，让其他人更强。设计/策划/咨询</div>
+    </div>
+  </div>
+  <div style="background:white;border:1px solid var(--divider);border-radius:10px;padding:14px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--gray)">
+    <span style="font-weight:700;color:var(--ink)">五行相生：</span>
+    <span style="color:var(--water-d);font-weight:600">水·内容</span><span>→ 滋养 →</span>
+    <span style="color:var(--wood-d);font-weight:600">木·产品</span><span>→ 带动 →</span>
+    <span style="color:var(--fire-d);font-weight:600">火·门店</span><span>→ 催生 →</span>
+    <span style="color:var(--earth-d);font-weight:600">土·活动</span><span>→ 锻炼 →</span>
+    <span style="color:var(--gold-d);font-weight:600">金·服务</span><span>→ 产出 →</span>
+    <span style="color:var(--water-d);font-weight:600">水·内容</span><span style="opacity:0.5">（循环）</span>
+  </div>
+</div>
+
+<!-- ── S4: 星球体系 + 号段模型 ── -->
+<div class="full-row">
+  <div class="section-label">04 · PLANET SYSTEM · 星球·圈体系</div>
+  <div class="two-grid" style="width:100%;max-width:100%">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon ci-earth">🌌</div>
+        <div>
+          <div class="card-title">圈层级结构</div>
+          <div class="card-en">小圈→大圈→城市圈→全国圈</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="info-list">
+          <div class="info-item"><span class="lbl">🔮 小圈（星球）</span>50-1000人，单城市基本单位。常住=Creator，Seeker在外大盘漂着</div>
+          <div class="info-item"><span class="lbl">🌌 大圈（星系）</span>多个星球聚合，同主题生态集合</div>
+          <div class="info-item"><span class="lbl">🌆 城市圈（星域）</span>一座城市全部星球总和</div>
+          <div class="info-item"><span class="lbl">🌏 全国圈（宇宙）</span>所有城市大陆总和，TOPOO终极形态</div>
+        </div>
+        <div class="divider-h"></div>
+        <div style="font-size:12px;color:var(--gray);font-weight:600;margin-bottom:6px">星球职位体系</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <span class="tag tag-gold">🏮 掌灯人（负责人）</span>
+          <span class="tag tag-water">🪐 引力手（副手）</span>
+          <span class="tag tag-earth">✨ 星尘（月度最活跃）</span>
+          <span class="tag tag-gray">🕊️ 信使（跨星外交）</span>
+          <span class="tag tag-gray">🌟 指路星（新人引导）</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon ci-gold">💎</div>
+        <div>
+          <div class="card-title">号段经济模型</div>
+          <div class="card-en">号=资产，不是消费，是投资</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="num-row">
+          <div class="num-box">
+            <div class="nlbl">01 · SCARCITY</div>
+            <h4>号码稀缺性</h4>
+            <p>1-10号拍卖大佬，越靠前越值钱。<span class="nhigh">类似QQ靓号/车牌号逻辑</span></p>
+          </div>
+          <div class="num-box">
+            <div class="nlbl">02 · ACCUMULATION</div>
+            <h4>权重积累</h4>
+            <p>越早进内容积累越多，后续新人<span class="nhigh">最先看到高权重创造者</span>——这就是流量分配权</p>
+          </div>
+          <div class="num-box">
+            <div class="nlbl">03 · TRADEABLE</div>
+            <h4>号可交易</h4>
+            <p>2000入的号养好后<span class="nhigh">可卖1-2万</span>，权重跟号走，买的是积累的一切</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── S5: 游戏化机制 ── -->
+<div class="full-row">
+  <div class="section-label">05 · GAMIFICATION · 游戏化底层战略（参考：无尽冬日）</div>
+  <div class="main-grid">
+    <div class="card water">
+      <div class="card-head">
+        <div class="card-icon ci-water">⬆️</div>
+        <div><div class="card-title">资源永远不够</div><div class="card-en">ALWAYS MORE TO UNLOCK</div></div>
+      </div>
+      <div class="card-body">
+        <div class="info-list">
+          <div class="info-item">升级目标永远有下一步，阶段性成就感持续输出，用户始终有奔头</div>
+          <div class="info-item"><span class="lbl">对标机制</span>圈科技升级 → 全圈内容权重 +10%</div>
+        </div>
+      </div>
+    </div>
+    <div class="card gold">
+      <div class="card-head">
+        <div class="card-icon ci-gold">🤝</div>
+        <div><div class="card-title">联盟绑定</div><div class="card-en">SOCIAL BONDING</div></div>
+      </div>
+      <div class="card-body">
+        <div class="info-list">
+          <div class="info-item">社交关系越织越密，离开成本越来越高。从陌生人到盟友到真实朋友</div>
+          <div class="info-item"><span class="lbl">对标机制</span>圈月度挑战赛 → 集体积分冲Top3 → 平台赋能全圈</div>
+        </div>
+      </div>
+    </div>
+    <div class="card earth">
+      <div class="card-head">
+        <div class="card-icon ci-earth">⏰</div>
+        <div><div class="card-title">限时冲刺</div><div class="card-en">TIME-LIMITED EVENTS</div></div>
+      </div>
+      <div class="card-body">
+        <div class="info-list">
+          <div class="info-item">参加是锦上添花不是保命必需，有点紧迫感但不制造焦虑，底色是好玩</div>
+          <div class="info-item"><span class="lbl">节奏</span>周挑战 → 月度挑战赛 → 季度黑马榜 → 城市圈对抗</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;background:white;border:1px solid var(--divider);border-radius:12px;padding:16px 20px;font-size:13px;color:var(--gray)">
+    <strong style="color:var(--ink)">与游戏的本质区别：</strong>游戏是消耗型（虚拟数字，无真实价值）→ 拓圈是<strong style="color:var(--gold-d)">增值型</strong>（投入的是真本事、真人脉、真产品）。就算没赚到钱，学到的东西和认识的人也是用户自己的。
+  </div>
+</div>
+
+<!-- ── S6: 组织架构 ── -->
+<div class="full-row">
+  <div class="section-label">06 · ORGANIZATION · 组织架构 v3（6中心16部门）</div>
+  <div class="org-grid">
+    <div class="org-col org-market">
+      <div class="org-head">🔴 市场中心</div>
+      <div class="org-depts">
+        <div class="org-dept">⭐ 品牌站</div>
+        <div class="org-dept">📻 广播站</div>
+        <div class="org-dept">📡 情报局</div>
+        <div class="org-dept">📢 推广局</div>
+      </div>
+    </div>
+    <div class="org-col org-content">
+      <div class="org-head">🔵 内容中心</div>
+      <div class="org-depts">
+        <div class="org-dept">✍️ 内容工厂</div>
+        <div class="org-dept">💡 创意局</div>
+        <div class="org-dept">🎨 视觉车间</div>
+      </div>
+    </div>
+    <div class="org-col org-biz">
+      <div class="org-head">🟡 商务中心</div>
+      <div class="org-depts">
+        <div class="org-dept">🎯 招募站</div>
+        <div class="org-dept">🤝 合作社</div>
+      </div>
+    </div>
+    <div class="org-col org-product">
+      <div class="org-head">🟢 产品中心</div>
+      <div class="org-depts">
+        <div class="org-dept">🔧 技术部</div>
+        <div class="org-dept">🤖 AI研究院</div>
+        <div class="org-dept">🧮 算法实验室</div>
+        <div class="org-dept">🚀 创新实验室</div>
+      </div>
+    </div>
+    <div class="org-col org-exp">
+      <div class="org-head">🟣 体验中心</div>
+      <div class="org-depts">
+        <div class="org-dept">💥 拓圈无界</div>
+        <div class="org-dept">📚 学习社</div>
+        <div class="org-dept">📊 商业研究所</div>
+      </div>
+    </div>
+    <div class="org-col org-tribe">
+      <div class="org-head">🟤 部落总部</div>
+      <div class="org-depts">
+        <div class="org-dept">🏠 后勤站</div>
+        <div class="org-dept">💰 账房</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── S7: 数字目标 ── -->
+<div class="full-row">
+  <div class="section-label">07 · TARGETS · 南京目标 · 2026.5–12</div>
+  <div class="target-dark">
+    <h3>8个月目标分解（年度 / 5月冲刺）</h3>
+    <div class="targets-row">
+      <div class="tgt tgt-w">
+        <div class="tlbl">WANDERER</div>
+        <div class="tnum">20万</div>
+        <div class="tmay" style="color:rgba(255,255,255,0.4)">5月 → 4万</div>
+      </div>
+      <div class="tgt tgt-s">
+        <div class="tlbl">SEEKER</div>
+        <div class="tnum">1万</div>
+        <div class="tmay" style="color:var(--water)">5月 → 2000</div>
+      </div>
+      <div class="tgt tgt-c">
+        <div class="tlbl">CREATOR</div>
+        <div class="tnum">500</div>
+        <div class="tmay" style="color:var(--gold)">5月 → 100</div>
+      </div>
+      <div class="tgt tgt-wk">
+        <div class="tlbl">WORKER</div>
+        <div class="tnum">200</div>
+        <div class="tmay" style="color:var(--wood)">5月 → 40</div>
+      </div>
+      <div class="tgt tgt-l">
+        <div class="tlbl">LINKER</div>
+        <div class="tnum">50</div>
+        <div class="tmay" style="color:var(--earth)">5月 → 10</div>
+      </div>
+    </div>
+    <div class="tgt-rev">
+      <div class="rev-item rev-creator">
+        <div class="rlbl">Creator 保证金（种子100人×¥2000）</div>
+        <div class="rnum">100</div>
+        <div class="runit">万元</div>
+      </div>
+      <div class="rev-item rev-seeker">
+        <div class="rlbl">Seeker 入圈费（1000人×¥365）</div>
+        <div class="rnum">365</div>
+        <div class="runit">万元</div>
+      </div>
+      <div class="rev-item rev-total">
+        <div class="rlbl">种子期收入预估合计</div>
+        <div class="rnum">≈465</div>
+        <div class="runit">万元</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── S8: 大陆世界观 ── -->
+<div class="full-row">
+  <div class="section-label">08 · WORLD VIEW · 拓圈大陆世界观（参考：原神提瓦特）</div>
+  <div class="main-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="card earth" style="background:var(--nebula);border-color:rgba(155,123,191,0.3)">
+      <div class="card-head" style="border-color:rgba(255,255,255,0.07)">
+        <div class="card-icon" style="background:rgba(155,123,191,0.2)">🟣</div>
+        <div style="color:white"><div class="card-title">南京大陆「创造」</div><div class="card-en" style="color:rgba(255,255,255,0.3)">CHAPTER 01 · 正式点亮</div></div>
+      </div>
+      <div class="card-body" style="color:rgba(255,255,255,0.5);font-size:12px;line-height:1.7">
+        第一片大陆，故事从发起人开始。紫色，属土，承载万物，所有可能性的起点。
+      </div>
+    </div>
+    <div class="card" style="background:var(--nebula);border-color:rgba(74,158,184,0.25);border-left:3px solid var(--water)">
+      <div class="card-head" style="border-color:rgba(255,255,255,0.07)">
+        <div class="card-icon" style="background:rgba(74,158,184,0.2)">🔵</div>
+        <div style="color:white"><div class="card-title">苏州大陆「美学」</div><div class="card-en" style="color:rgba(255,255,255,0.3)">CHAPTER 02 · 待解锁</div></div>
+      </div>
+      <div class="card-body" style="color:rgba(255,255,255,0.35);font-size:12px;line-height:1.7">
+        丝绸/苏绣/设计。青绿色，流动的美，渗透到每一个细节。
+      </div>
+    </div>
+    <div class="card" style="background:var(--nebula);border-color:rgba(74,158,184,0.2);border-left:3px solid #4A89B8">
+      <div class="card-head" style="border-color:rgba(255,255,255,0.07)">
+        <div class="card-icon" style="background:rgba(74,137,184,0.2)">🌊</div>
+        <div style="color:white"><div class="card-title">杭州大陆「流动」</div><div class="card-en" style="color:rgba(255,255,255,0.3)">CHAPTER 03 · 待解锁</div></div>
+      </div>
+      <div class="card-body" style="color:rgba(255,255,255,0.35);font-size:12px;line-height:1.7">
+        电商/直播/数字产品。湖蓝色，内容流动最快的地方。
+      </div>
+    </div>
+    <div class="card" style="background:var(--nebula);border-color:rgba(160,184,122,0.2);border-left:3px solid var(--wood-d)">
+      <div class="card-head" style="border-color:rgba(255,255,255,0.07)">
+        <div class="card-icon" style="background:rgba(125,154,88,0.2)">🌿</div>
+        <div style="color:white"><div class="card-title">成都大陆「自在」</div><div class="card-en" style="color:rgba(255,255,255,0.3)">CHAPTER 04 · 待解锁</div></div>
+      </div>
+      <div class="card-body" style="color:rgba(255,255,255,0.35);font-size:12px;line-height:1.7">
+        美食/茶饮/文创IP。竹绿色，天府之国，最松弛的创作氛围。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── S9: 三年路线图 ── -->
+<div class="full-row">
+  <div class="section-label">09 · ROADMAP · 三年发展路线图</div>
+  <div class="roadmap-row">
+    <div class="rm-item rm-y1">
+      <div class="rm-year">Y1</div>
+      <div class="rm-tag">2026 · 南京打样</div>
+      <div class="rm-title">跑通最小闭环</div>
+      <ul class="rm-list">
+        <li>南京一城跑通全部角色体系</li>
+        <li>第一批8+王国（星球）上线</li>
+        <li>Seeker 1万 / Creator 500 达成</li>
+        <li>微信小程序+拓圈宇宙全面上线</li>
+        <li>种子期收入目标：≈465万</li>
+      </ul>
+    </div>
+    <div class="rm-item rm-y2">
+      <div class="rm-year">Y2</div>
+      <div class="rm-tag">2027 · 多城复制</div>
+      <div class="rm-title">扩张3-5个城市</div>
+      <ul class="rm-list">
+        <li>苏州/杭州/成都/武汉等大陆解锁</li>
+        <li>城市主理人体系建立</li>
+        <li>跨大陆玩法（航线/对抗赛）上线</li>
+        <li>Seeker 总量突破10万</li>
+      </ul>
+    </div>
+    <div class="rm-item rm-y3">
+      <div class="rm-year">Y3</div>
+      <div class="rm-tag">2028 · 全国成型</div>
+      <div class="rm-title">10+城市，平台级</div>
+      <ul class="rm-list">
+        <li>10+城市大陆全面点亮</li>
+        <li>平台自增长，自组织生态成型</li>
+        <li>TOPOO成为全域共生标志品牌</li>
+        <li>Seeker总量百万量级</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ── 商业公式 ── -->
+<div class="full-row">
+  <div style="background:white;border:1px solid var(--divider);border-radius:16px;padding:24px 32px;text-align:center">
+    <div style="font-size:11px;color:var(--gray);letter-spacing:3px;margin-bottom:12px">CORE FORMULA · 核心公式</div>
+    <div style="font-size:18px;font-weight:700;letter-spacing:2px;color:var(--ink)">
+      灵魂 &nbsp;<span style="color:var(--gold)">×</span>&nbsp; 外挂大脑（AI）&nbsp;<span style="color:var(--gold)">×</span>&nbsp; 拓圈（落地）&nbsp;<span style="color:var(--gold)">=</span>&nbsp; <span style="color:var(--gold-d)">共鸣</span>
+    </div>
+    <div style="margin-top:10px;font-size:13px;color:var(--gray)">你有灵魂（唯一不可替代）· AI是外挂大脑（天马行空）· 拓圈帮想法在现实中落地站稳</div>
+  </div>
+</div>
+
+<!-- ── 页脚 ── -->
+<div class="footer">
+  <div class="footer-brand">T<span>OPOO</span> 拓圈</div>
+  <div class="footer-note">让小而美被世界看见 · 拓圈（南京）文化科技有限公司 · 2026</div>
+</div>
+
+</div>
+</body>
+</html>

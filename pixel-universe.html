@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拓圈 · 像素宇宙</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #05080f;
+    --gold: #F5A623;
+    --gold-dim: rgba(245, 166, 35, 0.15);
+    --warm: #E8915A;
+    --mint: #4ECDC4;
+    --coral: #FF6B6B;
+    --blue: #6C9CE3;
+    --text: #c8c0b4;
+    --text-bright: #f0ebe4;
+    --text-dim: #5a5550;
+  }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ===== 全屏画布 ===== */
+  #universe {
+    position: fixed; inset: 0;
+    z-index: 0;
+  }
+
+  /* ===== 内容层 ===== */
+  .content {
+    position: relative; z-index: 10;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 24px;
+    pointer-events: none;
+  }
+  .content * { pointer-events: auto; }
+
+  .logo-mark {
+    width: 48px; height: 48px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+    margin-bottom: 32px;
+    animation: logo-pulse 4s ease-in-out infinite;
+  }
+  .logo-mark span {
+    border-radius: 1px;
+    animation: pixel-breathe 3s ease-in-out infinite;
+  }
+  .logo-mark span:nth-child(1) { background: var(--gold); animation-delay: 0s; }
+  .logo-mark span:nth-child(2) { background: rgba(245,166,35,0.3); animation-delay: 0.2s; }
+  .logo-mark span:nth-child(3) { background: var(--gold); animation-delay: 0.4s; }
+  .logo-mark span:nth-child(4) { background: rgba(245,166,35,0.3); animation-delay: 0.6s; }
+  .logo-mark span:nth-child(5) { background: var(--gold); animation-delay: 0.8s; }
+  .logo-mark span:nth-child(6) { background: rgba(245,166,35,0.3); animation-delay: 1.0s; }
+  .logo-mark span:nth-child(7) { background: var(--gold); animation-delay: 1.2s; }
+  .logo-mark span:nth-child(8) { background: rgba(245,166,35,0.3); animation-delay: 1.4s; }
+  .logo-mark span:nth-child(9) { background: var(--gold); animation-delay: 1.6s; }
+
+  @keyframes logo-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  @keyframes pixel-breathe {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .hero-title {
+    font-size: clamp(36px, 8vw, 64px);
+    font-weight: 900;
+    letter-spacing: 8px;
+    color: var(--text-bright);
+    margin-bottom: 12px;
+    text-shadow: 0 0 60px rgba(245, 166, 35, 0.15);
+  }
+  .hero-sub {
+    font-size: clamp(10px, 2vw, 13px);
+    letter-spacing: 12px;
+    color: var(--gold);
+    opacity: 0.6;
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+
+  .manifesto {
+    max-width: 420px;
+    text-align: center;
+    margin-bottom: 56px;
+  }
+  .manifesto p {
+    font-size: 15px;
+    line-height: 2;
+    color: var(--text-dim);
+    font-weight: 300;
+  }
+  .manifesto .highlight {
+    color: var(--gold);
+    font-weight: 500;
+    position: relative;
+  }
+  .manifesto .highlight::after {
+    content: '';
+    position: absolute; bottom: -2px; left: 0; right: 0;
+    height: 1px;
+    background: var(--gold);
+    opacity: 0.3;
+  }
+
+  /* 像素计数器 */
+  .pixel-counter {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 24px;
+    border: 1px solid rgba(245, 166, 35, 0.15);
+    border-radius: 4px;
+    background: rgba(245, 166, 35, 0.03);
+    margin-bottom: 40px;
+  }
+  .counter-dot {
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 1px;
+    animation: blink 2s ease-in-out infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+  .counter-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+  .counter-num {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+  }
+  .counter-unit {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  /* 底部概念说明 */
+  .concept-note {
+    position: fixed; bottom: 24px; left: 0; right: 0;
+    text-align: center; z-index: 10;
+    pointer-events: none;
+  }
+  .concept-note p {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    opacity: 0.5;
+  }
+
+  /* 提示文字 */
+  .hint {
+    font-size: 11px;
+    color: var(--text-dim);
+    opacity: 0.4;
+    letter-spacing: 1px;
+    margin-top: 8px;
+    animation: hint-fade 3s ease-in-out infinite;
+  }
+  @keyframes hint-fade {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.15; }
+  }
+
+  /* 鼠标跟随像素 */
+  .cursor-pixel {
+    position: fixed;
+    width: 4px; height: 4px;
+    background: var(--gold);
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.08s;
+    mix-blend-mode: screen;
+  }
+
+  @media (max-width: 600px) {
+    .hero-title { letter-spacing: 4px; }
+    .hero-sub { letter-spacing: 6px; }
+    .manifesto p { font-size: 14px; }
+    .pixel-counter { padding: 10px 16px; }
+    .counter-num { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="universe"></canvas>
+
+<div class="content">
+  <div class="logo-mark">
+    <span></span><span></span><span></span>
+    <span></span><span></span><span></span>
+    <span></span><span></span><span></span>
+  </div>
+
+  <h1 class="hero-title">拓圈宇宙</h1>
+  <p class="hero-sub">Y O U &nbsp; A R E &nbsp; T H E &nbsp; P I X E L</p>
+
+  <div class="manifesto">
+    <p>
+      宇宙不是星球<br>
+      是由无数个<span class="highlight">像素点</span>汇聚而成<br><br>
+      每点亮一个像素<br>
+      宇宙就多了一份<span class="highlight">可能性</span>
+    </p>
+  </div>
+
+  <div class="pixel-counter">
+    <div class="counter-dot"></div>
+    <div>
+      <div class="counter-label">已点亮像素</div>
+      <div style="display:flex;align-items:baseline;gap:4px">
+        <span class="counter-num" id="counter">0</span>
+        <span class="counter-unit">PIXELS</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="hint">移动鼠标 · 点击屏幕 · 点亮你的像素</p>
+</div>
+
+<div class="concept-note">
+  <p>TOPOO · 像素宇宙概念 · PIXEL UNIVERSE CONCEPT</p>
+</div>
+
+<div class="cursor-pixel" id="cursor-pixel"></div>
+
+<script>
+// ===== 像素宇宙 Canvas =====
+const canvas = document.getElementById('universe');
+const ctx = canvas.getContext('2d');
+let W, H;
+let mouseX = 0, mouseY = 0;
+let pixels = [];
+let connections = [];
+let totalLit = 0;
+const COUNTER = document.getElementById('counter');
+
+const PIXEL_SIZE = 3;
+const SPACING = 12;
+const CONNECT_DIST = 80;
+const MOUSE_RADIUS = 150;
+
+// 星座群（像素聚集区 = "圈"）
+const clusters = [];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  initClusters();
+}
+
+function initClusters() {
+  clusters.length = 0;
+  // 随机生成4-6个像素聚集区
+  const count = 4 + Math.floor(Math.random() * 3);
+  const cx = [0.2, 0.75, 0.5, 0.85, 0.15, 0.6];
+  const cy = [0.25, 0.3, 0.6, 0.65, 0.75, 0.45];
+  const sizes = [80, 60, 100, 50, 55, 70];
+  const colors = [
+    [245, 166, 35],   // gold
+    [255, 107, 107],  // coral
+    [78, 205, 196],   // mint
+    [108, 156, 227],  // blue
+    [255, 158, 181],  // pink
+    [232, 145, 90],   // warm
+  ];
+  for (let i = 0; i < count; i++) {
+    clusters.push({
+      x: (cx[i] + (Math.random() - 0.5) * 0.1) * W,
+      y: (cy[i] + (Math.random() - 0.5) * 0.1) * H,
+      r: sizes[i] + Math.random() * 30,
+      color: colors[i % colors.length],
+      density: 0.4 + Math.random() * 0.3,
+    });
+  }
+}
+
+function isNearCluster(x, y) {
+  for (const c of clusters) {
+    const d = Math.sqrt((x - c.x) ** 2 + (y - c.y) ** 2);
+    if (d < c.r) return { cluster: c, dist: d, ratio: 1 - d / c.r };
+  }
+  return null;
+}
+
+// 初始化像素网格
+function initPixels() {
+  pixels = [];
+  for (let x = SPACING; x < W; x += SPACING) {
+    for (let y = SPACING; y < H; y += SPACING) {
+      const near = isNearCluster(x, y);
+      const baseBrightness = near
+        ? near.ratio * near.cluster.density
+        : 0.02 + Math.random() * 0.05;
+      
+      pixels.push({
+        x, y,
+        baseBrightness,
+        brightness: 0,
+        targetBrightness: 0,
+        color: near ? near.cluster.color : [100, 90, 80],
+        pulseOffset: Math.random() * Math.PI * 2,
+        lit: false,
+      });
+    }
+  }
+}
+
+// 鼠标交互
+function handleMouse(ex, ey) {
+  mouseX = ex;
+  mouseY = ey;
+}
+
+document.addEventListener('mousemove', (e) => {
+  handleMouse(e.clientX, e.clientY);
+  const cp = document.getElementById('cursor-pixel');
+  cp.style.left = (e.clientX - 2) + 'px';
+  cp.style.top = (e.clientY - 2) + 'px';
+});
+
+document.addEventListener('click', (e) => {
+  // 点击产生像素爆发
+  for (const p of pixels) {
+    const d = Math.sqrt((p.x - e.clientX) ** 2 + (p.y - e.clientY) ** 2);
+    if (d < 120) {
+      p.brightness = 1;
+      p.targetBrightness = 0.3 + Math.random() * 0.4;
+      if (!p.lit) {
+        p.lit = true;
+        totalLit++;
+      }
+    }
+  }
+});
+
+document.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+  handleMouse(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+
+document.addEventListener('touchstart', (e) => {
+  handleMouse(e.touches[0].clientX, e.touches[0].clientY);
+});
+
+let time = 0;
+
+function draw() {
+  time += 0.005;
+  ctx.clearRect(0, 0, W, H);
+
+  // 更新像素
+  for (const p of pixels) {
+    // 鼠标靠近 → 点亮
+    const md = Math.sqrt((p.x - mouseX) ** 2 + (p.y - mouseY) ** 2);
+    const mouseInfluence = md < MOUSE_RADIUS ? (1 - md / MOUSE_RADIUS) * 0.8 : 0;
+
+    // 呼吸效果
+    const breathe = Math.sin(time * 2 + p.pulseOffset) * 0.5 + 0.5;
+    const clusterBreath = p.baseBrightness * (0.3 + breathe * 0.7);
+
+    // 目标亮度
+    p.targetBrightness = Math.max(
+      clusterBreath * 0.6,
+      mouseInfluence
+    );
+
+    // 平滑过渡
+    const speed = p.targetBrightness > p.brightness ? 0.08 : 0.03;
+    p.brightness += (p.targetBrightness - p.brightness) * speed;
+
+    // 衰减（远离鼠标后慢慢暗下去）
+    if (mouseInfluence <= 0 && !p.lit) {
+      p.brightness *= 0.995;
+    }
+  }
+
+  // 画连线（只在聚集区内）
+  const activePixels = pixels.filter(p => p.brightness > 0.15);
+  ctx.lineWidth = 0.5;
+  
+  // 空间分区优化连线查找
+  const grid = {};
+  const gridSize = CONNECT_DIST;
+  for (const p of activePixels) {
+    const key = `${Math.floor(p.x / gridSize)}_${Math.floor(p.y / gridSize)}`;
+    if (!grid[key]) grid[key] = [];
+    grid[key].push(p);
+  }
+
+  ctx.beginPath();
+  for (const p of activePixels) {
+    const gx = Math.floor(p.x / gridSize);
+    const gy = Math.floor(p.y / gridSize);
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        const key = `${gx + dx}_${gy + dy}`;
+        if (!grid[key]) continue;
+        for (const q of grid[key]) {
+          if (q === p) continue;
+          const d = Math.sqrt((p.x - q.x) ** 2 + (p.y - q.y) ** 2);
+          if (d < CONNECT_DIST) {
+            const alpha = (1 - d / CONNECT_DIST) * Math.min(p.brightness, q.brightness) * 0.4;
+            if (alpha > 0.02) {
+              const r = Math.round((p.color[0] + q.color[0]) / 2);
+              const g = Math.round((p.color[1] + q.color[1]) / 2);
+              const b = Math.round((p.color[2] + q.color[2]) / 2);
+              ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`;
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(q.x, q.y);
+              ctx.stroke();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 画像素点
+  for (const p of pixels) {
+    if (p.brightness < 0.02) continue;
+    
+    const [r, g, b] = p.color;
+    const a = p.brightness;
+    
+    // 核心
+    ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
+    ctx.fillRect(p.x - 1, p.y - 1, PIXEL_SIZE, PIXEL_SIZE);
+    
+    // 光晕（亮的时候）
+    if (a > 0.3) {
+      ctx.fillStyle = `rgba(${r},${g},${b},${a * 0.1})`;
+      ctx.fillRect(p.x - 2, p.y - 2, PIXEL_SIZE + 2, PIXEL_SIZE + 2);
+    }
+    if (a > 0.6) {
+      ctx.fillStyle = `rgba(${r},${g},${b},${a * 0.05})`;
+      ctx.fillRect(p.x - 3, p.y - 3, PIXEL_SIZE + 4, PIXEL_SIZE + 4);
+    }
+  }
+
+  // 更新计数器
+  COUNTER.textContent = totalLit.toLocaleString();
+
+  requestAnimationFrame(draw);
+}
+
+// 初始化
+resize();
+initPixels();
+window.addEventListener('resize', () => {
+  resize();
+  initPixels();
+});
+draw();
+</script>
+
+</body>
+</html>

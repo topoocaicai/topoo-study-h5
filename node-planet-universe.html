@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拓圈宇宙 - 节点星球</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #08080e;
+  overflow: hidden;
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+  cursor: default;
+}
+canvas { display: block; }
+.title-overlay {
+  position: fixed;
+  top: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 10;
+  pointer-events: none;
+}
+.title-overlay h1 {
+  font-size: 20px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 12px;
+}
+.title-overlay p {
+  font-size: 11px;
+  color: rgba(255,255,255,0.25);
+  margin-top: 8px;
+  letter-spacing: 4px;
+}
+.hint {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255,255,255,0.2);
+  font-size: 11px;
+  letter-spacing: 2px;
+  z-index: 10;
+  pointer-events: none;
+}
+.legend {
+  position: fixed;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 24px;
+  z-index: 10;
+  pointer-events: none;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255,255,255,0.35);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.legend-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.legend-line {
+  width: 16px;
+  height: 0;
+  border-top: 1px solid;
+}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div class="title-overlay">
+  <h1>TOPOO</h1>
+  <p>每个节点 都是一个人</p>
+</div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#e8c547;box-shadow:0 0 4px #e8c547"></div>Creator 创造者</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#7ec8e3;box-shadow:0 0 4px #7ec8e3"></div>Worker 工作者</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#a0a0b0;box-shadow:0 0 3px #a0a0b0"></div>Seeker 探索者</div>
+  <div class="legend-item"><div class="legend-line" style="border-color:rgba(255,255,255,0.12)"></div>Linker 链接者</div>
+</div>
+<div class="hint">移动鼠标探索 · 靠近星球感受连接</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W, H, time = 0;
+let mouse = { x: -9999, y: -9999 };
+
+// Background stars
+const bgStars = Array.from({ length: 200 }, () => ({
+  x: Math.random(), y: Math.random(),
+  r: Math.random() * 0.8 + 0.3,
+  phase: Math.random() * Math.PI * 2
+}));
+
+// Role config
+const ROLES = {
+  creator: { color: '#e8c547', glow: 'rgba(232,197,71,', size: 3.5, weight: 0.12 },
+  worker:  { color: '#7ec8e3', glow: 'rgba(126,200,227,', size: 2.8, weight: 0.1 },
+  seeker:  { color: '#c0c0d0', glow: 'rgba(192,192,208,', size: 2.2, weight: 0.4 },
+  linker:  { color: '#ff9cf5', glow: 'rgba(255,156,245,', size: 2.5, weight: 0.08 }
+};
+
+function pickRole() {
+  const r = Math.random();
+  let sum = 0;
+  for (const [key, val] of Object.entries(ROLES)) {
+    sum += val.weight;
+    if (r < sum) return key;
+  }
+  return 'seeker';
+}
+
+// Planet class
+class Planet {
+  constructor(cx, cy, radius, nodeCount, color, name) {
+    this.cx = cx; this.cy = cy;
+    this.radius = radius;
+    this.color = color;
+    this.name = name;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.0004;
+    this.nodes = [];
+    this.edges = [];
+
+    // Generate nodes on sphere
+    for (let i = 0; i < nodeCount; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = radius * (0.95 + Math.random() * 0.05);
+      const role = pickRole();
+
+      this.nodes.push({
+        lx: r * Math.sin(phi) * Math.cos(theta),
+        ly: r * Math.sin(phi) * Math.sin(theta),
+        lz: r * Math.cos(phi),
+        role,
+        pulse: Math.random() * Math.PI * 2,
+        pulseSpeed: 0.008 + Math.random() * 0.015,
+        hoverGlow: 0
+      });
+    }
+
+    // Generate edges (connect nearby nodes)
+    for (let i = 0; i < this.nodes.length; i++) {
+      for (let j = i + 1; j < this.nodes.length; j++) {
+        const a = this.nodes[i], b = this.nodes[j];
+        const dist = Math.sqrt(
+          (a.lx - b.lx) ** 2 + (a.ly - b.ly) ** 2 + (a.lz - b.lz) ** 2
+        );
+        if (dist < radius * 0.45) {
+          this.edges.push([i, j, dist]);
+        }
+      }
+    }
+  }
+
+  rotatePoint(x, y, z) {
+    const c = Math.cos(this.rotation), s = Math.sin(this.rotation);
+    // Rotate around Y axis
+    return { x: x * c - z * s, y, z: x * s + z * c };
+  }
+
+  draw() {
+    this.rotation += this.rotSpeed;
+    const cx = this.cx * W, cy = this.cy * H;
+
+    // Outer glow
+    const grad = ctx.createRadialGradient(cx, cy, this.radius * 0.2, cx, cy, this.radius * 1.6);
+    grad.addColorStop(0, this.color + '0.05)');
+    grad.addColorStop(0.6, this.color + '0.015)');
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cx, cy, this.radius * 1.6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Name
+    ctx.save();
+    ctx.font = '10px -apple-system, "PingFang SC", sans-serif';
+    ctx.fillStyle = this.color + '0.3)';
+    ctx.textAlign = 'center';
+    ctx.fillText(this.name, cx, cy - this.radius - 14);
+    ctx.restore();
+
+    // Project all nodes
+    const projected = this.nodes.map(n => {
+      const rp = this.rotatePoint(n.lx, n.ly, n.lz);
+      const depth = (rp.z + this.radius) / (2 * this.radius); // 0=back, 1=front
+      return {
+        sx: cx + rp.x,
+        sy: cy + rp.y,
+        depth,
+        role: n.role,
+        pulse: n.pulse,
+        pulseSpeed: n.pulseSpeed,
+        hoverGlow: n.hoverGlow,
+        node: n
+      };
+    });
+
+    // Draw edges (Linker lines)
+    ctx.lineWidth = 0.6;
+    this.edges.forEach(([i, j, dist]) => {
+      const a = projected[i], b = projected[j];
+      const avgDepth = (a.depth + b.depth) / 2;
+      if (avgDepth < 0.25) return; // Hide back-facing edges
+
+      const alpha = avgDepth * 0.15;
+      ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+      ctx.beginPath();
+      ctx.moveTo(a.sx, a.sy);
+      ctx.lineTo(b.sx, b.sy);
+      ctx.stroke();
+    });
+
+    // Draw nodes (sorted by depth, back first)
+    projected.sort((a, b) => a.depth - b.depth);
+    projected.forEach(p => {
+      if (p.depth < 0.15) return;
+
+      const role = ROLES[p.role];
+      p.node.pulse += p.node.pulseSpeed;
+      const pulseVal = Math.sin(p.node.pulse) * 0.2;
+
+      // Mouse proximity
+      const dx = p.sx - mouse.x, dy = p.sy - mouse.y;
+      const md = Math.sqrt(dx * dx + dy * dy);
+      const hoverTarget = md < 100 ? (1 - md / 100) : 0;
+      p.node.hoverGlow += (hoverTarget - p.node.hoverGlow) * 0.1;
+
+      const baseAlpha = p.depth * 0.7 + 0.1;
+      const alpha = Math.min(1, baseAlpha + pulseVal + p.node.hoverGlow * 0.4);
+      const size = role.size * (0.6 + p.depth * 0.4 + p.node.hoverGlow * 0.8);
+
+      // Node glow
+      if (alpha > 0.25 || p.node.hoverGlow > 0.1) {
+        const glowSize = size * (2.5 + p.node.hoverGlow * 3);
+        const grad = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, glowSize);
+        grad.addColorStop(0, role.glow + (alpha * 0.25).toFixed(3) + ')');
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.fillRect(p.sx - glowSize, p.sy - glowSize, glowSize * 2, glowSize * 2);
+      }
+
+      // Node dot (circle)
+      ctx.beginPath();
+      ctx.arc(p.sx, p.sy, size, 0, Math.PI * 2);
+      ctx.fillStyle = role.glow + alpha.toFixed(3) + ')';
+      ctx.fill();
+
+      // White core for bright nodes
+      if (alpha > 0.5) {
+        ctx.beginPath();
+        ctx.arc(p.sx, p.sy, size * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${((alpha - 0.4) * 0.6).toFixed(3)})`;
+        ctx.fill();
+      }
+    });
+  }
+}
+
+// Floating wanderers (Wanderer pixels)
+const wanderers = Array.from({ length: 40 }, () => ({
+  x: Math.random(), y: Math.random(),
+  vx: (Math.random() - 0.5) * 0.0002,
+  vy: (Math.random() - 0.5) * 0.0002,
+  size: Math.random() * 1.5 + 0.8,
+  alpha: Math.random() * 0.3 + 0.1,
+  phase: Math.random() * Math.PI * 2
+}));
+
+// Connection arcs between planets
+const interLinks = [];
+
+const planets = [
+  new Planet(0.25, 0.38, 130, 200, 'rgba(232,197,71,', '金陵圈'),
+  new Planet(0.72, 0.30, 95, 140, 'rgba(255,107,107,', '创意圈'),
+  new Planet(0.55, 0.70, 75, 100, 'rgba(107,255,184,', '新手圈'),
+  new Planet(0.13, 0.74, 55, 60, 'rgba(167,139,250,', '试验田'),
+];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function drawBg() {
+  ctx.fillStyle = '#08080e';
+  ctx.fillRect(0, 0, W, H);
+  
+  // Subtle radial gradient in center
+  const cg = ctx.createRadialGradient(W * 0.5, H * 0.5, 0, W * 0.5, H * 0.5, Math.max(W, H) * 0.6);
+  cg.addColorStop(0, 'rgba(232,197,71,0.012)');
+  cg.addColorStop(1, 'transparent');
+  ctx.fillStyle = cg;
+  ctx.fillRect(0, 0, W, H);
+
+  bgStars.forEach(s => {
+    s.phase += 0.003;
+    const a = 0.2 + Math.sin(s.phase) * 0.15;
+    ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+    ctx.beginPath();
+    ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+function drawWanderers() {
+  wanderers.forEach(w => {
+    w.x += w.vx; w.y += w.vy;
+    w.phase += 0.008;
+    if (w.x < -0.02) w.x = 1.02;
+    if (w.x > 1.02) w.x = -0.02;
+    if (w.y < -0.02) w.y = 1.02;
+    if (w.y > 1.02) w.y = -0.02;
+
+    const a = w.alpha * (0.6 + Math.sin(w.phase) * 0.4);
+    ctx.fillStyle = `rgba(180,180,200,${a.toFixed(3)})`;
+    ctx.beginPath();
+    ctx.arc(w.x * W, w.y * H, w.size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+function drawInterLinks() {
+  // Faint dashed arcs between planets
+  ctx.setLineDash([2, 8]);
+  ctx.lineWidth = 0.4;
+  for (let i = 0; i < planets.length; i++) {
+    for (let j = i + 1; j < planets.length; j++) {
+      const a = planets[i], b = planets[j];
+      const ax = a.cx * W, ay = a.cy * H;
+      const bx = b.cx * W, by = b.cy * H;
+      
+      const grad = ctx.createLinearGradient(ax, ay, bx, by);
+      grad.addColorStop(0, 'rgba(255,255,255,0.03)');
+      grad.addColorStop(0.5, 'rgba(255,255,255,0.05)');
+      grad.addColorStop(1, 'rgba(255,255,255,0.03)');
+      ctx.strokeStyle = grad;
+      ctx.lineDashOffset = -time * 0.2;
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(bx, by);
+      ctx.stroke();
+    }
+  }
+  ctx.setLineDash([]);
+}
+
+function animate() {
+  time++;
+  drawBg();
+  drawInterLinks();
+  planets.forEach(p => p.draw());
+  drawWanderers();
+  requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', resize);
+canvas.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+canvas.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  mouse.x = e.touches[0].clientX;
+  mouse.y = e.touches[0].clientY;
+}, { passive: false });
+
+resize();
+animate();
+</script>
+</body>
+</html>

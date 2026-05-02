@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>南京星球 · 四版方案对比</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a12; color: #ccc; overflow: hidden;
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+/* Tab bar */
+.tabs {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; background: rgba(10,10,18,0.92);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+}
+.tab {
+  flex: 1; padding: 14px 8px; text-align: center; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: #666;
+  border-bottom: 3px solid transparent;
+  transition: all 0.25s;
+}
+.tab:hover { color: #aaa; }
+.tab.active { color: #fff; border-bottom-color: #fff; }
+.tab .tab-icon { font-size: 20px; display: block; margin-bottom: 3px; }
+
+.view { display: none; position: fixed; inset: 0; top: 52px; }
+.view.active { display: block; }
+canvas { display: block; }
+
+/* ========== Constellation tooltip ========== */
+.tip {
+  position: fixed; z-index: 50; pointer-events: none;
+  background: rgba(15,15,30,0.9); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px; padding: 8px 14px; opacity: 0; transition: opacity 0.15s;
+  backdrop-filter: blur(8px);
+}
+.tip.show { opacity: 1; }
+.tip .tn { font-size: 13px; color: #fff; font-weight: 600; }
+.tip .tc { font-size: 10px; color: #888; margin-top: 2px; }
+
+/* ========== Map legend ========== */
+.map-legend {
+  position: fixed; right: 16px; top: 50%; transform: translateY(-50%);
+  z-index: 10; display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none;
+}
+.ml-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #665; }
+.ml-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #3a3520; flex-shrink: 0; }
+
+/* ========== Poly stats ========== */
+.poly-stats {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 10; display: flex; gap: 24px; pointer-events: none;
+  background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; padding: 8px 24px; backdrop-filter: blur(8px);
+}
+.ps { text-align: center; }
+.ps .n { font-size: 18px; font-weight: 800; color: #fff; }
+.ps .l { font-size: 9px; color: #888; margin-top: 2px; }
+
+/* ========== Ink seal ========== */
+.ink-seal {
+  position: fixed; left: 24px; bottom: 24px; z-index: 10;
+  width: 60px; height: 60px; border: 3px solid #c43030;
+  border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 900; color: #c43030;
+  transform: rotate(-8deg); opacity: 0.7; pointer-events: none;
+  writing-mode: vertical-rl; letter-spacing: 4px;
+}
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchView(0)"><span class="tab-icon">✦</span>粒子星座</div>
+  <div class="tab" onclick="switchView(1)"><span class="tab-icon">🗺</span>手绘地图</div>
+  <div class="tab" onclick="switchView(2)"><span class="tab-icon">◆</span>低多边形</div>
+  <div class="tab" onclick="switchView(3)"><span class="tab-icon">墨</span>水墨书法</div>
+</div>
+
+<div class="tip" id="tip"><div class="tn" id="tipN"></div><div class="tc" id="tipC"></div></div>
+
+<!-- VIEW 0: Constellation -->
+<div class="view active" id="v0"><canvas id="c0"></canvas></div>
+<!-- VIEW 1: Map -->
+<div class="view" id="v1">
+  <canvas id="c1"></canvas>
+  <div class="map-legend">
+    <div class="ml-item"><div class="ml-dot" style="background:#d4a050"></div>产品型</div>
+    <div class="ml-item"><div class="ml-dot" style="background:#c06060"></div>门店型</div>
+    <div class="ml-item"><div class="ml-dot" style="background:#5090b8"></div>内容型</div>
+    <div class="ml-item"><div class="ml-dot" style="background:#8870a8"></div>服务型</div>
+    <div class="ml-item"><div class="ml-dot" style="background:#508860"></div>活动型</div>
+  </div>
+</div>
+<!-- VIEW 2: Low Poly -->
+<div class="view" id="v2">
+  <canvas id="c2"></canvas>
+  <div class="poly-stats">
+    <div class="ps"><div class="n">154</div><div class="l">创造者</div></div>
+    <div class="ps"><div class="n">40</div><div class="l">探索者</div></div>
+    <div class="ps"><div class="n">194</div><div class="l">总成员</div></div>
+  </div>
+</div>
+<!-- VIEW 3: Ink -->
+<div class="view" id="v3">
+  <canvas id="c3"></canvas>
+  <div class="ink-seal">拓圈</div>
+</div>
+
+<script>
+// ============================================================
+//  SHARED DATA
+// ============================================================
+const creatorNames = {
+  product: ['山间白茶','手作陶瓷','精酿工坊','植物香氛','手工皮具','有机蜂蜜','金陵折扇','非遗云锦','文创丝巾','手磨咖啡豆','天然酵种面包','独立首饰','手工皂艺','盐水鸭礼盒','古法酿酒','竹编手作','木工家具','蓝染布艺','限定甜品','陶艺工作室','茶叶定制','蜂蜡蜡烛','雨花茶','桂花糕坊','手工编织','漆器工坊','金陵刻经','雨花石艺','老卤鸭脖','石斛养生'],
+  store: ['隐逸茶舍','日式咖啡','独立书店','中古杂货铺','花艺工作室','精酿酒吧','烘焙实验室','复古唱片店','手工巧克力','小众香水馆','创意料理','茶陶空间','社区画廊','买手店','深夜食堂','猫咖','手冲咖啡站','城市阳台','手作甜品店','调香实验室','复古理发店','独立眼镜店','精酿啤酒屋','手作杂货铺','社区厨房','植物工作室','黑胶唱片行','独立文具铺','手工冰淇淋','古着衣铺'],
+  content: ['城市探索','美食vlog','播客主理人','摄影工作室','短视频编导','生活方式博主','旅行日记','读书频道','音乐制作人','街拍达人','科技测评','家居美学','亲子内容','非遗记录者','运动健身博主','独立纪录片','手账达人','街舞视频','宠物博主','咖啡文化','建筑探秘','独立漫画','声音设计师','影像诗人','城市写作者','艺术评论','植物科普','传统文化','青年视角','数字游民'],
+  service: ['品牌设计','空间设计','活动策划','商业摄影','包装设计','VI系统','用户运营','数据分析','法律顾问','财税服务','营销策划','新媒体运营','短视频制作','直播运营','私域运营','插画设计','IP孵化','电商代运营','社群运营','内容策划','商业顾问','投资对接','专利服务','人才推荐','技术外包'],
+  event: ['城市市集','艺术展览','音乐现场','读书沙龙','手作工坊','咖啡品鉴','摄影展','创意市集','户外露营','陶艺体验','红酒品鉴','非遗体验','电影放映','城市骑行','音乐节','话剧演出','亲子派对','跑团活动','瑜伽静修','旧物交换']
+};
+const detailInfo = {
+  '山间白茶': { bio: '来自高淳的山间白茶，手工采摘，自然晾晒。', tags: ['有机种植','手工制茶'], fans: 3200 },
+  '隐逸茶舍': { bio: '藏在老城区巷子里的茶舍，闹中取静。', tags: ['线下体验','新中式'], fans: 5100 },
+  '城市探索': { bio: '用镜头记录南京每一个被忽略的角落。', tags: ['城市文化','街拍'], fans: 28000 },
+  '品牌设计': { bio: '8年品牌设计经验，服务过50+本土品牌。', tags: ['品牌策略','视觉设计'], fans: 4200 },
+  '城市市集': { bio: '每月一期城市创意市集，已成功举办18期。', tags: ['线下活动','社群'], fans: 15000 },
+  '精酿工坊': { bio: '南京本土精酿品牌，坚持小批量酿造。', tags: ['精酿啤酒','本地品牌'], fans: 8500 },
+  '独立书店': { bio: '不是书店，是一个可以发呆的地方。', tags: ['独立文化','阅读空间'], fans: 12000 },
+  '美食vlog': { bio: '南京土著，吃了30年。只记录真正好吃的。', tags: ['美食','本地生活'], fans: 45000 },
+};
+const seekerNames = Array.from({length:40}, (_,i) => 'S-'+(201+i*14));
+const CAT_EMOJI = { product:'🍵',store:'🏪',content:'📹',service:'🎯',event:'🎪',seeker:'·' };
+const CAT_LABELS = { product:'产品型创造者',store:'门店型创造者',content:'内容型创造者',service:'服务型创造者',event:'活动型创造者',seeker:'探索者' };
+
+// Build flat node list
+const allNodes = [];
+const catKeys = ['product','store','content','service','event'];
+catKeys.forEach(cat => {
+  creatorNames[cat].forEach((name,i) => {
+    const idx = allNodes.length;
+    const has = detailInfo[name];
+    allNodes.push({
+      id: idx, name, cat,
+      size: has ? 14+Math.sin(idx*2.3)*4 : 7+Math.sin(idx*3.7)*3,
+      emoji: CAT_EMOJI[cat], isSeeker: false,
+      hasDetail: !!has, detail: detailInfo[name]||null,
+      seed: idx*137+42
+    });
+  });
+});
+seekerNames.forEach((name,i) => {
+  allNodes.push({
+    id: allNodes.length, name, cat:'seeker',
+    size: 3+Math.sin(i*3.1), emoji:'·', isSeeker:true,
+    hasDetail:false, detail:null, seed: (allNodes.length+i)*97+13
+  });
+});
+const creators = allNodes.filter(n=>!n.isSeeker);
+const seekers = allNodes.filter(n=>n.isSeeker);
+
+// Sphere positions (shared)
+function fibSphere(i,total,r) {
+  const g=Math.PI*(3-Math.sqrt(5));
+  const y=1-(i/(total-1))*2;
+  const cy=Math.max(-0.95,Math.min(0.95,y));
+  const rad=Math.sqrt(1-cy*cy);
+  const t=g*i;
+  const j=0.92+(Math.sin(i*7.3+1.1)*0.5+0.5)*0.16;
+  return { x:Math.cos(t)*rad*r*j, y:cy*r*j, z:Math.sin(t)*rad*r*j };
+}
+// Interleave
+const buckets={};catKeys.forEach(c=>{buckets[c]=creators.filter(n=>n.cat===c);});
+const interleaved=[];const qs={};catKeys.forEach(c=>{qs[c]=[...buckets[c]];});
+let more=true;while(more){more=false;catKeys.forEach(c=>{if(qs[c].length>0){interleaved.push(qs[c].shift());more=true;}});}
+interleaved.forEach((n,i)=>{const p=fibSphere(i,interleaved.length,220);n.x=p.x;n.y=p.y;n.z=p.z;});
+seekers.forEach((n,i)=>{const p=fibSphere(i+300,seekers.length,330);n.x=p.x;n.y=p.y;n.z=p.z;});
+
+// Edges
+const edges=[];
+for(let i=0;i<creators.length;i++){
+  const a=creators[i];const dists=[];
+  for(let j=0;j<creators.length;j++){
+    if(i===j)continue;const b=creators[j];
+    const dx=a.x-b.x,dy=a.y-b.y,dz=a.z-b.z;
+    const d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    if(d<95)dists.push({j,d});
+  }
+  dists.sort((a,b)=>a.d-b.d);
+  const mc=1+Math.floor(Math.abs(Math.sin(i*2.7))*3);
+  for(let k=0;k<Math.min(mc,dists.length);k++){
+    const iA=allNodes.indexOf(a),iB=allNodes.indexOf(creators[dists[k].j]);
+    const key=Math.min(iA,iB)+'-'+Math.max(iA,iB);
+    if(!edges.find(e=>e.key===key))edges.push({a:iA,b:iB,key,seed:iA*31+iB*17});
+  }
+}
+
+// ============================================================
+//  VIEW SWITCHING
+// ============================================================
+let currentView = 0;
+function switchView(idx) {
+  currentView = idx;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  document.querySelectorAll('.view').forEach((v,i) => v.classList.toggle('active', i===idx));
+  // Resize active canvas
+  const canvases = [c0,c1,c2,c3];
+  canvases.forEach(c => { c.width=window.innerWidth; c.height=window.innerHeight-52; });
+}
+
+// ============================================================
+//  VIEW 0: CONSTELLATION (粒子星座)
+// ============================================================
+const c0 = document.getElementById('c0');
+const x0 = c0.getContext('2d');
+const cColors0 = { product:'#ffd866', store:'#ff6b8a', content:'#4dc9f6', service:'#c084fc', event:'#4ade80', seeker:'#667788' };
+
+let rotY0=0, rotX0=0.35, zoom0=1, drag0=false, lx0=0, ly0=0, vx0=0, vy0=0;
+let mx0=-999, my0=-999, hov0=null, frame0=0;
+
+function proj0(x,y,z){const cY=Math.cos(rotY0),sY=Math.sin(rotY0);let rx=x*cY-z*sY,rz=x*sY+z*cY;const cX=Math.cos(rotX0),sX=Math.sin(rotX0);let ry=y*cX-rz*sX;rz=y*sX+rz*cX;return{sx:c0.width/2+rx*zoom0,sy:c0.height/2+ry*zoom0,depth:rz};}
+
+c0.addEventListener('mousedown',e=>{drag0=true;lx0=e.clientX;ly0=e.clientY;vx0=vy0=0;});
+c0.addEventListener('mousemove',e=>{mx0=e.clientX;my0=e.clientY;if(drag0){vy0=(e.clientX-lx0)*0.004;vx0=(e.clientY-ly0)*0.004;rotY0+=vy0;rotX0+=vx0;rotX0=Math.max(-1.2,Math.min(1.2,rotX0));lx0=e.clientX;ly0=e.clientY;}});
+c0.addEventListener('mouseup',()=>drag0=false);
+c0.addEventListener('mouseleave',()=>{drag0=false;mx0=-999;});
+c0.addEventListener('wheel',e=>{e.preventDefault();zoom0*=e.deltaY>0?0.93:1.07;zoom0=Math.max(0.4,Math.min(3,zoom0));},{passive:false});
+
+function draw0(){
+  requestAnimationFrame(draw0); frame0++;
+  const W=c0.width, H=c0.height;
+  // Dark space background with subtle nebula
+  x0.fillStyle='#06060e';
+  x0.fillRect(0,0,W,H);
+  // Nebula blobs
+  const t=frame0*0.002;
+  for(let i=0;i<3;i++){
+    const nx=W*0.3+Math.sin(t+i*2)*W*0.2, ny=H*0.4+Math.cos(t*0.7+i*3)*H*0.15;
+    const g=x0.createRadialGradient(nx,ny,0,nx,ny,H*0.35);
+    const colors=['rgba(60,20,80,0.04)','rgba(20,40,80,0.03)','rgba(80,30,30,0.03)'];
+    g.addColorStop(0,colors[i]);g.addColorStop(1,'rgba(0,0,0,0)');
+    x0.fillStyle=g;x0.fillRect(0,0,W,H);
+  }
+
+  if(!drag0){rotY0+=0.001+vy0*0.95;rotX0+=vx0*0.95;vx0*=0.95;vy0*=0.95;rotX0=Math.max(-1.2,Math.min(1.2,rotX0));}
+
+  const proj=allNodes.map((n,i)=>{
+    let py=n.y;if(n.isSeeker)py+=Math.sin(frame0*0.005+i*0.7)*3;
+    const p=proj0(n.x,py,n.z);
+    return{...p,node:n,idx:i};
+  });
+  proj.sort((a,b)=>a.depth-b.depth);
+
+  hov0=null;let bestD=40;
+  proj.forEach(p=>{if(mx0<0)return;const dx=mx0-p.sx-(0),dy=my0-p.sy-52;if(dx*dx+dy*dy<(p.node.size*zoom0*0.6+12)**2){if(dx*dx+dy*dy<bestD*bestD){bestD=Math.sqrt(dx*dx+dy*dy);hov0=p.idx;}}});
+
+  // Draw edges (faint constellation lines)
+  edges.forEach(e=>{
+    const pa=proj.find(p=>p.idx===e.a),pb=proj.find(p=>p.idx===e.b);
+    if(!pa||!pb)return;if(pa.depth<-80&&pb.depth<-80)return;
+    const ad=(pa.depth+pb.depth)/2;
+    const al=Math.max(0,Math.min(0.2,0.35-ad*0.0006));
+    if(al<0.01)return;
+    const isH=hov0!==null&&(e.a===hov0||e.b===hov0);
+    x0.save();x0.globalAlpha=isH?Math.min(al*3,0.5):al;
+    x0.strokeStyle=isH?'rgba(200,220,255,0.6)':'rgba(100,130,180,0.4)';
+    x0.lineWidth=isH?1.5:0.6;
+    x0.beginPath();x0.moveTo(pa.sx,pa.sy);x0.lineTo(pb.sx,pb.sy);x0.stroke();
+    x0.restore();
+  });
+
+  // Draw nodes (stars)
+  proj.forEach(p=>{
+    const n=p.node;
+    const df=Math.max(0.1,Math.min(1,(p.depth+220)/440));
+    const sz=n.size*zoom0*Math.max(0.4,df);
+    if(sz<1)return;
+    const isH=hov0===p.idx;
+    const al=n.isSeeker?df*0.3:df*0.9;
+    const col=cColors0[n.cat];
+
+    x0.save();x0.globalAlpha=isH?1:al;
+
+    if(n.isSeeker){
+      // Tiny dim star
+      x0.fillStyle='rgba(180,200,220,0.5)';
+      x0.beginPath();x0.arc(p.sx,p.sy,Math.max(1,sz*0.3),0,Math.PI*2);x0.fill();
+    } else {
+      // Glow
+      const glowR=sz*(isH?3.5:2.2);
+      const glow=x0.createRadialGradient(p.sx,p.sy,0,p.sx,p.sy,glowR);
+      const pulse=0.8+Math.sin(frame0*0.02+n.seed*0.1)*0.2;
+      glow.addColorStop(0,col.replace(')',`,${0.4*pulse})`).replace('rgb','rgba').replace('#','')?`${col}66`:`${col}66`);
+      // Simpler glow
+      x0.globalAlpha=isH?0.4:(al*0.25*pulse);
+      x0.fillStyle=col;
+      x0.beginPath();x0.arc(p.sx,p.sy,glowR,0,Math.PI*2);x0.fill();
+
+      // Core bright dot
+      x0.globalAlpha=isH?1:al;
+      x0.fillStyle='#fff';
+      x0.beginPath();x0.arc(p.sx,p.sy,Math.max(2,sz*0.5),0,Math.PI*2);x0.fill();
+
+      // Colored ring
+      x0.globalAlpha=isH?0.8:al*0.6;
+      x0.strokeStyle=col;x0.lineWidth=1.5;
+      x0.beginPath();x0.arc(p.sx,p.sy,sz*0.9,0,Math.PI*2);x0.stroke();
+
+      // Emoji
+      if(sz>12){
+        x0.globalAlpha=isH?1:al*0.8;
+        x0.font=`${Math.floor(sz*0.7)}px serif`;
+        x0.textAlign='center';x0.textBaseline='middle';
+        x0.fillText(n.emoji,p.sx,p.sy+1);
+      }
+
+      // Hover ring
+      if(isH){
+        x0.globalAlpha=0.3+Math.sin(frame0*0.05)*0.1;
+        x0.strokeStyle=col;x0.lineWidth=2;
+        x0.beginPath();x0.arc(p.sx,p.sy,sz+12,0,Math.PI*2);x0.stroke();
+      }
+    }
+    x0.restore();
+  });
+
+  // Background stars
+  if(!window._bgStars0||window._bgStars0W!==W){
+    window._bgStars0=[];window._bgStars0W=W;
+    for(let i=0;i<200;i++) window._bgStars0.push({x:Math.random()*W,y:Math.random()*H,s:Math.random()*1.2+0.3,b:Math.random()});
+  }
+  window._bgStars0.forEach(s=>{
+    const twinkle=0.3+Math.sin(frame0*0.01+s.b*20)*0.3;
+    x0.globalAlpha=twinkle*0.5;x0.fillStyle='#fff';
+    x0.beginPath();x0.arc(s.x,s.y,s.s,0,Math.PI*2);x0.fill();
+    x0.globalAlpha=1;
+  });
+
+  // Tooltip
+  const tip=document.getElementById('tip'),tipN=document.getElementById('tipN'),tipC=document.getElementById('tipC');
+  if(hov0!==null){
+    const n=allNodes[hov0],p=proj.find(pp=>pp.idx===hov0);
+    if(p){tipN.textContent=n.emoji+' '+n.name;tipC.textContent=CAT_LABELS[n.cat];
+    let tx=p.sx+18,ty=p.sy+52;if(tx+150>W)tx=p.sx-160;if(ty<60)ty=60;
+    tip.style.left=tx+'px';tip.style.top=ty+'px';tip.classList.add('show');}
+  } else tip.classList.remove('show');
+}
+
+// ============================================================
+//  VIEW 1: TREASURE MAP (手绘地图)
+// ============================================================
+const c1 = document.getElementById('c1');
+const x1 = c1.getContext('2d');
+const cColors1 = { product:'#d4a050', store:'#c06060', content:'#5090b8', service:'#8870a8', event:'#508860', seeker:'#c8c0b0' };
+
+let offX1=0, offY1=0, zoom1=1, drag1=false, lx1=0, ly1=0;
+let mx1=-999, my1=-999, hov1=null;
+
+function resize1(){c1.width=window.innerWidth;c1.height=window.innerHeight-52;}
+resize1();
+
+// 2D positions: scatter creators across a map area
+const mapW=1600, mapH=1200;
+const creators2d=[];
+// Group by category and place in clusters
+let cidx=0;
+catKeys.forEach((cat,ci)=>{
+  const cx=(ci+0.5)/5*mapW*0.7+mapW*0.15;
+  const cy=mapH*0.3+Math.sin(ci*1.8)*mapH*0.15;
+  creatorNames[cat].forEach((name,i)=>{
+    const angle=(i/creatorNames[cat].length)*Math.PI*2;
+    const radius=60+Math.sin(i*3.7)*40+Math.random()*30;
+    creators2d.push({
+      ...allNodes[cidx],
+      mx: cx+Math.cos(angle)*radius,
+      my: cy+Math.sin(angle)*radius
+    });
+    cidx++;
+  });
+});
+// Seekers scattered around edges
+seekers.forEach((s,i)=>{
+  s.mx=mapW*0.1+Math.random()*mapW*0.8;
+  s.my=mapH*0.8+Math.random()*mapH*0.15;
+});
+
+function seededRand2(s){return function(){s=(s*16807)%2147483647;return(s-1)/2147483646;};}
+
+function drawMap(){
+  const W=c1.width,H=c1.height;
+  // Parchment background
+  x1.fillStyle='#f5e8c8';
+  x1.fillRect(0,0,W,H);
+  // Paper noise
+  if(!window._mapNoise){
+    window._mapNoise=x1.getImageData(0,0,W,H);
+    const d=window._mapNoise.data;
+    for(let i=0;i<d.length;i+=4){const n=(Math.random()-0.5)*15;d[i]+=n;d[i+1]+=n;d[i+2]+=n-3;}
+    x1.putImageData(window._mapNoise,0,0);
+    window._mapNoiseDone=true;
+  }
+  if(window._mapNoiseDone){x1.putImageData(window._mapNoise,0,0);}
+
+  // Grid lines (faint)
+  x1.save();x1.globalAlpha=0.06;x1.strokeStyle='#8a7a5a';x1.lineWidth=1;
+  for(let gx=0;gx<mapW;gx+=80){x1.beginPath();x1.moveTo(gx*zoom1+offX1,0);x1.lineTo(gx*zoom1+offX1,H);x1.stroke();}
+  for(let gy=0;gy<mapH;gy+=80){x1.beginPath();x1.moveTo(0,gy*zoom1+offY1);x1.lineTo(W,gy*zoom1+offY1);x1.stroke();}
+  x1.restore();
+
+  // Draw edges as dotted paths
+  edges.forEach(e=>{
+    const na=allNodes[e.a],nb=allNodes[e.b];
+    if(!na.mx||!nb.mx)return;
+    const ax=na.mx*zoom1+offX1, ay=na.my*zoom1+offY1;
+    const bx=nb.mx*zoom1+offX1, by=nb.my*zoom1+offY1;
+    if(ax<-50||ax>W+50||bx<-50||bx>W+50)return;
+    x1.save();x1.globalAlpha=0.08;x1.strokeStyle='#8a7a5a';x1.lineWidth=1;
+    x1.setLineDash([3,5]);x1.beginPath();x1.moveTo(ax,ay);x1.lineTo(bx,by);x1.stroke();
+    x1.setLineDash([]);x1.restore();
+  });
+
+  // Draw islands/creators as little land masses
+  hov1=null;
+  creators2d.forEach(n=>{
+    const sx=n.mx*zoom1+offX1, sy=n.my*zoom1+offY1;
+    if(sx<-60||sx>W+60||sy<-60||sy>H+60)return;
+    const sz=(n.hasDetail?18:10)*zoom1;
+    const isH=mx1>0&&Math.abs(mx1-sx)<sz+8&&Math.abs(my1-sy)<sz+8;
+    if(isH)hov1=n;
+
+    x1.save();
+    // Island shape (irregular blob)
+    x1.globalAlpha=0.85;
+    x1.fillStyle=cColors1[n.cat];
+    x1.strokeStyle='#4a3a2a';x1.lineWidth=2.5*zoom1;
+    const rng=seededRand2(n.seed);
+    x1.beginPath();
+    const pts=8;
+    for(let i=0;i<=pts;i++){
+      const a=(i/pts)*Math.PI*2;
+      const r=sz*(0.7+rng()*0.5);
+      const px=sx+Math.cos(a)*r, py=sy+Math.sin(a)*r;
+      if(i===0)x1.moveTo(px,py);else x1.lineTo(px,py);
+    }
+    x1.closePath();x1.fill();x1.stroke();
+
+    // Emoji
+    if(sz>8*zoom1){
+      x1.globalAlpha=0.9;
+      x1.font=`${Math.floor(sz*0.9)}px serif`;
+      x1.textAlign='center';x1.textBaseline='middle';
+      x1.fillText(n.emoji,sx,sy+1);
+    }
+    if(isH){
+      x1.globalAlpha=0.15;x1.fillStyle='#000';
+      x1.beginPath();x1.arc(sx,sy,sz+15,0,Math.PI*2);x1.fill();
+    }
+    x1.restore();
+  });
+
+  // Seekers as tiny ships/dots
+  seekers.forEach(n=>{
+    const sx=n.mx*zoom1+offX1, sy=n.my*zoom1+offY1;
+    if(sx<-20||sx>W+20||sy<-20||sy>H+20)return;
+    x1.save();x1.globalAlpha=0.3;
+    x1.fillStyle='#a09080';
+    x1.beginPath();x1.arc(sx,sy,2.5*zoom1,0,Math.PI*2);x1.fill();
+    x1.restore();
+  });
+
+  // Compass rose
+  x1.save();x1.translate(W-70,H-70);
+  x1.globalAlpha=0.25;x1.strokeStyle='#6a5a4a';x1.lineWidth=1.5;
+  x1.beginPath();x1.moveTo(0,-30);x1.lineTo(0,30);x1.stroke();
+  x1.beginPath();x1.moveTo(-30,0);x1.lineTo(30,0);x1.stroke();
+  x1.font='bold 11px serif';x1.fillStyle='#6a5a4a';x1.textAlign='center';
+  x1.fillText('N',0,-34);
+  x1.restore();
+
+  // Tooltip
+  const tip=document.getElementById('tip'),tipN=document.getElementById('tipN'),tipC=document.getElementById('tipC');
+  if(hov1){
+    tipN.textContent=hov1.emoji+' '+hov1.name;tipC.textContent=CAT_LABELS[hov1.cat];
+    tip.style.left=(mx1+15)+'px';tip.style.top=(my1-10)+'px';tip.classList.add('show');
+  } else tip.classList.remove('show');
+}
+
+c1.addEventListener('mousedown',e=>{drag1=true;lx1=e.clientX;ly1=e.clientY;});
+c1.addEventListener('mousemove',e=>{mx1=e.clientX;my1=e.clientY;if(drag1){offX1+=e.clientX-lx1;offY1+=e.clientY-ly1;lx1=e.clientX;ly1=e.clientY;}});
+c1.addEventListener('mouseup',()=>drag1=false);
+c1.addEventListener('mouseleave',()=>{drag1=false;mx1=-999;});
+c1.addEventListener('wheel',e=>{e.preventDefault();const f=e.deltaY>0?0.93:1.07;zoom1*=f;zoom1=Math.max(0.3,Math.min(2,zoom1));},{passive:false});
+
+// ============================================================
+//  VIEW 2: LOW POLY (低多边形)
+// ============================================================
+const c2 = document.getElementById('c2');
+const x2 = c2.getContext('2d');
+const cColors2 = { product:'#fbbf24', store:'#f87171', content:'#60a5fa', service:'#a78bfa', event:'#34d399', seeker:'#6b7280' };
+const polyShapes = { product:6, store:5, content:4, service:3, event:8 }; // polygon sides
+
+let rotY2=0, rotX2=0.35, zoom2=1, drag2=false, lx2=0, ly2=0, vx2=0, vy2=0;
+let mx2=-999, my2=-999, hov2=null, frame2=0;
+
+function proj2(x,y,z){const cY=Math.cos(rotY2),sY=Math.sin(rotY2);let rx=x*cY-z*sY,rz=x*sY+z*cY;const cX=Math.cos(rotX2),sX=Math.sin(rotX2);let ry=y*cX-rz*sX;rz=y*sX+rz*cX;return{sx:c2.width/2+rx*zoom2,sy:c2.height/2+ry*zoom2,depth:rz};}
+
+c2.addEventListener('mousedown',e=>{drag2=true;lx2=e.clientX;ly2=e.clientY;vx2=vy2=0;});
+c2.addEventListener('mousemove',e=>{mx2=e.clientX;my2=e.clientY;if(drag2){vy2=(e.clientX-lx2)*0.004;vx2=(e.clientY-ly2)*0.004;rotY2+=vy2;rotX2+=vx2;rotX2=Math.max(-1.2,Math.min(1.2,rotX2));lx2=e.clientX;ly2=e.clientY;}});
+c2.addEventListener('mouseup',()=>drag2=false);
+c2.addEventListener('mouseleave',()=>{drag2=false;mx2=-999;});
+c2.addEventListener('wheel',e=>{e.preventDefault();zoom2*=e.deltaY>0?0.93:1.07;zoom2=Math.max(0.4,Math.min(3,zoom2));},{passive:false});
+
+function drawPoly(x,y,r,sides,rot,seed){
+  const rng=seededRand2(seed);
+  x2.beginPath();
+  for(let i=0;i<=sides;i++){
+    const a=(i/sides)*Math.PI*2+rot;
+    const rr=r*(0.75+rng()*0.4);
+    const px=x+Math.cos(a)*rr, py=y+Math.sin(a)*rr;
+    if(i===0)x2.moveTo(px,py);else x2.lineTo(px,py);
+  }
+  x2.closePath();
+}
+
+function draw2(){
+  requestAnimationFrame(draw2);frame2++;
+  const W=c2.width,H=c2.height;
+  // Gradient background (dark to deep blue)
+  const bg=x2.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,'#0f172a');bg.addColorStop(1,'#1e1b4b');
+  x2.fillStyle=bg;x2.fillRect(0,0,W,H);
+
+  if(!drag2){rotY2+=0.0012+vy2*0.95;rotX2+=vx2*0.95;vx2*=0.95;vy2*=0.95;rotX2=Math.max(-1.2,Math.min(1.2,rotX2));}
+
+  const proj=allNodes.map((n,i)=>{
+    let py=n.y;if(n.isSeeker)py+=Math.sin(frame2*0.004+i*0.7)*3;
+    const p=proj2(n.x,py,n.z);
+    return{...p,node:n,idx:i};
+  });
+  proj.sort((a,b)=>a.depth-b.depth);
+
+  hov2=null;let bestD2=40;
+  proj.forEach(p=>{if(mx2<0)return;const dx=mx2-p.sx,dy=my2-p.sy-52;const d=Math.sqrt(dx*dx+dy*dy);if(d<(p.node.size*zoom2*0.6+12)&&d<bestD2){bestD2=d;hov2=p.idx;}});
+
+  // Edges
+  edges.forEach(e=>{
+    const pa=proj.find(p=>p.idx===e.a),pb=proj.find(p=>p.idx===e.b);
+    if(!pa||!pb)return;if(pa.depth<-80&&pb.depth<-80)return;
+    const ad=(pa.depth+pb.depth)/2;
+    const al=Math.max(0,Math.min(0.15,0.28-ad*0.0005));
+    if(al<0.01)return;
+    const isH=hov2!==null&&(e.a===hov2||e.b===hov2);
+    x2.save();x2.globalAlpha=isH?0.6:al;
+    x2.strokeStyle=isH?'#e0e7ff':'rgba(148,163,184,0.3)';
+    x2.lineWidth=isH?2:0.8;
+    x2.beginPath();x2.moveTo(pa.sx,pa.sy);x2.lineTo(pb.sx,pb.sy);x2.stroke();
+    x2.restore();
+  });
+
+  // Nodes as polygons
+  proj.forEach(p=>{
+    const n=p.node;
+    const df=Math.max(0.1,Math.min(1,(p.depth+220)/440));
+    const sz=n.size*zoom2*Math.max(0.4,df);
+    if(sz<1)return;
+    const isH=hov2===p.idx;
+    const al=n.isSeeker?df*0.25:df*0.92;
+    const col=cColors2[n.cat];
+
+    x2.save();x2.globalAlpha=isH?1:al;
+
+    if(n.isSeeker){
+      x2.fillStyle='rgba(148,163,184,0.3)';
+      x2.beginPath();x2.arc(p.sx,p.sy,Math.max(1.5,sz*0.3),0,Math.PI*2);x2.fill();
+    } else {
+      const sides=polyShapes[n.cat]||6;
+      const rot=n.seed*0.5+frame2*0.0003;
+
+      // Shadow
+      x2.globalAlpha=al*0.2;
+      drawPoly(p.sx+2,p.sy+2,sz,sides,rot,n.seed);
+      x2.fillStyle='#000';x2.fill();
+
+      // Fill
+      x2.globalAlpha=isH?1:al;
+      drawPoly(p.sx,p.sy,sz,sides,rot,n.seed);
+      // Gradient fill for depth
+      const pg=x2.createLinearGradient(p.sx-sz,p.sy-sz,p.sx+sz,p.sy+sz);
+      pg.addColorStop(0,col);pg.addColorStop(1,shadeColor(col,-30));
+      x2.fillStyle=pg;x2.fill();
+
+      // Bright edge highlight
+      x2.globalAlpha=(isH?0.9:al*0.5);
+      x2.strokeStyle=isH?'#fff':'rgba(255,255,255,0.3)';
+      x2.lineWidth=1.5;
+      x2.stroke();
+
+      // Dark edge
+      x2.globalAlpha=(isH?0.7:al*0.6);
+      x2.strokeStyle='rgba(0,0,0,0.3)';
+      x2.lineWidth=1;
+      drawPoly(p.sx,p.sy,sz,sides,rot,n.seed);
+      x2.stroke();
+
+      // Emoji
+      if(sz>10){
+        x2.globalAlpha=isH?1:al*0.95;
+        x2.font=`${Math.floor(sz*0.65)}px serif`;
+        x2.textAlign='center';x2.textBaseline='middle';
+        x2.fillText(n.emoji,p.sx,p.sy+1);
+      }
+
+      if(isH){
+        x2.globalAlpha=0.2;x2.strokeStyle=col;x2.lineWidth=2;
+        x2.beginPath();x2.arc(p.sx,p.sy,sz+12,0,Math.PI*2);x2.stroke();
+      }
+    }
+    x2.restore();
+  });
+
+  // Tooltip
+  const tip=document.getElementById('tip'),tipN=document.getElementById('tipN'),tipC=document.getElementById('tipC');
+  if(hov2!==null){
+    const n=allNodes[hov2],p=proj.find(pp=>pp.idx===hov2);
+    if(p){tipN.textContent=n.emoji+' '+n.name;tipC.textContent=CAT_LABELS[n.cat];
+    let tx=p.sx+18,ty=p.sy+52;if(tx+150>W)tx=p.sx-160;if(ty<60)ty=60;
+    tip.style.left=tx+'px';tip.style.top=ty+'px';tip.classList.add('show');}
+  } else tip.classList.remove('show');
+}
+
+function shadeColor(color,percent){
+  let R=parseInt(color.substring(1,3),16),G=parseInt(color.substring(3,5),16),B=parseInt(color.substring(5,7),16);
+  R=Math.max(0,Math.min(255,R+percent));G=Math.max(0,Math.min(255,G+percent));B=Math.max(0,Math.min(255,B+percent));
+  return '#'+(R.toString(16).padStart(2,'0'))+(G.toString(16).padStart(2,'0'))+(B.toString(16).padStart(2,'0'));
+}
+
+// ============================================================
+//  VIEW 3: INK (水墨书法)
+// ============================================================
+const c3 = document.getElementById('c3');
+const x3 = c3.getContext('2d');
+const cColors3 = { product:'#8b5e3c', store:'#6b3a3a', content:'#3a5a7b', service:'#5a4a6b', event:'#3a5a3a', seeker:'#9a9080' };
+
+let rotY3=0, rotX3=0.35, zoom3=1, drag3=false, lx3=0, ly3=0, vx3=0, vy3=0;
+let mx3=-999, my3=-999, hov3=null, frame3=0;
+
+function proj3(x,y,z){const cY=Math.cos(rotY3),sY=Math.sin(rotY3);let rx=x*cY-z*sY,rz=x*sY+z*cY;const cX=Math.cos(rotX3),sX=Math.sin(rotX3);let ry=y*cX-rz*sX;rz=y*sX+rz*cX;return{sx:c3.width/2+rx*zoom3,sy:c3.height/2+ry*zoom3,depth:rz};}
+
+c3.addEventListener('mousedown',e=>{drag3=true;lx3=e.clientX;ly3=e.clientY;vx3=vy3=0;});
+c3.addEventListener('mousemove',e=>{mx3=e.clientX;my3=e.clientY;if(drag3){vy3=(e.clientX-lx3)*0.004;vx3=(e.clientY-ly3)*0.004;rotY3+=vy3;rotX3+=vx3;rotX3=Math.max(-1.2,Math.min(1.2,rotX3));lx3=e.clientX;ly3=e.clientY;}});
+c3.addEventListener('mouseup',()=>drag3=false);
+c3.addEventListener('mouseleave',()=>{drag3=false;mx3=-999;});
+c3.addEventListener('wheel',e=>{e.preventDefault();zoom3*=e.deltaY>0?0.93:1.07;zoom3=Math.max(0.4,Math.min(3,zoom3));},{passive:false});
+
+function drawInk(){
+  requestAnimationFrame(drawInk);frame3++;
+  const W=c3.width,H=c3.height;
+  // Rice paper background
+  x3.fillStyle='#f8f2e4';
+  x3.fillRect(0,0,W,H);
+  if(!window._inkPaper){
+    const img=x3.getImageData(0,0,W,H);
+    const d=img.data;
+    for(let i=0;i<d.length;i+=4){const n=(Math.random()-0.5)*8;d[i]+=n;d[i+1]+=n;d[i+2]+=n-2;}
+    // Add some fiber lines
+    x3.putImageData(img,0,0);
+    x3.globalAlpha=0.03;x3.strokeStyle='#c0b090';x3.lineWidth=0.5;
+    for(let i=0;i<50;i++){
+      x3.beginPath();const sx=Math.random()*W,sy=Math.random()*H;
+      x3.moveTo(sx,sy);x3.lineTo(sx+Math.random()*100-50,sy+Math.random()*20-10);x3.stroke();
+    }
+    window._inkPaper=x3.getImageData(0,0,W,H);
+  }
+  x3.putImageData(window._inkPaper,0,0);
+
+  if(!drag3){rotY3+=0.001+vy3*0.95;rotX3+=vx3*0.95;vx3*=0.95;vy3*=0.95;rotX3=Math.max(-1.2,Math.min(1.2,rotX3));}
+
+  const proj=allNodes.map((n,i)=>{
+    let py=n.y;if(n.isSeeker)py+=Math.sin(frame3*0.003+i*0.7)*3;
+    const p=proj3(n.x,py,n.z);
+    return{...p,node:n,idx:i};
+  });
+  proj.sort((a,b)=>a.depth-b.depth);
+
+  hov3=null;let bestD3=40;
+  proj.forEach(p=>{if(mx3<0)return;const dx=mx3-p.sx,dy=my3-p.sy-52;const d=Math.sqrt(dx*dx+dy*dy);if(d<(p.node.size*zoom3*0.6+12)&&d<bestD3){bestD3=d;hov3=p.idx;}});
+
+  // Edges as ink brush strokes
+  edges.forEach(e=>{
+    const pa=proj.find(p=>p.idx===e.a),pb=proj.find(p=>p.idx===e.b);
+    if(!pa||!pb)return;if(pa.depth<-80&&pb.depth<-80)return;
+    const ad=(pa.depth+pb.depth)/2;
+    const al=Math.max(0,Math.min(0.12,0.22-ad*0.0004));
+    if(al<0.01)return;
+    const isH=hov3!==null&&(e.a===hov3||e.b===hov3);
+    x3.save();x3.globalAlpha=isH?Math.min(al*3,0.45):al;
+    x3.strokeStyle=isH?'#2a2a2a':'#5a5040';
+    x3.lineWidth=isH?2.5:1;
+    x3.lineCap='round';
+    // Ink brush effect: varying width
+    const dx=pb.sx-pa.sx,dy=pb.sy-pa.sy;
+    const len=Math.sqrt(dx*dx+dy*dy);
+    const steps=Math.max(3,Math.floor(len/15));
+    x3.beginPath();x3.moveTo(pa.sx,pa.sy);
+    for(let i=1;i<steps;i++){
+      const t=i/steps;
+      const wobble=Math.sin(e.seed+i*2.3)*2;
+      x3.lineTo(pa.sx+dx*t+wobble, pa.sy+dy*t+wobble*0.5);
+    }
+    x3.lineTo(pb.sx,pb.sy);
+    x3.stroke();
+    x3.restore();
+  });
+
+  // Nodes as ink dots/splashes
+  proj.forEach(p=>{
+    const n=p.node;
+    const df=Math.max(0.1,Math.min(1,(p.depth+220)/440));
+    const sz=n.size*zoom3*Math.max(0.4,df);
+    if(sz<1)return;
+    const isH=hov3===p.idx;
+    const al=n.isSeeker?df*0.25:df*0.9;
+
+    x3.save();x3.globalAlpha=isH?1:al;
+
+    if(n.isSeeker){
+      // Tiny ink dot
+      x3.fillStyle='rgba(80,70,60,0.3)';
+      x3.beginPath();x3.arc(p.sx,p.sy,Math.max(1.5,sz*0.3),0,Math.PI*2);x3.fill();
+    } else {
+      // Ink splash (irregular circle with radiating tendrils)
+      const col=cColors3[n.cat];
+
+      // Main ink dot
+      x3.fillStyle=col;
+      x3.beginPath();x3.arc(p.sx,p.sy,sz*0.8,0,Math.PI*2);x3.fill();
+
+      // Ink bleed effect (larger faint circle)
+      x3.globalAlpha=al*0.12;
+      x3.beginPath();x3.arc(p.sx,p.sy,sz*1.5,0,Math.PI*2);x3.fill();
+
+      // Small splatter dots around
+      x3.globalAlpha=al*0.3;
+      const rng=seededRand2(n.seed);
+      for(let i=0;i<3;i++){
+        const a=rng()*Math.PI*2, d=sz*(1+rng()*0.8);
+        x3.beginPath();x3.arc(p.sx+Math.cos(a)*d,p.sy+Math.sin(a)*d,rng()*1.5+0.5,0,Math.PI*2);x3.fill();
+      }
+
+      // Emoji (subtle)
+      if(sz>10){
+        x3.globalAlpha=isH?0.8:al*0.6;
+        x3.font=`${Math.floor(sz*0.6)}px serif`;
+        x3.textAlign='center';x3.textBaseline='middle';
+        x3.fillText(n.emoji,p.sx,p.sy+1);
+      }
+
+      if(isH){
+        x3.globalAlpha=0.15;
+        x3.fillStyle='#000';
+        x3.beginPath();x3.arc(p.sx,p.sy,sz+10,0,Math.PI*2);x3.fill();
+      }
+    }
+    x3.restore();
+  });
+
+  // Ink splash decorative elements (static)
+  if(!window._inkDeco){
+    window._inkDeco=[];
+    for(let i=0;i<8;i++){
+      window._inkDeco.push({
+        x:Math.random()*W, y:Math.random()*H,
+        r:3+Math.random()*8, a:0.02+Math.random()*0.03
+      });
+    }
+  }
+  window._inkDeco.forEach(d=>{
+    x3.globalAlpha=d.a;x3.fillStyle='#3a3020';
+    x3.beginPath();x3.arc(d.x,d.y,d.r,0,Math.PI*2);x3.fill();
+    x3.globalAlpha=1;
+  });
+
+  // Tooltip
+  const tip=document.getElementById('tip'),tipN=document.getElementById('tipN'),tipC=document.getElementById('tipC');
+  if(hov3!==null){
+    const n=allNodes[hov3],p=proj.find(pp=>pp.idx===hov3);
+    if(p){tipN.textContent=n.emoji+' '+n.name;tipC.textContent=CAT_LABELS[n.cat];
+    let tx=p.sx+18,ty=p.sy+52;if(tx+150>W)tx=p.sx-160;if(ty<60)ty=60;
+    tip.style.left=tx+'px';tip.style.top=ty+'px';tip.classList.add('show');}
+  } else tip.classList.remove('show');
+}
+
+// ============================================================
+//  MAIN LOOP
+// ============================================================
+function init(){
+  switchView(0);
+  draw0();
+  drawMap();
+  draw2();
+  drawInk();
+}
+window.addEventListener('resize',()=>{
+  const canvases=[c0,c1,c2,c3];
+  canvases.forEach(c=>{c.width=window.innerWidth;c.height=window.innerHeight-52;});
+  window._bgStars0=null;window._mapNoise=null;window._mapNoiseDone=false;window._inkPaper=null;window._inkDeco=null;
+});
+init();
+</script>
+</body>
+</html>

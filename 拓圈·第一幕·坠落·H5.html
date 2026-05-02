@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>TOPOO · 第一幕 · 坠落</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --sky-dark:#0B0F1E;
+  --amber:#E8B44C;
+  --amber-glow:rgba(232,180,76,.5);
+}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;}
+body{
+  font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Noto Sans CJK SC",sans-serif;
+  -webkit-font-smoothing:antialiased;color:#fff;
+  -webkit-user-select:none;user-select:none;
+}
+#app{width:100vw;height:100vh;position:relative;overflow:hidden;background:#000;background-image:url('images/space-bg.png');background-size:cover;background-position:center;}
+
+/* ===== 星空 ===== */
+.starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite alternate;opacity:0;}
+@keyframes twinkle{0%{opacity:.05;transform:scale(.6)}100%{opacity:var(--max-o,.7);transform:scale(1.2)}}
+
+/* ===== 远景星球 ===== */
+.distant-planet{position:absolute;border-radius:50%;opacity:0;transition:opacity 2s ease;}
+.distant-planet.show{opacity:1;}
+
+/* ===== 场景 ===== */
+.scene{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity 1.5s cubic-bezier(.23,1,.32,1);
+  z-index:1;
+}
+.scene.active{opacity:1;pointer-events:auto;}
+
+/* ===== 阶段1：坠落 ===== */
+#phase-fall{z-index:20;background:transparent;}
+
+/* 降落时的金色圆点 */
+.fall-star{
+  position:absolute;width:6px;height:6px;border-radius:50%;
+  background:var(--amber);
+  box-shadow:0 0 15px var(--amber-glow),0 0 40px rgba(232,180,76,.12);
+  top:-20px;left:50%;transform:translateX(-50%);
+  opacity:0;
+}
+/* 落地后显示的漫游者 */
+.wanderer-avatar{
+  position:absolute;
+  top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
+  width:80px;height:80px;
+  opacity:0;
+  object-fit:contain;
+  filter:drop-shadow(0 0 18px rgba(232,180,76,.7)) drop-shadow(0 0 40px rgba(232,180,76,.25));
+  transition:all .8s cubic-bezier(.34,1.56,.64,1);
+}
+.wanderer-avatar.show{
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1);
+}
+.fall-star.active{animation:starFall 2.2s cubic-bezier(.32,0,.67,0) forwards;}
+@keyframes starFall{
+  0%{top:-20px;opacity:0;width:6px;height:6px;}
+  15%{opacity:1;}
+  60%{opacity:1;width:10px;height:10px;}
+  85%{top:48%;}
+  100%{top:50%;width:8px;height:8px;opacity:1;}
+}
+
+.ripple{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  border-radius:50%;border:1px solid var(--amber);
+  width:0;height:0;opacity:0;pointer-events:none;
+}
+.ripple.active{animation:rippleSpread 2s ease-out forwards;}
+@keyframes rippleSpread{0%{width:0;height:0;opacity:.6;}100%{width:350px;height:350px;opacity:0;}}
+
+.system-land-text{
+  position:absolute;top:38%;left:50%;transform:translateX(-50%);
+  font-size:18px;color:var(--amber);letter-spacing:4px;
+  opacity:0;white-space:nowrap;
+  text-shadow:0 0 10px rgba(232,180,76,.3);
+}
+.system-land-text.show{animation:textPulse 2s ease infinite;}
+@keyframes textPulse{0%,100%{opacity:.5}50%{opacity:.9}}
+
+/* ===== 阶段2：星空对话 ===== */
+#phase-space{z-index:15;background:transparent;}
+.space-glow{
+  position:absolute;bottom:0;left:0;right:0;height:40%;
+  background:radial-gradient(ellipse at 50% 100%,rgba(232,180,76,.06),transparent 70%);
+  pointer-events:none;
+}
+
+/* ===== 系统消息终端（上移+加框） ===== */
+.sys-terminal{
+  position:absolute;
+  top:10%;
+  left:50%;
+  transform:translateX(-50%);
+  width:88vw;
+  max-width:500px;
+  max-height:60vh;
+  overflow-y:auto;
+  z-index:15;
+  padding:14px 16px;
+  /* 赛博朋克框 */
+  border:1px solid rgba(232,180,76,.25);
+  border-radius:4px;
+  background:rgba(11,15,30,.9);
+  box-shadow:
+    0 0 20px rgba(232,180,76,.06),
+    inset 0 0 40px rgba(11,15,30,.95);
+}
+.sys-terminal::-webkit-scrollbar{width:2px;}
+.sys-terminal::-webkit-scrollbar-thumb{background:rgba(232,180,76,.2);border-radius:1px;}
+
+.sys-line{
+  margin-bottom:14px;
+  opacity:0;
+  animation:lineIn .5s ease forwards;
+}
+@keyframes lineIn{to{opacity:1;}}
+
+.sys-line-label{
+  font-size:10px;
+  color:rgba(232,180,76,.5);
+  letter-spacing:3px;
+  margin-bottom:6px;
+  font-family:'Courier New',monospace;
+  text-transform:uppercase;
+}
+
+.sys-line-text{
+  font-size:20px;
+  color:var(--amber);
+  letter-spacing:1.5px;
+  line-height:2;
+  font-family:'Courier New',monospace;
+  /* 打字光标 - 放慢 */
+  border-right:2px solid rgba(232,180,76,.7);
+  animation:cursorBlink 1.2s step-end infinite;
+  white-space:pre-wrap;
+  word-break:break-all;
+}
+.sys-line-text.typing-done{
+  border-right-color:transparent;
+  animation:none;
+}
+
+/* ===== 用户消息：右下角弹窗 ===== */
+.user-msg-container{
+  position:fixed;
+  bottom:90px;
+  right:14px;
+  z-index:25;
+  display:none;
+}
+.user-msg-container.show{display:block;}
+.user-msg-bubble{
+  background:rgba(232,180,76,.12);
+  border:1px solid rgba(232,180,76,.3);
+  border-radius:4px 14px 4px 14px;
+  padding:13px 16px;
+  font-size:20px;
+  color:#ffffff;
+  line-height:1.9;
+  letter-spacing:1px;
+  max-width:65vw;
+  box-shadow:0 0 20px rgba(232,180,76,.08);
+  animation:userMsgIn .45s cubic-bezier(.23,1,.32,1) forwards;
+}
+@keyframes userMsgIn{from{opacity:0;transform:translateX(24px) scale(.92);}to{opacity:1;transform:translateX(0) scale(1);}}
+
+/* ===== 旁白 ===== */
+.narration-container{
+  position:absolute;
+  bottom:10%;
+  left:0;right:0;
+  text-align:center;
+  z-index:12;
+  opacity:0;
+  transition:opacity 1s ease;
+  padding:0 8vw;
+}
+.narration-container.show{opacity:1;}
+.narration-text{
+  font-size:17px;
+  color:rgba(255,255,255,.75);
+  line-height:2.2;
+  letter-spacing:2px;
+  font-style:italic;
+}
+
+/* ===== 触摸交互 ===== */
+.touch-overlay{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  z-index:20;display:none;cursor:pointer;
+}
+.touch-overlay.active{display:block;}
+
+.touch-hint{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  text-align:center;z-index:21;pointer-events:none;
+  opacity:0;transition:opacity 1s ease;
+}
+.touch-hint.show{opacity:1;}
+.touch-hint-icon{
+  width:56px;height:56px;margin:0 auto 14px;
+  border:1px solid rgba(255,255,255,.12);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  animation:touchFloat 2.5s ease infinite;
+}
+@keyframes touchFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.touch-hint-text{font-size:13px;color:rgba(255,255,255,.4);letter-spacing:2px;}
+
+.crack-canvas{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  z-index:4;pointer-events:none;
+}
+
+/* 裂纹触发时全屏震动 - 增强版 */
+.crack-shake{
+  animation:screenShake .8s ease-out;
+}
+@keyframes screenShake{
+  0%{transform:translate(0,0)}
+  8%{transform:translate(-6px,4px)}
+  16%{transform:translate(7px,-3px)}
+  24%{transform:translate(-5px,6px)}
+  32%{transform:translate(8px,-2px)}
+  40%{transform:translate(-4px,5px)}
+  50%{transform:translate(3px,-4px)}
+  60%{transform:translate(-2px,1px)}
+  70%{transform:translate(1px,-1px)}
+  80%{transform:translate(-1px,1px)}
+  100%{transform:translate(0,0)}
+}
+
+/* 裂纹闪光层 - 增强 */
+.crack-flash{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  z-index:3;pointer-events:none;
+  background:radial-gradient(circle at var(--fx,50%) var(--fy,50%),
+    rgba(255,250,230,.7) 0%, rgba(232,180,76,.3) 30%, transparent 70%);
+  opacity:0;
+}
+.crack-flash.active{
+  animation:flashBurst .4s ease-out forwards;
+}
+@keyframes flashBurst{
+  0%{opacity:0;}
+  15%{opacity:1;}
+  100%{opacity:0;}
+}
+
+/* 碎片元素 */
+.crack-shard{
+  position:absolute;
+  pointer-events:none;
+  z-index:5;
+  opacity:0;
+}
+
+/* 屏幕裂开碎片（大块） */
+.screen-shard{
+  position:absolute;
+  top:0;left:0;
+  pointer-events:none;
+  z-index:6;
+  backface-visibility:hidden;
+  will-change:transform,opacity;
+}
+
+/* 裂纹扩散波纹 */
+.crack-wave{
+  position:absolute;
+  pointer-events:none;
+  z-index:4;
+  border-radius:50%;
+  border:2px solid rgba(232,180,76,.4);
+  opacity:0;
+}
+.crack-wave.active{
+  animation:crackWaveExpand .8s ease-out forwards;
+}
+@keyframes crackWaveExpand{
+  0%{width:0;height:0;opacity:.8;border-width:3px;}
+  100%{width:400px;height:400px;opacity:0;border-width:1px;}
+}
+
+/* ===== 阶段3：黑屏 ===== */
+#phase-end{z-index:18;background:transparent;}
+.end-text{
+  position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);
+  font-size:24px;color:rgba(255,255,255,.8);letter-spacing:3px;line-height:2.2;
+  text-align:center;white-space:nowrap;opacity:0;transition:opacity .8s ease;
+}
+.end-text.visible{opacity:1;}
+.end-text.deleting{animation:glitchDelete 2.5s steps(20) forwards;}
+@keyframes glitchDelete{
+  0%{opacity:1;filter:none;letter-spacing:0;}
+  15%{opacity:1;filter:none;letter-spacing:0;}
+  30%{opacity:.75;text-shadow:-1px 0 rgba(232,180,76,.3);letter-spacing:1px;}
+  50%{opacity:.5;filter:blur(.5px);letter-spacing:2px;}
+  70%{opacity:.3;letter-spacing:4px;}
+  90%{opacity:.1;filter:blur(1px);letter-spacing:6px;}
+  100%{opacity:0;filter:blur(2px);letter-spacing:8px;}
+}
+.end-epilogue{
+  position:absolute;top:60%;left:50%;transform:translateX(-50%);
+  max-width:340px;width:85vw;text-align:center;
+  opacity:0;transition:opacity 1s ease .5s;
+}
+.end-epilogue.show{opacity:1;}
+.end-epilogue p{font-size:16px;color:rgba(255,255,255,.5);line-height:2.2;letter-spacing:1.5px;}
+
+/* ===== 幕标题 ===== */
+.act-title{
+  position:fixed;top:env(safe-area-inset-top,20px);left:50%;transform:translateX(-50%);
+  z-index:50;font-size:11px;color:rgba(255,255,255,.3);letter-spacing:3px;
+  opacity:0;transition:opacity 1s ease;white-space:nowrap;
+}
+.act-title.show{opacity:.6;}
+
+/* ===== 进度条 ===== */
+.progress-bar{
+  position:fixed;bottom:0;left:0;width:100%;height:1px;z-index:100;
+  background:rgba(255,255,255,.03);
+}
+.progress-fill{
+  height:100%;width:0;
+  background:linear-gradient(90deg,var(--amber),rgba(232,180,76,.3));
+  transition:width 1.2s ease;
+}
+
+/* ==========================================
+   第二幕：三件东西——痕迹即灵魂
+   ========================================== */
+#phase-act2{
+  z-index:22;
+  background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity 1.5s ease;
+}
+#phase-act2.active{opacity:1;pointer-events:auto;}
+
+/* 星球：从身下浮现，缓缓旋转 */
+.act2-planet{
+  position:absolute;
+  bottom:-40px;left:50%;
+  transform:translateX(-50%) scale(0.2);
+  width:220px;height:220px;
+  background:url('images/送的星球.png') center/contain no-repeat;
+  opacity:0;
+  transition:all 2.2s cubic-bezier(.23,1,.32,1);
+  z-index:2;
+}
+.act2-planet.show{
+  bottom:8%;
+  opacity:1;
+  transform:translateX(-50%) scale(1);
+  animation:planetRotate 25s linear infinite;
+}
+@keyframes planetRotate{
+  0%{transform:translateX(-50%) scale(1) rotateY(0deg);}
+  100%{transform:translateX(-50%) scale(1) rotateY(360deg);}
+}
+
+/* 笔记本 */
+.act2-notebook{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(0) rotate(-6deg);
+  width:150px;height:190px;
+  background:url('images/送的笔记本.png') center/contain no-repeat;
+  opacity:0;
+  transition:all 1.2s cubic-bezier(.34,1.56,.64,1);
+  z-index:3;
+  filter:drop-shadow(0 0 24px rgba(232,180,76,.35));
+}
+.act2-notebook.show{
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1) rotate(0deg);
+}
+
+/* 身份卡：可翻转 */
+.act2-card-container{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:160px;height:220px;
+  perspective:900px;
+  opacity:0;pointer-events:none;
+  transition:opacity .8s ease;
+  z-index:4;
+}
+.act2-card-container.show{opacity:1;pointer-events:auto;}
+.act2-card-inner{
+  width:100%;height:100%;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform .7s ease;
+  cursor:pointer;
+}
+.act2-card-inner.flipped{transform:rotateY(180deg);}
+.act2-card-front,.act2-card-back{
+  position:absolute;width:100%;height:100%;
+  backface-visibility:hidden;
+  border-radius:12px;
+  background-size:cover;background-position:center;
+}
+.act2-card-front{background-image:url('images/身份卡正面.png');}
+.act2-card-back{
+  background-image:url('images/身份卡背面.png');
+  transform:rotateY(180deg);
+}
+
+/* 卡片种入星球 */
+.act2-card-container.planting{
+  transition:all 1.8s cubic-bezier(.23,1,.32,1);
+  top:68%;
+  opacity:0.4;
+  transform:translate(-50%,-50%) scale(0.2) rotate(15deg);
+}
+
+/* 第二幕对话容器 */
+.act2-dialogue{
+  position:absolute;
+  top:6%;left:50%;transform:translateX(-50%);
+  width:88vw;max-width:500px;
+  z-index:15;
+  text-align:center;
+}
+.act2-line{
+  margin-bottom:18px;
+  opacity:0;
+  animation:lineIn .5s ease forwards;
+}
+.act2-line-text{
+  font-size:19px;color:var(--amber);
+  letter-spacing:1.2px;line-height:2;
+  font-family:'Courier New',monospace;
+}
+.act2-line-text.user{
+  color:rgba(255,255,255,.88);
+}
+.act2-line-label{
+  font-size:10px;color:rgba(232,180,76,.4);
+  letter-spacing:3px;margin-bottom:5px;
+  font-family:'Courier New',monospace;
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="starfield" id="starfield"></div>
+
+  <!-- 启动提示 -->
+  <div id="start-hint" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:999;background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .8s ease;">
+    <div style="text-align:center;">
+      <div style="width:48px;height:48px;margin:0 auto 16px;border:1px solid rgba(232,180,76,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;animation:touchFloat 2.5s ease infinite;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(232,180,76,.6)" stroke-width="1.5">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+          <path d="M8 12l3 3 5-6"/>
+        </svg>
+      </div>
+      <div style="font-size:14px;color:rgba(232,180,76,.5);letter-spacing:3px;">点击任意位置降落</div>
+    </div>
+  </div>
+
+  <!-- 阶段1：坠落 -->
+  <div class="scene active" id="phase-fall">
+    <div class="fall-star" id="fall-star"></div>
+    <img class="wanderer-avatar" id="wanderer-avatar" src="images/wanderer.png" alt="漫游者">
+    <div class="ripple" id="ripple1"></div>
+    <div class="ripple" id="ripple2"></div>
+    <div class="ripple" id="ripple3"></div>
+    <div class="system-land-text" id="land-text">降落中……</div>
+  </div>
+
+  <!-- 阶段2：星空对话 -->
+  <div class="scene" id="phase-space">
+    <div class="space-glow"></div>
+    <div class="crack-flash" id="crack-flash"></div>
+    <canvas class="crack-canvas" id="crack-canvas"></canvas>
+
+    <!-- 系统消息终端（上移+加框） -->
+    <div class="sys-terminal" id="sys-terminal"></div>
+
+    <!-- 旁白 -->
+    <div class="narration-container" id="narration-container">
+      <div class="narration-text" id="narration-text"></div>
+    </div>
+
+    <!-- 用户消息右下角 -->
+    <div class="user-msg-container" id="user-msg-container">
+      <div class="user-msg-bubble" id="user-msg-bubble"></div>
+    </div>
+
+    <!-- 触摸覆盖层 -->
+    <div class="touch-overlay" id="touch-overlay"></div>
+    <div class="touch-hint" id="touch-hint">
+      <div class="touch-hint-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+          <path d="M8 12l3 3 5-6"/>
+        </svg>
+      </div>
+      <div class="touch-hint-text">手指划动屏幕，触碰这里</div>
+    </div>
+  </div>
+
+  <!-- 阶段3：黑屏 -->
+  <div class="scene" id="phase-end">
+    <div class="end-text" id="end-text">「你确定，你是第一次来这里吗？」</div>
+    <div class="end-epilogue" id="end-epilogue">
+      <p>【第一幕完】</p>
+      <p style="margin-top:10px;color:rgba(255,255,255,.4);font-size:15px;">你很疑惑：<br>「等着」？<br>那行字……为什么自己删掉了？</p>
+    </div>
+  </div>
+
+  <div class="act-title" id="act-title">第一幕 · 坠落</div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+
+<script>
+/* ========================================
+   状态
+======================================== */
+var state = {
+  phase: 'fall',
+  waitingForTouch: false,
+  audioCtx: null,
+  audioInitialized: false
+};
+
+/* ========================================
+   音效系统
+======================================== */
+
+// 初始化 AudioContext（需用户交互后调用）
+function initAudio(){
+  try {
+    if(!state.audioCtx) {
+      state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      state.audioInitialized = true;
+    }
+    if(state.audioCtx && state.audioCtx.state === 'suspended'){
+      state.audioCtx.resume();
+    }
+  } catch(e){}
+}
+
+// 降落背景音：低沉呼啸声，模拟下坠感
+function playFallSound(){
+  try {
+    var ctx = state.audioCtx;
+    if(!ctx) return;
+    var now = ctx.currentTime;
+
+    // 低频振荡器：模拟下坠的"嗡——"
+    var osc = ctx.createOscillator();
+    var oscGain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(80, now);
+    osc.frequency.exponentialRampToValueAtTime(40, now + 2.0);
+    oscGain.gain.setValueAtTime(0, now);
+    oscGain.gain.linearRampToValueAtTime(0.10, now + 0.3);
+    oscGain.gain.linearRampToValueAtTime(0.10, now + 1.5);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
+    osc.connect(oscGain);
+    oscGain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 2.2);
+
+    // 噪声层：模拟风声/呼啸感
+    var bufSize = ctx.sampleRate * 2.2;
+    var buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    var data = buf.getChannelData(0);
+    for(var i=0; i<bufSize; i++){
+      data[i] = (Math.random()*2-1) * Math.pow(1 - i/bufSize, 1.5);
+    }
+    var noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    var noiseGain = ctx.createGain();
+    var noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'lowpass';
+    noiseFilter.frequency.setValueAtTime(400, now);
+    noiseFilter.frequency.linearRampToValueAtTime(800, now + 1.0);
+    noiseFilter.frequency.exponentialRampToValueAtTime(200, now + 2.2);
+    noiseGain.gain.setValueAtTime(0, now);
+    noiseGain.gain.linearRampToValueAtTime(0.06, now + 0.5);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noise.start(now);
+    noise.stop(now + 2.2);
+  } catch(e){}
+}
+
+// 打字音效：柔和 triangle 波短脉冲
+function playTypeSound(){
+  try {
+    var ctx = state.audioCtx;
+    if(!ctx) return;
+    var now = ctx.currentTime;
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(600 + Math.random()*200, now);
+    gain.gain.setValueAtTime(0.04, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.04);
+  } catch(e){}
+}
+
+// 裂屏音效：玻璃碎裂感
+function playCrackSound(){
+  try {
+    var ctx = state.audioCtx;
+    if(!ctx) return;
+    var now = ctx.currentTime;
+
+    // 碎裂噪脉冲
+    var bufSize = ctx.sampleRate * 0.6;
+    var buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    var data = buf.getChannelData(0);
+    for(var i=0; i<bufSize; i++){
+      var t = i / bufSize;
+      data[i] = (Math.random()*2-1) * Math.pow(1 - t, 3) * 1.5;
+    }
+    var noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    var nGain = ctx.createGain();
+    var nFilter = ctx.createBiquadFilter();
+    nFilter.type = 'bandpass';
+    nFilter.frequency.value = 3000;
+    nFilter.Q.value = 0.8;
+    nGain.gain.setValueAtTime(0.18, now);
+    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    noise.connect(nFilter);
+    nFilter.connect(nGain);
+    nGain.connect(ctx.destination);
+    noise.start(now);
+    noise.stop(now + 0.6);
+
+    // 低频"咔嚓"共振
+    var osc = ctx.createOscillator();
+    var oGain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+    oGain.gain.setValueAtTime(0.08, now);
+    oGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(oGain);
+    oGain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.25);
+  } catch(e){}
+}
+
+/* ========================================
+   工具
+======================================== */
+function wait(ms){
+  return new Promise(function(r){ setTimeout(r, ms); });
+}
+
+/* ========================================
+   星空
+======================================== */
+function createStarfield(){
+  var el = document.getElementById('starfield');
+  for(var i=0;i<120;i++){
+    var s = document.createElement('div');
+    s.className='star';
+    var maxO = (.3 + Math.random()*.5).toFixed(2);
+    s.style.cssText =
+      'left:'+ (Math.random()*100) +'%;'+
+      'top:'+ (Math.random()*100) +'%;'+
+      'width:'+ (.5+Math.random()*1.8) +'px;'+
+      'height:'+ (.5+Math.random()*1.8) +'px;'+
+      '--d:'+ (2+Math.random()*5) +'s;'+
+      '--max-o:'+ maxO +';'+
+      'animation-delay:'+ (Math.random()*4) +'s;';
+    el.appendChild(s);
+  }
+}
+createStarfield();
+
+/* ========================================
+   远景星球
+======================================== */
+function createDistantPlanets(){
+  var container = document.getElementById('phase-space');
+  var planets = [
+    {x:'15%',y:'25%',size:18,glow:'rgba(232,180,76,.06)',border:'rgba(232,180,76,.12)',lit:true},
+    {x:'78%',y:'18%',size:14,glow:'rgba(255,255,255,.02)',border:'rgba(255,255,255,.05)',lit:false},
+    {x:'65%',y:'55%',size:22,glow:'rgba(74,158,184,.06)',border:'rgba(74,158,184,.12)',lit:true},
+    {x:'25%',y:'70%',size:12,glow:'rgba(155,123,191,.03)',border:'rgba(155,123,191,.06)',lit:false},
+    {x:'88%',y:'40%',size:10,glow:'none',border:'rgba(255,255,255,.03)',lit:false},
+    {x:'42%',y:'18%',size:8,glow:'none',border:'rgba(255,255,255,.02)',lit:false},
+  ];
+  for(var i=0;i<planets.length;i++){
+    (function(p, idx){
+      var el = document.createElement('div');
+      el.className='distant-planet';
+      var bs = p.lit ? ('0 0 '+ p.size +'px '+ p.glow) : 'none';
+      el.style.left = p.x;
+      el.style.top = p.y;
+      el.style.width = p.size + 'px';
+      el.style.height = p.size + 'px';
+      el.style.background = 'radial-gradient(circle at 35% 35%,rgba(255,255,255,.08),rgba(255,255,255,.02) 70%)';
+      el.style.border = '1px solid '+ p.border;
+      el.style.boxShadow = bs;
+      el.style.transition = 'opacity 2s ease ' + (idx*.3) + 's';
+      if(!p.lit) el.style.filter = 'brightness(.3)';
+      container.appendChild(el);
+      setTimeout(function(){ el.classList.add('show'); }, 200+idx*300);
+    })(planets[i], i);
+  }
+}
+
+/* ========================================
+   对话数据
+======================================== */
+var dialogues = [
+  {type:'user', text:'……这是哪儿？', hold:3000},
+  {type:'narration', text:'四周是深蓝星空，脚下踩着若有若无的光面，远处几颗星球散落，大部分是暗的，只有零星几颗还亮着微光', hold:7000},
+  {type:'user', text:'我怎么到这儿来的？我要干什么？', hold:3500},
+  {type:'narration', text:'你试着动了动手指，划过屏幕', hold:4000},
+  {type:'__touch__'},
+  {type:'narration', text:'突然——一道金色裂纹从你划过的地方蔓延开来，像触碰了什么开关', hold:6000},
+  {type:'system', label:'SYSTEM', text:'检测到生命体介入。', hold:3000},
+  {type:'user', text:'谁？！', hold:2500},
+  {type:'system', label:'SYSTEM', text:'别慌。是我。', hold:3000},
+  {type:'user', text:'你是……', hold:2800},
+  {type:'system', label:'SYSTEM', text:'你可以叫我系统。虽然……我更希望你有朝一日给我起个名字。', hold:4500},
+  {type:'user', text:'这到底是什么地方？', hold:3000},
+  {type:'system', label:'SYSTEM', text:'这里是拓圈宇宙。', hold:3000},
+  {type:'system', label:'SYSTEM', text:'你降落的这颗星球，现在是你的了。', hold:4000},
+  {type:'user', text:'我的？', hold:2500},
+  {type:'system', label:'SYSTEM', text:'对。没有人来认领之前，它就在这里等着。', hold:4000},
+  {type:'user', text:'……等着？', hold:2800},
+  {type:'system', label:'SYSTEM', text:'……没什么。先进去吧。', hold:3200},
+  {type:'__end__'}
+];
+
+/* ========================================
+   场景切换
+======================================== */
+function switchPhase(from, to, delay){
+  return new Promise(function(r){
+    setTimeout(function(){
+      var fromEl = document.getElementById('phase-'+from);
+      var toEl = document.getElementById('phase-'+to);
+      if(fromEl){ fromEl.classList.remove('active'); }
+      setTimeout(function(){
+        if(toEl) toEl.classList.add('active');
+        state.phase = to;
+        updateProgress(to);
+        r();
+      }, 600);
+    }, delay||0);
+  });
+}
+
+function updateProgress(phase){
+  var pcts = {fall:5, space:40, end:100};
+  var el = document.getElementById('progress-fill');
+  if(el) el.style.width = (pcts[phase]||0)+'%';
+}
+
+/* ========================================
+   阶段1：坠落
+======================================== */
+function startFallSequence(){
+  var star = document.getElementById('fall-star');
+  var landText = document.getElementById('land-text');
+
+  // 播放降落背景音
+  playFallSound();
+
+  wait(500)
+    .then(function(){ if(landText) landText.classList.add('show'); return wait(800); })
+    .then(function(){ if(star) star.classList.add('active'); return wait(2400); })
+    // 金色圆点落地后隐藏，漫游者弹出来
+    .then(function(){
+      if(star){ star.style.transition='opacity .3s'; star.style.opacity='0'; }
+      var wa = document.getElementById('wanderer-avatar');
+      if(wa){ wa.classList.add('show'); }
+      return wait(400);
+    })
+    .then(function(){ var r=document.getElementById('ripple1'); if(r) r.classList.add('active'); return wait(350); })
+    .then(function(){ var r=document.getElementById('ripple2'); if(r) r.classList.add('active'); return wait(350); })
+    .then(function(){ var r=document.getElementById('ripple3'); if(r) r.classList.add('active'); return wait(600); })
+    .then(function(){ if(landText) landText.style.opacity='0'; return wait(800); })
+    .then(function(){ createDistantPlanets(); return switchPhase('fall','space',0); })
+    .then(function(){ return wait(500); })
+    .then(function(){ var t=document.getElementById('act-title'); if(t) t.classList.add('show'); return wait(1000); })
+    .then(function(){ runDialogueSequence(); });
+}
+
+/* ========================================
+   打字机效果（放慢到95ms/字）
+======================================== */
+function typewriter(text, element, speed){
+  return new Promise(function(resolve){
+    element.textContent = '';
+    element.classList.remove('typing-done');
+    var i = 0;
+    function tick(){
+      if(i < text.length){
+        element.textContent += text.charAt(i);
+        // 空格不播声音
+        if(text.charAt(i) !== ' ' && text.charAt(i) !== '　'){
+          playTypeSound();
+        }
+        i++;
+        setTimeout(tick, speed || 95);
+      } else {
+        element.classList.add('typing-done');
+        resolve();
+      }
+    }
+    tick();
+  });
+}
+
+/* ========================================
+   系统消息：累积显示在终端框内（不消失）
+======================================== */
+function addSystemLine(label, text){
+  return new Promise(function(resolve){
+    var terminal = document.getElementById('sys-terminal');
+
+    var line = document.createElement('div');
+    line.className = 'sys-line';
+
+    var labelDiv = document.createElement('div');
+    labelDiv.className = 'sys-line-label';
+    labelDiv.textContent = label || '';
+
+    var textSpan = document.createElement('span');
+    textSpan.className = 'sys-line-text';
+
+    line.appendChild(labelDiv);
+    line.appendChild(textSpan);
+    terminal.appendChild(line);
+
+    // 滚动到底部
+    terminal.scrollTop = terminal.scrollHeight;
+
+    // 打字机效果
+    typewriter(text, textSpan, 95).then(function(){
+      // 打字完成后停留
+      wait(1000).then(resolve);
+    });
+  });
+}
+
+/* ========================================
+   用户消息：右下角弹窗
+======================================== */
+function showUserMsg(text, holdTime){
+  return new Promise(function(resolve){
+    var container = document.getElementById('user-msg-container');
+    var bubble = document.getElementById('user-msg-bubble');
+
+    bubble.textContent = text;
+    container.classList.add('show');
+
+    wait(holdTime || 2600).then(function(){
+      container.classList.remove('show');
+      wait(500).then(resolve);
+    });
+  });
+}
+
+/* ========================================
+   旁白：居中显示
+======================================== */
+function showNarration(text, holdTime){
+  return new Promise(function(resolve){
+    var container = document.getElementById('narration-container');
+    var textEl = document.getElementById('narration-text');
+
+    textEl.textContent = text;
+    container.classList.add('show');
+
+    wait(holdTime || 3000).then(function(){
+      container.classList.remove('show');
+      wait(800).then(resolve);
+    });
+  });
+}
+
+/* ========================================
+   对话序列主控
+======================================== */
+function runDialogueSequence(){
+  var i = 0;
+
+  function next(){
+    if(i >= dialogues.length) return;
+    var d = dialogues[i];
+    i++;
+
+    // 触摸等待
+    if(d.type === '__touch__'){
+      showTouchHint().then(function(){
+        next();
+      });
+      return;
+    }
+
+    // 结束
+    if(d.type === '__end__'){
+      wait(1500).then(function(){ startEndSequence(); });
+      return;
+    }
+
+    // 系统消息 → 累积写入终端
+    if(d.type === 'system'){
+      addSystemLine(d.label, d.text).then(next);
+      return;
+    }
+
+    // 用户消息 → 右下角弹窗
+    if(d.type === 'user'){
+      showUserMsg(d.text, d.hold || 2600).then(next);
+      return;
+    }
+
+    // 旁白
+    if(d.type === 'narration'){
+      showNarration(d.text, d.hold || 3000).then(next);
+      return;
+    }
+
+    wait(1000).then(next);
+  }
+
+  next();
+}
+
+/* ========================================
+   触摸交互
+======================================== */
+function showTouchHint(){
+  return new Promise(function(resolve){
+    var overlay = document.getElementById('touch-overlay');
+    var hint = document.getElementById('touch-hint');
+    if(!overlay){ resolve(); return; }
+
+    // 首次触摸时初始化音频
+    initAudio();
+
+    hint.classList.add('show');
+    overlay.classList.add('active');
+    state.waitingForTouch = true;
+
+    function onTouch(e){
+      if(!state.waitingForTouch) return;
+      state.waitingForTouch = false;
+
+      try{ e.preventDefault(); }catch(ex){}
+      try{ e.stopPropagation(); }catch(ex){}
+
+      var clientX=0, clientY=0;
+      if(e.touches && e.touches.length>0){
+        clientX=e.touches[0].clientX; clientY=e.touches[0].clientY;
+      } else if(e.changedTouches && e.changedTouches.length>0){
+        clientX=e.changedTouches[0].clientX; clientY=e.changedTouches[0].clientY;
+      } else {
+        clientX=e.clientX; clientY=e.clientY;
+      }
+
+      hint.classList.remove('show');
+      overlay.classList.remove('active');
+      try{ overlay.removeEventListener('touchstart', onTouch); }catch(ex){}
+      try{ overlay.removeEventListener('mousedown', onTouch); }catch(ex){}
+
+      drawCracks(clientX, clientY);
+      setTimeout(resolve, 1200);
+    }
+
+    if(overlay.addEventListener){
+      overlay.addEventListener('touchstart', onTouch, false);
+      overlay.addEventListener('mousedown', onTouch, false);
+    }
+  });
+}
+
+/* ========================================
+   屏幕裂开效果（震撼版 v2）
+   - 粗裂纹 + 强发光
+   - 屏幕分裂成大块碎片飘散
+   - 冲击波扩散
+   - 碎屑飞溅
+   - 音效配合
+======================================== */
+function drawCracks(startX, startY){
+
+  // 播放裂屏音效
+  playCrackSound();
+
+  var canvas = document.getElementById('crack-canvas');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if(!ctx) return;
+
+  canvas.width = window.innerWidth * 2;
+  canvas.height = window.innerHeight * 2;
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+  ctx.setTransform(2,0,0,2,0,0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  var W = window.innerWidth;
+  var H = window.innerHeight;
+
+  var phaseSpace = document.getElementById('phase-space');
+  if(!phaseSpace) return;
+
+  // 全屏震动（更强）
+  var app = document.getElementById('app');
+  if(app){
+    app.classList.remove('crack-shake');
+    void app.offsetWidth;
+    app.classList.add('crack-shake');
+    setTimeout(function(){ app.classList.remove('crack-shake'); }, 800);
+  }
+
+  // 闪光层
+  var flash = document.getElementById('crack-flash');
+  if(flash){
+    flash.style.setProperty('--fx', startX + 'px');
+    flash.style.setProperty('--fy', startY + 'px');
+    flash.classList.remove('active');
+    void flash.offsetWidth;
+    flash.classList.add('active');
+    setTimeout(function(){ flash.classList.remove('active'); }, 500);
+  }
+
+  // 冲击波（多层）
+  for(var w=0; w<3; w++){
+    (function(idx){
+      var wave = document.createElement('div');
+      wave.className = 'crack-wave';
+      wave.style.left = (startX) + 'px';
+      wave.style.top = (startY) + 'px';
+      wave.style.marginLeft = '-200px';
+      wave.style.marginTop = '-200px';
+      wave.style.animationDelay = (idx * 0.15) + 's';
+      phaseSpace.appendChild(wave);
+      void wave.offsetWidth;
+      wave.classList.add('active');
+      setTimeout(function(){ try{ wave.parentNode.removeChild(wave); }catch(e){} }, 1200);
+    })(w);
+  }
+
+  // ==========================================
+  //  生成一条裂纹的路径点（带自然弯曲）
+  // ==========================================
+  function generateCrackPath(x, y, angle, totalLen, segCount){
+    var points = [{x:x, y:y}];
+    var cx = x, cy = y;
+    for(var i=0; i<segCount; i++){
+      var ratio = (i+1)/segCount;
+      var segLen = (totalLen / segCount) * (0.5 + Math.random()*0.9);
+      var wander = (Math.random()-0.5) * 1.4 * (0.4 + ratio);
+      var a = angle + wander;
+      cx = cx + Math.cos(a) * segLen;
+      cy = cy + Math.sin(a) * segLen;
+      cx = Math.max(-20, Math.min(W+20, cx));
+      cy = Math.max(-20, Math.min(H+20, cy));
+      points.push({x:cx, y:cy});
+    }
+    return points;
+  }
+
+  // ==========================================
+  //  绘制一条裂纹路径（粗 + 强发光 + 渐变）
+  // ==========================================
+  function drawCrackPath(points, baseWidth, glowColor, startColor, endColor){
+    if(points.length < 2) return;
+
+    // 外发光层（模糊宽线）
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for(var i=1; i<points.length; i++){
+      if(i < points.length-1){
+        var cpx = (points[i].x + points[i+1].x)/2;
+        var cpy = (points[i].y + points[i+1].y)/2;
+        ctx.quadraticCurveTo(points[i].x, points[i].y, cpx, cpy);
+      } else {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+    }
+    ctx.strokeStyle = glowColor;
+    ctx.lineWidth = baseWidth * 3.5;
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = baseWidth * 6;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.globalAlpha = 0.35;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1.0;
+
+    // 主裂纹
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for(var i=1; i<points.length; i++){
+      if(i < points.length-1){
+        var cpx = (points[i].x + points[i+1].x)/2;
+        var cpy = (points[i].y + points[i+1].y)/2;
+        ctx.quadraticCurveTo(points[i].x, points[i].y, cpx, cpy);
+      } else {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+    }
+    if(startColor && endColor){
+      var grad = ctx.createLinearGradient(points[0].x, points[0].y, points[points.length-1].x, points[points.length-1].y);
+      grad.addColorStop(0, startColor);
+      grad.addColorStop(0.6, endColor);
+      grad.addColorStop(1, 'rgba(232,180,76,0.1)');
+      ctx.strokeStyle = grad;
+    } else {
+      ctx.strokeStyle = endColor || startColor || 'rgba(232,180,76,0.7)';
+    }
+    ctx.lineWidth = baseWidth;
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = baseWidth * 4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // 边缘高光
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for(var i=1; i<points.length; i++){
+      if(i < points.length-1){
+        var cpx = (points[i].x + points[i+1].x)/2;
+        var cpy = (points[i].y + points[i+1].y)/2;
+        ctx.quadraticCurveTo(points[i].x, points[i].y, cpx, cpy);
+      } else {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+    }
+    ctx.strokeStyle = 'rgba(255,250,240,0.5)';
+    ctx.lineWidth = Math.max(0.5, baseWidth * 0.35);
+    ctx.shadowColor = 'rgba(255,250,240,0.8)';
+    ctx.shadowBlur = 4;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // 核心亮线
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for(var i=1; i<points.length; i++){
+      if(i < points.length-1){
+        var cpx = (points[i].x + points[i+1].x)/2;
+        var cpy = (points[i].y + points[i+1].y)/2;
+        ctx.quadraticCurveTo(points[i].x, points[i].y, cpx, cpy);
+      } else {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.lineWidth = Math.max(0.3, baseWidth * 0.15);
+    ctx.stroke();
+  }
+
+  // ==========================================
+  //  递归分支
+  // ==========================================
+  var shardSpawnPoints = [];
+
+  function generateBranch(x, y, angle, length, depth, baseWidth){
+    if(depth <= 0 || length < 8) return;
+    var segCount = 4 + Math.floor(Math.random()*4);
+    var points = generateCrackPath(x, y, angle, length, segCount);
+
+    if(Math.random() < 0.5 || depth <= 1){
+      var ri = 1 + Math.floor(Math.random()*(points.length-2));
+      shardSpawnPoints.push({ x: points[ri].x, y: points[ri].y, depth: depth });
+    }
+
+    var opacity = Math.min(0.9, 0.25 + depth*0.22);
+    var mainColor = 'rgba(232,180,76,' + opacity + ')';
+    var glowColor = 'rgba(232,180,76,' + Math.min(0.55, 0.15 + depth*0.12) + ')';
+    var endColor = 'rgba(232,180,76,' + (opacity * 0.25) + ')';
+    drawCrackPath(points, Math.max(1.0, baseWidth), glowColor, mainColor, endColor);
+
+    var cx = points[points.length-1].x;
+    var cy = points[points.length-1].y;
+    var forkChance = depth >= 3 ? 0.65 : (depth >= 2 ? 0.45 : 0.25);
+    if(Math.random() < forkChance && depth > 1){
+      var forkAngle = angle + (Math.random()>0.5?1:-1) * (0.5 + Math.random()*1.0);
+      generateBranch(cx, cy, forkAngle, length*0.42, depth-1, baseWidth*0.65);
+    }
+    if(Math.random() < forkChance*0.5 && depth > 2){
+      var forkAngle2 = angle + (Math.random()>0.5?1:-1) * (0.8 + Math.random()*1.2);
+      generateBranch(cx, cy, forkAngle2, length*0.32, depth-2, baseWidth*0.45);
+    }
+  }
+
+  // ==========================================
+  //  起点光斑（更大更亮）
+  // ==========================================
+  function drawOriginGlow(){
+    ctx.beginPath();
+    ctx.arc(startX, startY, 12, 0, Math.PI*2);
+    var grad = ctx.createRadialGradient(startX, startY, 0, startX, startY, 50);
+    grad.addColorStop(0, 'rgba(255,252,245,1)');
+    grad.addColorStop(0.2, 'rgba(255,250,230,0.9)');
+    grad.addColorStop(0.5, 'rgba(232,180,76,0.5)');
+    grad.addColorStop(1, 'rgba(232,180,76,0)');
+    ctx.fillStyle = grad;
+    ctx.shadowColor = 'rgba(232,180,76,1)';
+    ctx.shadowBlur = 40;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // 十字光芒（更长更亮）
+    ctx.save();
+    ctx.globalAlpha = 0.6;
+    ctx.strokeStyle = 'rgba(255,250,240,0.9)';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(255,250,240,0.8)';
+    ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.moveTo(startX-30, startY); ctx.lineTo(startX+30, startY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(startX, startY-30); ctx.lineTo(startX, startY+30); ctx.stroke();
+    // 对角线光芒
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.3;
+    ctx.beginPath(); ctx.moveTo(startX-22, startY-22); ctx.lineTo(startX+22, startY+22); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(startX+22, startY-22); ctx.lineTo(startX-22, startY+22); ctx.stroke();
+    ctx.restore();
+    ctx.shadowBlur = 0;
+  }
+
+  // ==========================================
+  //  碎屑飞溅
+  // ==========================================
+  function spawnShards(){
+    var shardsToSpawn = shardSpawnPoints.slice(0, Math.min(15, shardSpawnPoints.length));
+    for(var s=0; s<shardsToSpawn.length; s++){
+      (function(sp){
+        var shard = document.createElement('div');
+        shard.className = 'crack-shard';
+        var size = 3 + Math.random()*8 * (sp.depth||1);
+        var angle = Math.random()*Math.PI*2;
+        var dist = 50 + Math.random()*150;
+        var tx = Math.cos(angle) * dist;
+        var ty = Math.sin(angle) * dist + 20; // 略微向下
+        var rot = (Math.random()-0.5) * 900;
+
+        shard.style.cssText =
+          'left:'+ (sp.x - size/2) +'px;'+
+          'top:'+ (sp.y - size/2) +'px;'+
+          'width:'+ size +'px;'+
+          'height:'+ (size*0.5 + Math.random()*size*0.7) +'px;'+
+          'background:rgba(232,180,76,'+ (.2 + Math.random()*.25) +');'+
+          'border:1px solid rgba(255,250,230,'+ (.3 + Math.random()*.3) +');'+
+          'border-radius:'+ (1+Math.random()*2) +'px;'+
+          'opacity:0;'+
+          'transform:translate(0,0) rotate(0deg) scale(1);'+
+          'transition:all '+ (.5 + Math.random()*.7) +'s cubic-bezier(.15,.9,.3,1);';
+
+        phaseSpace.appendChild(shard);
+        void shard.offsetWidth;
+        shard.style.opacity = '1';
+        shard.style.transform = 'translate('+ tx +'px,'+ ty +'px) rotate('+ rot +'deg) scale(0.3)';
+        shard.style.opacity = '0';
+
+        setTimeout((function(el){ return function(){ try{ el.parentNode.removeChild(el); }catch(e){} }; })(shard), 1500);
+      })(shardsToSpawn[s]);
+    }
+  }
+
+  // ==========================================
+  //  屏幕分裂效果（大块碎片飘散）
+  // ==========================================
+  function splitScreen(){
+    // 生成几块大碎片覆盖在屏幕上，然后让它们裂开飘走
+    var shardCount = 6 + Math.floor(Math.random()*4);
+    for(var i=0; i<shardCount; i++){
+      (function(idx){
+        var shard = document.createElement('div');
+        shard.className = 'screen-shard';
+
+        // 随机形状：不规则四边形用 clip-path
+        var x1 = Math.random()*30;
+        var y1 = Math.random()*30;
+        var x2 = 30 + Math.random()*40;
+        var y2 = 30 + Math.random()*40;
+        var clipPoints = [
+          x1+'% '+y1+'%',
+          (x2+Math.random()*10)+'% '+y1+'%',
+          (x2+Math.random()*15)+'% '+(y2+Math.random()*10)+'%',
+          x1+'% '+(y2+Math.random()*10)+'%'
+        ].join(',');
+
+        var flyAngle = Math.random()*Math.PI*2;
+        var flyDist = 80 + Math.random()*200;
+        var flyX = Math.cos(flyAngle) * flyDist;
+        var flyY = Math.sin(flyAngle) * flyDist;
+        var flyRot = (Math.random()-0.5) * 60;
+        var duration = 0.8 + Math.random()*1.0;
+        var delay = 0.2 + Math.random()*0.4;
+
+        shard.style.cssText =
+          'width:100%;height:100%;'+
+          'background:linear-gradient(135deg,rgba(11,15,30,.92),rgba(20,25,50,.88));'+
+          'clip-path:polygon('+ clipPoints +');'+
+          'opacity:1;'+
+          'transform:translate(0,0) rotate(0deg);'+
+          'transition:all '+ duration +'s cubic-bezier(.15,.85,.3,1) '+ delay +'s;';
+
+        phaseSpace.appendChild(shard);
+        void shard.offsetWidth;
+
+        // 触发飘散
+        shard.style.transform = 'translate('+ flyX +'px,'+ flyY +'px) rotate('+ flyRot +'deg)';
+        shard.style.opacity = '0';
+
+        setTimeout((function(el){
+          return function(){ try{ el.parentNode.removeChild(el); }catch(e){} };
+        })(shard), (duration + delay)*1000 + 200);
+      })(i);
+    }
+  }
+
+  // ==========================================
+  //  主绘制流程
+  // ==========================================
+  drawOriginGlow();
+
+  var branchCount = 8 + Math.floor(Math.random()*5);
+  var branchesDrawn = 0;
+
+  function animateNextBranch(){
+    if(branchesDrawn >= branchCount) return;
+    var angle = (Math.PI*2 / branchCount) * branchesDrawn + (Math.random()-0.5)*0.5;
+    var len = 60 + Math.random()*130;
+    var depth = 3 + Math.floor(Math.random()*2);
+    generateBranch(startX, startY, angle, len, depth, 4.0);
+    branchesDrawn++;
+
+    if(branchesDrawn % 3 === 0){
+      spawnShards();
+    }
+
+    setTimeout(animateNextBranch, 50 + Math.random()*80);
+  }
+
+  animateNextBranch();
+
+  // 最后一批碎屑
+  setTimeout(spawnShards, 600);
+
+  // 第二次震动（裂纹画完后）
+  setTimeout(function(){
+    if(app){
+      app.classList.remove('crack-shake');
+      void app.offsetWidth;
+      app.classList.add('crack-shake');
+      setTimeout(function(){ app.classList.remove('crack-shake'); }, 800);
+    }
+    // 第二次闪光（更亮）
+    if(flash){
+      flash.classList.remove('active');
+      void flash.offsetWidth;
+      flash.classList.add('active');
+      setTimeout(function(){ flash.classList.remove('active'); }, 500);
+    }
+    // 第二次裂屏音效
+    playCrackSound();
+  }, 700);
+
+  // 屏幕分裂效果
+  setTimeout(splitScreen, 900);
+
+  // 裂纹 canvas 淡出
+  setTimeout(function(){
+    if(canvas){ canvas.style.transition='opacity 2s ease'; canvas.style.opacity='0'; }
+  }, 3000);
+}
+
+/* ========================================
+   阶段3：黑屏
+======================================== */
+function startEndSequence(){
+  var terminal = document.getElementById('sys-terminal');
+  var userContainer = document.getElementById('user-msg-container');
+  var narrContainer = document.getElementById('narration-container');
+  if(terminal){ terminal.style.transition='opacity 1s ease'; terminal.style.opacity='0'; }
+  if(userContainer){ userContainer.style.transition='opacity 1s ease'; userContainer.style.opacity='0'; }
+  if(narrContainer){ narrContainer.style.transition='opacity 1s ease'; narrContainer.style.opacity='0'; }
+
+  return wait(1200)
+    .then(function(){ return switchPhase('space','end',0); })
+    .then(function(){ return wait(1500); })
+    .then(function(){
+      var endText = document.getElementById('end-text');
+      if(endText) endText.classList.add('visible');
+      return wait(4000);
+    })
+    .then(function(){
+      var endText = document.getElementById('end-text');
+      if(endText) endText.classList.add('deleting');
+      return wait(2500);
+    })
+    .then(function(){
+      var epilogue = document.getElementById('end-epilogue');
+      if(epilogue) epilogue.classList.add('show');
+      // 4秒后自动跳转第二幕
+      setTimeout(function(){
+        window.location.href = '拓圈·第二幕·三件东西·H5.html';
+      }, 4000);
+    });
+}
+
+/* ========================================
+   启动：页面进入显示"点击任意位置降落"
+   确保音频初始化后再开始动画
+======================================== */
+var pendingStart = false;
+
+function initAndStart(){
+  if(pendingStart) return;
+  pendingStart = true;
+  initAudio();
+  try { document.removeEventListener('click', initAndStart); }catch(ex){}
+  try { document.removeEventListener('touchstart', initAndStart); }catch(ex){}
+  // 隐藏启动提示，开始坠落
+  var startHint = document.getElementById('start-hint');
+  if(startHint){ startHint.style.opacity='0'; startHint.style.pointerEvents='none'; }
+  setTimeout(startFallSequence, 300);
+}
+
+if(document.addEventListener){
+  document.addEventListener('click', initAndStart, false);
+  document.addEventListener('touchstart', initAndStart, false);
+}
+</script>
+</body>
+</html>

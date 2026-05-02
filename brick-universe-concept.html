@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拓圈 · 积木宇宙概念</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-deep: #0a0e17;
+    --bg-mid: #111827;
+    --gold: #F5A623;
+    --gold-light: #FFD700;
+    --coral: #FF6B6B;
+    --mint: #4ECDC4;
+    --cream: #FFF8E7;
+    --blue: #6C9CE3;
+    --pink: #FF9EB5;
+    --text: #E8E0D5;
+    --text-dim: #8B8178;
+  }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ===== NAV ===== */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 32px;
+    background: rgba(10, 14, 23, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(245, 166, 35, 0.1);
+  }
+  .nav-brand {
+    font-weight: 900; font-size: 20px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: 2px;
+  }
+  .nav-tabs { display: flex; gap: 8px; }
+  .nav-tab {
+    padding: 6px 16px; border-radius: 20px;
+    background: transparent; border: 1px solid rgba(245, 166, 35, 0.2);
+    color: var(--text-dim); font-size: 13px; cursor: pointer;
+    transition: all 0.3s;
+  }
+  .nav-tab:hover, .nav-tab.active {
+    background: rgba(245, 166, 35, 0.15);
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  /* ===== SECTIONS ===== */
+  .concept-page { display: none; min-height: 100vh; }
+  .concept-page.active { display: block; }
+
+  /* ===== CONCEPT A: 几何积木感 ===== */
+  .hero-a {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 80px 24px 40px;
+    position: relative; overflow: hidden;
+  }
+  .hero-a::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(1px 1px at 10% 20%, rgba(245,166,35,0.4), transparent),
+      radial-gradient(1px 1px at 30% 60%, rgba(78,205,196,0.3), transparent),
+      radial-gradient(1px 1px at 50% 10%, rgba(255,107,107,0.3), transparent),
+      radial-gradient(1px 1px at 70% 40%, rgba(245,166,35,0.3), transparent),
+      radial-gradient(1px 1px at 90% 80%, rgba(108,156,227,0.3), transparent),
+      radial-gradient(1px 1px at 20% 90%, rgba(255,158,181,0.3), transparent),
+      radial-gradient(1px 1px at 80% 15%, rgba(245,166,35,0.4), transparent),
+      radial-gradient(1px 1px at 45% 75%, rgba(78,205,196,0.4), transparent),
+      radial-gradient(1px 1px at 65% 55%, rgba(255,215,0,0.3), transparent),
+      radial-gradient(1.5px 1.5px at 15% 45%, rgba(255,255,255,0.5), transparent),
+      radial-gradient(1.5px 1.5px at 85% 65%, rgba(255,255,255,0.4), transparent),
+      radial-gradient(1px 1px at 35% 30%, rgba(255,255,255,0.3), transparent),
+      radial-gradient(1px 1px at 55% 85%, rgba(255,255,255,0.3), transparent);
+  }
+
+  /* 积木星球 - CSS only */
+  .brick-planets {
+    position: relative; width: 420px; height: 420px;
+    margin-bottom: 48px;
+  }
+  .brick-planet {
+    position: absolute; border-radius: 50%;
+    /* 积木感的关键：subtle pixelated shadow + 小方块纹理暗示 */
+  }
+  .brick-planet::after {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background: repeating-conic-gradient(
+      rgba(255,255,255,0.03) 0deg, transparent 4deg, transparent 8deg
+    );
+    opacity: 0.5;
+  }
+  /* 核心大星球 */
+  .planet-main {
+    width: 200px; height: 200px;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, var(--gold) 0%, #E8912D 40%, #C67820 100%);
+    box-shadow:
+      -8px 8px 0 -1px rgba(200, 140, 30, 0.6),
+      -16px 16px 0 -2px rgba(200, 140, 30, 0.3),
+      -24px 24px 0 -3px rgba(200, 140, 30, 0.1),
+      inset -20px -10px 40px rgba(0,0,0,0.3),
+      0 0 60px rgba(245, 166, 35, 0.3);
+    animation: float 6s ease-in-out infinite;
+  }
+  /* 积木纹理 - 用小方块grid模拟 */
+  .planet-main .brick-grid {
+    position: absolute; inset: 8%; border-radius: 50%; overflow: hidden;
+    background-image:
+      linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+  .planet-main .stud {
+    position: absolute; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.25), rgba(255,255,255,0.05));
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .planet-2 {
+    width: 80px; height: 80px; top: 8%; right: 5%;
+    background: linear-gradient(135deg, var(--coral), #D44E4E);
+    box-shadow: -5px 5px 0 -1px rgba(200, 70, 70, 0.5), -10px 10px 0 -2px rgba(200, 70, 70, 0.2), 0 0 30px rgba(255,107,107,0.2);
+    animation: float 5s ease-in-out infinite 1s;
+  }
+  .planet-2 .brick-grid {
+    position: absolute; inset: 10%; border-radius: 50%; overflow: hidden;
+    background-image:
+      linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 14px 14px;
+  }
+  .planet-3 {
+    width: 60px; height: 60px; bottom: 15%; left: 2%;
+    background: linear-gradient(135deg, var(--mint), #3BA99C);
+    box-shadow: -4px 4px 0 -1px rgba(50, 160, 150, 0.5), -8px 8px 0 -2px rgba(50, 160, 150, 0.2), 0 0 25px rgba(78,205,196,0.2);
+    animation: float 7s ease-in-out infinite 2s;
+  }
+  .planet-3 .brick-grid {
+    position: absolute; inset: 10%; border-radius: 50%; overflow: hidden;
+    background-image:
+      linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 12px 12px;
+  }
+  .planet-4 {
+    width: 45px; height: 45px; top: 18%; left: 8%;
+    background: linear-gradient(135deg, var(--blue), #5A8BC8);
+    box-shadow: -3px 3px 0 -1px rgba(80, 120, 180, 0.5), 0 0 20px rgba(108,156,227,0.2);
+    animation: float 5.5s ease-in-out infinite 0.5s;
+  }
+  .planet-5 {
+    width: 35px; height: 35px; bottom: 25%; right: 10%;
+    background: linear-gradient(135deg, var(--pink), #E88AA0);
+    box-shadow: -3px 3px 0 -1px rgba(200, 130, 150, 0.5), 0 0 18px rgba(255,158,181,0.2);
+    animation: float 6.5s ease-in-out infinite 3s;
+  }
+  .planet-6 {
+    width: 25px; height: 25px; top: 55%; right: 18%;
+    background: linear-gradient(135deg, var(--cream), #E8DCC8);
+    box-shadow: -2px 2px 0 -1px rgba(200, 190, 170, 0.5), 0 0 15px rgba(255,248,231,0.15);
+    animation: float 4.5s ease-in-out infinite 1.5s;
+  }
+
+  /* 漂浮积木块 */
+  .floating-brick {
+    position: absolute; border-radius: 3px;
+    opacity: 0.5;
+    animation: brick-drift linear infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  @keyframes brick-drift {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.5; }
+    90% { opacity: 0.5; }
+    100% { transform: translateY(-80px) rotate(45deg); opacity: 0; }
+  }
+
+  .hero-title {
+    font-size: 42px; font-weight: 900;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--cream));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .hero-subtitle {
+    font-size: 16px; color: var(--text-dim);
+    letter-spacing: 8px; text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+  .hero-desc {
+    max-width: 480px; text-align: center;
+    font-size: 15px; line-height: 1.8; color: var(--text-dim);
+    font-weight: 300;
+  }
+  .hero-desc strong { color: var(--gold); font-weight: 500; }
+
+  /* ===== CONCEPT B: 极简像素风 ===== */
+  .hero-b {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 80px 24px 40px;
+    position: relative;
+    background: linear-gradient(180deg, #0D1117 0%, #161B22 50%, #0D1117 100%);
+  }
+  .pixel-grid {
+    position: relative; width: 400px; height: 400px;
+    margin-bottom: 48px;
+  }
+  .pixel-planet {
+    position: absolute; border-radius: 50%;
+    image-rendering: pixelated;
+  }
+  .pixel-main {
+    width: 180px; height: 180px;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background:
+      radial-gradient(circle at 40% 35%, rgba(255,255,255,0.15), transparent 50%),
+      linear-gradient(135deg, #2D1B00 0%, var(--gold) 30%, #C67820 70%, #8B5A00 100%);
+    box-shadow: 0 0 0 4px rgba(245,166,35,0.3), 0 0 0 8px rgba(245,166,35,0.1), 0 0 40px rgba(245,166,35,0.2);
+    animation: pixel-glow 4s ease-in-out infinite;
+  }
+  .pixel-main::before {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background-image:
+      radial-gradient(2px 2px at 25% 25%, rgba(255,255,255,0.2), transparent),
+      radial-gradient(2px 2px at 50% 15%, rgba(255,255,255,0.15), transparent),
+      radial-gradient(2px 2px at 75% 30%, rgba(255,255,255,0.2), transparent),
+      radial-gradient(2px 2px at 20% 50%, rgba(255,255,255,0.15), transparent),
+      radial-gradient(2px 2px at 45% 45%, rgba(255,255,255,0.25), transparent),
+      radial-gradient(2px 2px at 70% 55%, rgba(255,255,255,0.15), transparent),
+      radial-gradient(2px 2px at 35% 70%, rgba(255,255,255,0.2), transparent),
+      radial-gradient(2px 2px at 60% 75%, rgba(255,255,255,0.15), transparent),
+      radial-gradient(2px 2px at 80% 70%, rgba(255,255,255,0.2), transparent);
+    background-size: 20px 20px;
+  }
+  @keyframes pixel-glow {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(245,166,35,0.3), 0 0 0 8px rgba(245,166,35,0.1), 0 0 40px rgba(245,166,35,0.2); }
+    50% { box-shadow: 0 0 0 4px rgba(245,166,35,0.5), 0 0 0 12px rgba(245,166,35,0.2), 0 0 60px rgba(245,166,35,0.35); }
+  }
+
+  .pixel-2 {
+    width: 70px; height: 70px; top: 5%; right: 8%;
+    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.2), transparent 50%),
+      linear-gradient(135deg, #1a1a2e, var(--coral), #B03030);
+    box-shadow: 0 0 0 3px rgba(255,107,107,0.2), 0 0 20px rgba(255,107,107,0.15);
+    animation: float 5s ease-in-out infinite 1s;
+  }
+  .pixel-3 {
+    width: 55px; height: 55px; bottom: 12%; left: 5%;
+    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.2), transparent 50%),
+      linear-gradient(135deg, #0a2e2e, var(--mint), #20806A);
+    box-shadow: 0 0 0 3px rgba(78,205,196,0.2), 0 0 20px rgba(78,205,196,0.15);
+    animation: float 6s ease-in-out infinite 2s;
+  }
+  .pixel-4 {
+    width: 40px; height: 40px; top: 20%; left: 12%;
+    background: linear-gradient(135deg, #0a1a3a, var(--blue), #3A5F9A);
+    box-shadow: 0 0 0 2px rgba(108,156,227,0.2), 0 0 15px rgba(108,156,227,0.1);
+    animation: float 4s ease-in-out infinite 0.5s;
+  }
+  .pixel-5 {
+    width: 30px; height: 30px; bottom: 30%; right: 5%;
+    background: linear-gradient(135deg, #2a0a1a, var(--pink), #B06880);
+    box-shadow: 0 0 0 2px rgba(255,158,181,0.2), 0 0 12px rgba(255,158,181,0.1);
+    animation: float 5.5s ease-in-out infinite 3s;
+  }
+
+  /* 像素点阵连线 */
+  .pixel-lines {
+    position: absolute; inset: 0;
+    opacity: 0.15;
+  }
+  .pixel-dot {
+    position: absolute; width: 3px; height: 3px;
+    background: var(--gold); border-radius: 50%;
+  }
+
+  .style-b-title {
+    font-size: 42px; font-weight: 900;
+    letter-spacing: 4px;
+    color: var(--cream);
+    margin-bottom: 16px; text-align: center;
+  }
+  .style-b-tag {
+    display: inline-block; padding: 4px 16px; border-radius: 4px;
+    background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.3);
+    color: var(--gold); font-size: 12px; letter-spacing: 4px;
+    margin-bottom: 40px;
+  }
+  .style-b-desc {
+    max-width: 500px; text-align: center;
+    font-size: 15px; line-height: 1.8; color: var(--text-dim);
+    font-weight: 300;
+  }
+
+  /* ===== CONCEPT C: 渐变玻璃积木 ===== */
+  .hero-c {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 80px 24px 40px;
+    position: relative;
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  }
+  .glass-universe {
+    position: relative; width: 420px; height: 420px;
+    margin-bottom: 48px;
+  }
+  .glass-planet {
+    position: absolute; border-radius: 50%;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .glass-main {
+    width: 200px; height: 200px;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, rgba(245,166,35,0.4), rgba(245,166,35,0.1));
+    box-shadow:
+      0 8px 32px rgba(245,166,35,0.2),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+    animation: float 6s ease-in-out infinite;
+  }
+  .glass-main::before {
+    content: ''; position: absolute; inset: 12%; border-radius: 50%;
+    background-image:
+      linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .glass-main::after {
+    content: ''; position: absolute; top: 12%; left: 18%;
+    width: 30%; height: 20%; border-radius: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.15), transparent);
+    transform: rotate(-30deg);
+  }
+
+  .glass-2 {
+    width: 90px; height: 90px; top: 5%; right: 5%;
+    background: linear-gradient(135deg, rgba(255,107,107,0.35), rgba(255,107,107,0.1));
+    box-shadow: 0 4px 20px rgba(255,107,107,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+    animation: float 5s ease-in-out infinite 1s;
+  }
+  .glass-2::before {
+    content: ''; position: absolute; inset: 15%; border-radius: 50%;
+    background-image:
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(0deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 14px 14px;
+  }
+  .glass-3 {
+    width: 65px; height: 65px; bottom: 18%; left: 3%;
+    background: linear-gradient(135deg, rgba(78,205,196,0.35), rgba(78,205,196,0.1));
+    box-shadow: 0 4px 20px rgba(78,205,196,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+    animation: float 7s ease-in-out infinite 2s;
+  }
+  .glass-4 {
+    width: 45px; height: 45px; top: 22%; left: 10%;
+    background: linear-gradient(135deg, rgba(108,156,227,0.35), rgba(108,156,227,0.1));
+    box-shadow: 0 3px 15px rgba(108,156,227,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+    animation: float 4.5s ease-in-out infinite 0.5s;
+  }
+  .glass-5 {
+    width: 35px; height: 35px; bottom: 28%; right: 8%;
+    background: linear-gradient(135deg, rgba(255,158,181,0.35), rgba(255,158,181,0.1));
+    box-shadow: 0 3px 12px rgba(255,158,181,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+    animation: float 5.5s ease-in-out infinite 3s;
+  }
+  .glass-6 {
+    width: 28px; height: 28px; top: 60%; left: 22%;
+    background: linear-gradient(135deg, rgba(255,248,231,0.3), rgba(255,248,231,0.05));
+    box-shadow: 0 2px 10px rgba(255,248,231,0.1);
+    animation: float 6s ease-in-out infinite 1.5s;
+  }
+
+  /* 玻璃积木碎片 */
+  .glass-shard {
+    position: absolute; border-radius: 3px;
+    background: linear-gradient(135deg, rgba(245,166,35,0.15), rgba(245,166,35,0.05));
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(4px);
+    animation: shard-float linear infinite;
+  }
+  @keyframes shard-float {
+    0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 0; }
+    20% { opacity: 0.6; }
+    80% { opacity: 0.4; }
+    100% { transform: translateY(-100px) rotate(30deg) scale(0.5); opacity: 0; }
+  }
+
+  .style-c-title {
+    font-size: 42px; font-weight: 900;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 16px; text-align: center;
+  }
+  .style-c-tag {
+    display: inline-block; padding: 4px 16px; border-radius: 20px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.6); font-size: 12px; letter-spacing: 4px;
+    margin-bottom: 40px;
+  }
+  .style-c-desc {
+    max-width: 500px; text-align: center;
+    font-size: 15px; line-height: 1.8; color: rgba(255,255,255,0.5);
+    font-weight: 300;
+  }
+
+  /* ===== 底部说明 ===== */
+  .comparison {
+    padding: 60px 24px;
+    max-width: 800px; margin: 0 auto;
+  }
+  .comparison h3 {
+    font-size: 14px; color: var(--gold); letter-spacing: 4px;
+    text-align: center; margin-bottom: 40px;
+    font-weight: 400;
+  }
+  .compare-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+  }
+  .compare-card {
+    padding: 24px; border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    text-align: center;
+  }
+  .compare-card h4 {
+    font-size: 13px; color: var(--gold); margin-bottom: 8px;
+    letter-spacing: 2px; font-weight: 500;
+  }
+  .compare-card p {
+    font-size: 12px; color: var(--text-dim); line-height: 1.6;
+  }
+  .compare-vs {
+    text-align: center; color: var(--text-dim);
+    font-size: 24px; font-weight: 300; margin: 32px 0;
+    letter-spacing: 8px;
+  }
+  .compare-diff {
+    display: flex; gap: 32px; justify-content: center;
+    flex-wrap: wrap;
+  }
+  .diff-item {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--text-dim);
+  }
+  .diff-icon {
+    width: 8px; height: 8px; border-radius: 2px;
+  }
+  .diff-icon.gold { background: var(--gold); }
+  .diff-icon.coral { background: var(--coral); }
+  .diff-icon.mint { background: var(--mint); }
+
+  /* ===== Mobile ===== */
+  @media (max-width: 600px) {
+    .brick-planets, .pixel-grid, .glass-universe {
+      width: 280px; height: 280px;
+    }
+    .planet-main, .glass-main { width: 140px; height: 140px; }
+    .planet-2, .glass-2 { width: 60px; height: 60px; }
+    .planet-3, .glass-3 { width: 45px; height: 45px; }
+    .pixel-main { width: 130px; height: 130px; }
+    .pixel-2 { width: 50px; height: 50px; }
+    .pixel-3 { width: 40px; height: 40px; }
+    .hero-title, .style-b-title, .style-c-title { font-size: 28px; }
+    .hero-subtitle { font-size: 12px; letter-spacing: 4px; }
+    .compare-grid { grid-template-columns: 1fr; }
+    .nav { padding: 12px 16px; }
+    .nav-tab { padding: 4px 10px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">TOPOO</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('a')">几何积木</button>
+    <button class="nav-tab" onclick="showPage('b')">极简像素</button>
+    <button class="nav-tab" onclick="showPage('c')">玻璃积木</button>
+  </div>
+</nav>
+
+<!-- ===== CONCEPT A: 几何积木感 ===== -->
+<div class="concept-page active" id="page-a">
+  <div class="hero-a">
+    <div class="brick-planets">
+      <div class="brick-planet planet-main">
+        <div class="brick-grid"></div>
+        <div class="stud" style="width:12px;height:12px;top:22%;left:30%"></div>
+        <div class="stud" style="width:14px;height:14px;top:35%;left:55%"></div>
+        <div class="stud" style="width:10px;height:10px;top:58%;left:28%"></div>
+        <div class="stud" style="width:11px;height:11px;top:50%;left:60%"></div>
+        <div class="stud" style="width:9px;height:9px;top:72%;left:45%"></div>
+      </div>
+      <div class="brick-planet planet-2"><div class="brick-grid"></div></div>
+      <div class="brick-planet planet-3"><div class="brick-grid"></div></div>
+      <div class="brick-planet planet-4"></div>
+      <div class="brick-planet planet-5"></div>
+      <div class="brick-planet planet-6"></div>
+
+      <!-- 漂浮积木碎片 -->
+      <div class="floating-brick" style="width:14px;height:8px;background:var(--gold);top:40%;left:5%;animation-duration:8s"></div>
+      <div class="floating-brick" style="width:10px;height:10px;background:var(--coral);top:65%;right:8%;animation-duration:6s;animation-delay:2s"></div>
+      <div class="floating-brick" style="width:12px;height:6px;background:var(--mint);bottom:40%;left:20%;animation-duration:7s;animation-delay:1s"></div>
+      <div class="floating-brick" style="width:8px;height:8px;background:var(--blue);top:30%;right:25%;animation-duration:9s;animation-delay:3s"></div>
+      <div class="floating-brick" style="width:10px;height:5px;background:var(--cream);top:70%;left:35%;animation-duration:5s;animation-delay:4s"></div>
+    </div>
+
+    <h1 class="hero-title">拓圈宇宙</h1>
+    <p class="hero-subtitle">B R I C K &nbsp; U N I V E R S E</p>
+    <p class="hero-desc">
+      每颗星球都是<strong>一块一块搭建</strong>出来的<br>
+      不是命中注定的相遇<br>
+      是你亲手拼上去的每一块积木<br>
+      <br>
+      <span style="color:var(--gold);opacity:0.6">— 积木方块 + 暖色立体 + 手工感 —</span>
+    </p>
+  </div>
+
+  <div class="comparison">
+    <h3>与 SOUL 的核心差异</h3>
+    <div class="compare-vs">SOUL &nbsp; vs &nbsp; 拓圈</div>
+    <div class="compare-diff">
+      <div class="diff-item"><div class="diff-icon coral"></div>梦幻渐变 → 几何立体</div>
+      <div class="diff-item"><div class="diff-icon gold"></div>冷紫蓝 → 暖金珊瑚</div>
+      <div class="diff-item"><div class="diff-icon mint"></div>光滑球体 → 积木纹理</div>
+      <div class="diff-item"><div class="diff-icon gold"></div>灵魂匹配 → 亲手搭建</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONCEPT B: 极简像素风 ===== -->
+<div class="concept-page" id="page-b">
+  <div class="hero-b">
+    <div class="pixel-grid">
+      <div class="pixel-planet pixel-main"></div>
+      <div class="pixel-planet pixel-2"></div>
+      <div class="pixel-planet pixel-3"></div>
+      <div class="pixel-planet pixel-4"></div>
+      <div class="pixel-planet pixel-5"></div>
+
+      <div class="pixel-lines">
+        <div class="pixel-dot" style="top:25%;left:35%"></div>
+        <div class="pixel-dot" style="top:38%;left:52%"></div>
+        <div class="pixel-dot" style="top:55%;left:40%"></div>
+        <div class="pixel-dot" style="top:68%;left:60%"></div>
+        <div class="pixel-dot" style="top:15%;left:65%"></div>
+        <div class="pixel-dot" style="top:75%;left:30%"></div>
+        <div class="pixel-dot" style="top:45%;left:15%"></div>
+        <div class="pixel-dot" style="top:82%;left:72%"></div>
+      </div>
+    </div>
+
+    <h1 class="style-b-title">拓圈宇宙</h1>
+    <span class="style-b-tag">P I X E L &nbsp; S T Y L E</span>
+    <p class="style-b-desc">
+      极简、克制、像素级精确<br>
+      每一个"像素点"都是一个人的位置<br>
+      点阵连线 = 人与人的连接<br>
+      <br>
+      <span style="color:var(--gold);opacity:0.5">— 像素点阵 + 暗金配色 + 科技感 —</span>
+    </p>
+  </div>
+
+  <div class="comparison">
+    <h3>风格特点</h3>
+    <div class="compare-grid">
+      <div class="compare-card">
+        <h4>像素感</h4>
+        <p>圆形星球上的小点阵，暗示"积木颗粒"但不具象，远看是星球近看有细节</p>
+      </div>
+      <div class="compare-card">
+        <h4>暗金色</h4>
+        <p>深色背景+金色主调，沉稳大气，跟"搭建"的匠人气质匹配</p>
+      </div>
+      <div class="compare-card">
+        <h4>极简克制</h4>
+        <p>不花哨不梦幻，用最少的元素表达"搭建宇宙"的概念</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONCEPT C: 玻璃积木 ===== -->
+<div class="concept-page" id="page-c">
+  <div class="hero-c">
+    <div class="glass-universe">
+      <div class="glass-planet glass-main"></div>
+      <div class="glass-planet glass-2"></div>
+      <div class="glass-planet glass-3"></div>
+      <div class="glass-planet glass-4"></div>
+      <div class="glass-planet glass-5"></div>
+      <div class="glass-planet glass-6"></div>
+
+      <!-- 玻璃碎片 -->
+      <div class="glass-shard" style="width:16px;height:10px;top:42%;left:6%;animation-duration:7s"></div>
+      <div class="glass-shard" style="width:10px;height:10px;top:60%;right:12%;animation-duration:5s;animation-delay:1s"></div>
+      <div class="glass-shard" style="width:12px;height:7px;bottom:35%;left:25%;animation-duration:8s;animation-delay:3s"></div>
+      <div class="glass-shard" style="width:8px;height:8px;top:25%;right:30%;animation-duration:6s;animation-delay:2s"></div>
+    </div>
+
+    <h1 class="style-c-title">拓圈宇宙</h1>
+    <span class="style-c-tag">G L A S S &nbsp; B R I C K</span>
+    <p class="style-c-desc">
+      通透、轻盈、有呼吸感<br>
+      每颗星球是一块半透明的积木<br>
+      看得见内部的结构，也能感受到外面的光<br>
+      <br>
+      <span style="color:rgba(255,255,255,0.35)">— 毛玻璃 + 微网格 + 漂浮碎片 —</span>
+    </p>
+  </div>
+
+  <div class="comparison">
+    <h3>风格特点</h3>
+    <div class="compare-grid">
+      <div class="compare-card">
+        <h4>毛玻璃质感</h4>
+        <p>半透明的星球，积木网格若隐若现，高级感拉满</p>
+      </div>
+      <div class="compare-card">
+        <h4>梦幻但不Soul</h4>
+        <p>有梦幻感但底色是"搭建"——网格线和碎片都在暗示积木</p>
+      </div>
+      <div class="compare-card">
+        <h4>年轻潮流</h4>
+        <p>毛玻璃是iOS/潮流App最爱用的视觉语言，年轻人一眼就懂</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showPage(id) {
+  document.querySelectorAll('.concept-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// 给积木星球添加鼠标跟随微动
+document.addEventListener('mousemove', (e) => {
+  const x = (e.clientX / window.innerWidth - 0.5) * 2;
+  const y = (e.clientY / window.innerHeight - 0.5) * 2;
+  document.querySelectorAll('.brick-planet, .pixel-planet, .glass-planet').forEach(el => {
+    if (!el.classList.contains('planet-main') && !el.classList.contains('pixel-main') && !el.classList.contains('glass-main')) {
+      el.style.transform = `translate(${x * 5}px, ${y * 5}px)`;
+    }
+  });
+});
+</script>
+
+</body>
+</html>

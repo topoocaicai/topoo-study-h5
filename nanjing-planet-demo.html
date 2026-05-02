@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>南京星球 · 100创造者</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #07070c;
+  overflow: hidden;
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+}
+canvas { display: block; }
+
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 10;
+  pointer-events: none;
+}
+.top-bar .left h1 {
+  font-size: 15px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 4px;
+}
+.top-bar .left .sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  margin-top: 4px;
+  letter-spacing: 2px;
+}
+.top-bar .right {
+  text-align: right;
+}
+.top-bar .right .count {
+  font-size: 28px;
+  font-weight: 200;
+  color: #e8c547;
+  letter-spacing: 2px;
+}
+.top-bar .right .label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 2px;
+  margin-top: 2px;
+}
+
+.side-panel {
+  position: fixed;
+  top: 50%;
+  right: 28px;
+  transform: translateY(-50%);
+  z-index: 10;
+  pointer-events: none;
+}
+.side-panel .cat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.side-panel .cat .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.side-panel .cat .text {
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.side-panel .cat .num {
+  font-size: 10px;
+  color: rgba(255,255,255,0.25);
+  margin-left: 4px;
+}
+
+.tooltip {
+  position: fixed;
+  display: none;
+  background: rgba(15,15,25,0.9);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 10px 14px;
+  z-index: 20;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  min-width: 140px;
+}
+.tooltip .tt-cat {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.tooltip .tt-name {
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+}
+.tooltip .tt-desc {
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 3px;
+}
+.tooltip .tt-id {
+  font-size: 9px;
+  color: rgba(255,255,255,0.2);
+  margin-top: 4px;
+  font-family: monospace;
+}
+
+.hint {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255,255,255,0.15);
+  font-size: 10px;
+  letter-spacing: 2px;
+  z-index: 10;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<div class="top-bar">
+  <div class="left">
+    <h1>NANJING PLANET</h1>
+    <div class="sub">南京 · 原始星球 · 创造者网络</div>
+  </div>
+  <div class="right">
+    <div class="count" id="nodeCount">100</div>
+    <div class="label">CREATORS</div>
+  </div>
+</div>
+
+<div class="side-panel">
+  <div class="cat"><div class="dot" style="background:#e8c547;box-shadow:0 0 6px #e8c547"></div><div class="text">产品型</div><div class="num">22</div></div>
+  <div class="cat"><div class="dot" style="background:#ff7eb3;box-shadow:0 0 6px #ff7eb3"></div><div class="text">门店型</div><div class="num">18</div></div>
+  <div class="cat"><div class="dot" style="background:#7ec8e3;box-shadow:0 0 6px #7ec8e3"></div><div class="text">内容型</div><div class="num">20</div></div>
+  <div class="cat"><div class="dot" style="background:#a78bfa;box-shadow:0 0 6px #a78bfa"></div><div class="text">服务型</div><div class="num">16</div></div>
+  <div class="cat"><div class="dot" style="background:#6bffb8;box-shadow:0 0 6px #6bffb8"></div><div class="text">活动型</div><div class="num">14</div></div>
+  <div class="cat"><div class="dot" style="background:transparent;border:1px solid rgba(255,255,255,0.3)"></div><div class="text">Worker</div><div class="num">6</div></div>
+  <div class="cat"><div class="line" style="width:16px;height:0;border-top:1px solid rgba(255,255,255,0.15)"></div><div class="text">Linker</div><div class="num">4</div></div>
+</div>
+
+<div class="tooltip" id="tooltip">
+  <div class="tt-cat" id="ttCat"></div>
+  <div class="tt-name" id="ttName"></div>
+  <div class="tt-desc" id="ttDesc"></div>
+  <div class="tt-id" id="ttId"></div>
+</div>
+
+<div class="hint">拖动旋转 · 悬停查看创造者</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const tooltip = document.getElementById('tooltip');
+let W, H, time = 0;
+let mouse = { x: -9999, y: -9999, down: false, lx: 0, ly: 0 };
+let rotX = 0.3, rotY = 0, autoRotY = 0;
+let targetRotX = 0.3, targetRotY = 0;
+
+// Categories
+const CATS = {
+  product: { label: '产品型', color: '#e8c547', rgba: 'rgba(232,197,71,' },
+  store:   { label: '门店型', color: '#ff7eb3', rgba: 'rgba(255,126,179,' },
+  content: { label: '内容型', color: '#7ec8e3', rgba: 'rgba(126,200,227,' },
+  service: { label: '服务型', color: '#a78bfa', rgba: 'rgba(167,139,250,' },
+  event:   { label: '活动型', color: '#6bffb8', rgba: 'rgba(107,255,184,' },
+  worker:  { label: 'Worker', color: '#ffffff', rgba: 'rgba(255,255,255,' },
+  linker:  { label: 'Linker', color: '#ffffff', rgba: 'rgba(255,255,255,' }
+};
+
+// Fake creator names by category
+const NAMES = {
+  product: ['山间白茶','手作陶瓷','植物香氛','独立杂志','设计师首饰','精酿啤酒','手工皂坊','原木家具','古法红糖','文创文具','有机蜂蜜','花艺工作室','皮具手作','木雕艺术','天然护肤品','独立咖啡豆','手绘丝巾','竹编工艺','民族服饰','小型酒庄','陶艺工作室','艺术版画'],
+  store:   ['隐逸茶舍','日式咖啡','独立书店','手作甜品','古着集合店','黑胶唱片店','艺术画廊','精酿酒吧','花艺咖啡','手冲咖啡','独立影院','复古理发','瑜伽空间','陶瓷体验馆','香水工作室','烘焙工坊','茶道空间','设计买手店'],
+  content: ['城市探索','美食vlog','穿搭分享','摄影日记','播客主理人','音乐创作','插画师','旅行记录','知识博主','生活方式','读书频道','手工教程','宠物博主','建筑设计','街拍摄影','纪录片导演','脱口秀','漫画连载','舞蹈创作','书法达人'],
+  service: ['品牌设计','空间设计','活动策划','商业摄影','视频制作','新媒体运营','文案策划','法律咨询','财务顾问','翻译服务','投资分析','UX设计','SEO优化','社群运营','技术咨询','商业顾问'],
+  event:   ['城市市集','艺术展览','音乐现场','读书会','电影放映','户外露营','手工工坊','瑜伽派对','咖啡品鉴','设计沙龙','青年论坛','跑步俱乐部','艺术快闪','美食派对'],
+  worker:  ['品牌运营','创意执行','商业对接','数据策略','视觉设计','内容策划'],
+  linker:  ['渠道链接','资源链接','跨界链接','流量链接']
+};
+
+const DESCS = {
+  product: '实体产品 / 线上产品 · 投放爆品',
+  store: '线下门店 · 用流量引流到店消费',
+  content: '内容IP · 拍视频做号 · 内容即产品',
+  service: '专业技能 · 创意能力 · 技能变现',
+  event: '展览 / 市集 / 活动 · 拓圈帮招募推广',
+  worker: '碳基工作者 · 平台执行团队',
+  linker: '链接者 · 搭桥 / 推广 / 撮合'
+};
+
+// Build nodes
+const nodes = [];
+const edges = [];
+let idCounter = 1;
+
+function addNodes(cat, count) {
+  const names = NAMES[cat];
+  for (let i = 0; i < count; i++) {
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    const r = 200 * (0.94 + Math.random() * 0.06);
+    nodes.push({
+      id: String(idCounter++).padStart(3, '0'),
+      lx: r * Math.sin(phi) * Math.cos(theta),
+      ly: r * Math.sin(phi) * Math.sin(theta),
+      lz: r * Math.cos(phi),
+      cat,
+      name: names[i % names.length],
+      pulse: Math.random() * Math.PI * 2,
+      pulseSpeed: 0.006 + Math.random() * 0.012,
+      hoverGlow: 0
+    });
+  }
+}
+
+addNodes('product', 22);
+addNodes('store', 18);
+addNodes('content', 20);
+addNodes('service', 16);
+addNodes('event', 14);
+addNodes('worker', 6);
+addNodes('linker', 4);
+
+// Connect nearby nodes + cross-category links
+for (let i = 0; i < nodes.length; i++) {
+  for (let j = i + 1; j < nodes.length; j++) {
+    const a = nodes[i], b = nodes[j];
+    const dist = Math.sqrt((a.lx-b.lx)**2 + (a.ly-b.ly)**2 + (a.lz-b.lz)**2);
+    // Connect if close enough
+    if (dist < 95) {
+      edges.push({ a: i, b: j, dist });
+    }
+    // Linker nodes connect further (they link things!)
+    if ((a.cat === 'linker' || b.cat === 'linker') && dist < 160) {
+      edges.push({ a: i, b: j, dist, linker: true });
+    }
+  }
+}
+
+// Background stars
+const bgStars = Array.from({ length: 150 }, () => ({
+  x: Math.random(), y: Math.random(),
+  r: Math.random() * 0.8 + 0.3,
+  phase: Math.random() * Math.PI * 2
+}));
+
+function project(lx, ly, lz) {
+  // Rotate Y
+  let x = lx * Math.cos(rotY + autoRotY) - lz * Math.sin(rotY + autoRotY);
+  let z = lx * Math.sin(rotY + autoRotY) + lz * Math.cos(rotY + autoRotY);
+  let y = ly;
+  // Rotate X
+  let y2 = y * Math.cos(rotX) - z * Math.sin(rotX);
+  let z2 = y * Math.sin(rotX) + z * Math.cos(rotX);
+
+  return { x, y: y2, z: z2 };
+}
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+let hoveredNode = null;
+
+function animate() {
+  time++;
+  
+  // Smooth rotation
+  if (!mouse.down) {
+    autoRotY += 0.0008;
+  }
+  rotX += (targetRotX - rotX) * 0.08;
+  rotY += (targetRotY - rotY) * 0.08;
+
+  const cx = W * 0.45, cy = H * 0.5;
+
+  ctx.fillStyle = '#07070c';
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle ambient glow
+  const ag = ctx.createRadialGradient(cx, cy, 0, cx, cy, 320);
+  ag.addColorStop(0, 'rgba(232,197,71,0.015)');
+  ag.addColorStop(0.5, 'rgba(167,139,250,0.008)');
+  ag.addColorStop(1, 'transparent');
+  ctx.fillStyle = ag;
+  ctx.fillRect(0, 0, W, H);
+
+  // Stars
+  bgStars.forEach(s => {
+    s.phase += 0.003;
+    const a = 0.15 + Math.sin(s.phase) * 0.1;
+    ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+    ctx.beginPath();
+    ctx.arc(s.x * W, s.y * H, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Project nodes
+  const projected = nodes.map((n, i) => {
+    const p = project(n.lx, n.ly, n.lz);
+    const depth = (p.z + 200) / 400;
+    return {
+      sx: cx + p.x,
+      sy: cy + p.y,
+      z: p.z,
+      depth,
+      idx: i,
+      node: n
+    };
+  });
+
+  // Find hovered node
+  hoveredNode = null;
+  let minDist = 20;
+  projected.forEach(p => {
+    const dx = p.sx - mouse.x, dy = p.sy - mouse.y;
+    const d = Math.sqrt(dx*dx + dy*dy);
+    if (d < minDist && p.depth > 0.35) {
+      minDist = d;
+      hoveredNode = p;
+    }
+  });
+
+  // Draw edges
+  edges.forEach(e => {
+    const a = projected[e.a], b = projected[e.b];
+    const avgDepth = (a.depth + b.depth) / 2;
+    if (avgDepth < 0.2) return;
+
+    let alpha = avgDepth * 0.12;
+    let lw = 0.5;
+    if (e.linker) {
+      alpha = avgDepth * 0.08;
+      lw = 0.3;
+    }
+
+    // Highlight edges connected to hovered node
+    if (hoveredNode && (e.a === hoveredNode.idx || e.b === hoveredNode.idx)) {
+      alpha = avgDepth * 0.35;
+      lw = 1;
+    }
+
+    ctx.strokeStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+    ctx.lineWidth = lw;
+    ctx.beginPath();
+    ctx.moveTo(a.sx, a.sy);
+    ctx.lineTo(b.sx, b.sy);
+    ctx.stroke();
+  });
+
+  // Draw nodes (back to front)
+  projected.sort((a, b) => a.z - b.z);
+  projected.forEach(p => {
+    const n = p.node;
+    const catInfo = CATS[n.cat];
+    const isWorkerOrLinker = n.cat === 'worker' || n.cat === 'linker';
+
+    if (p.depth < 0.1) return;
+
+    n.pulse += n.pulseSpeed;
+    const pulseVal = Math.sin(n.pulse) * 0.15;
+    const baseAlpha = p.depth * 0.6 + 0.15;
+
+    // Hover
+    const isHovered = hoveredNode && hoveredNode.idx === p.idx;
+    const isNeighbor = hoveredNode && edges.some(e => 
+      (e.a === hoveredNode.idx && e.b === p.idx) || (e.b === hoveredNode.idx && e.a === p.idx)
+    );
+    const hoverBoost = isHovered ? 0.5 : (isNeighbor ? 0.2 : 0);
+
+    const alpha = Math.min(1, baseAlpha + pulseVal + hoverBoost);
+    const size = (isWorkerOrLinker ? 2 : 3.2) * (0.5 + p.depth * 0.5) + (isHovered ? 2 : 0);
+
+    // Glow
+    if (alpha > 0.3 || isHovered) {
+      const glowR = size * (isHovered ? 6 : 3);
+      const grad = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, glowR);
+      grad.addColorStop(0, catInfo.rgba + (alpha * (isHovered ? 0.4 : 0.2)).toFixed(3) + ')');
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.sx, p.sy, glowR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Dot
+    ctx.beginPath();
+    ctx.arc(p.sx, p.sy, size, 0, Math.PI * 2);
+    if (isWorkerOrLinker) {
+      ctx.strokeStyle = catInfo.rgba + alpha.toFixed(3) + ')';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+      ctx.fillStyle = catInfo.rgba + (alpha * 0.3).toFixed(3) + ')';
+      ctx.fill();
+    } else {
+      ctx.fillStyle = catInfo.rgba + alpha.toFixed(3) + ')';
+      ctx.fill();
+    }
+
+    // White core
+    if (alpha > 0.55) {
+      ctx.beginPath();
+      ctx.arc(p.sx, p.sy, size * 0.35, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${((alpha - 0.4) * 0.6).toFixed(3)})`;
+      ctx.fill();
+    }
+
+    // Show name on hover
+    if (isHovered && p.depth > 0.3) {
+      ctx.font = '12px -apple-system, "PingFang SC", sans-serif';
+      ctx.fillStyle = `rgba(255,255,255,0.85)`;
+      ctx.textAlign = 'center';
+      ctx.fillText(n.name, p.sx, p.sy - size - 10);
+      ctx.font = '9px -apple-system, "PingFang SC", sans-serif';
+      ctx.fillStyle = catInfo.color;
+      ctx.fillText(catInfo.label, p.sx, p.sy - size - 24);
+    }
+  });
+
+  // Tooltip
+  if (hoveredNode && hoveredNode.depth > 0.35) {
+    const n = hoveredNode.node;
+    const catInfo = CATS[n.cat];
+    document.getElementById('ttCat').textContent = catInfo.label;
+    document.getElementById('ttCat').style.color = catInfo.color;
+    document.getElementById('ttName').textContent = n.name;
+    document.getElementById('ttDesc').textContent = DESCS[n.cat];
+    document.getElementById('ttId').textContent = `#${n.id} · ${n.cat.toUpperCase()}`;
+    
+    tooltip.style.display = 'block';
+    tooltip.style.left = Math.min(hoveredNode.sx + 18, W - 170) + 'px';
+    tooltip.style.top = (hoveredNode.sy - 40) + 'px';
+  } else {
+    tooltip.style.display = 'none';
+  }
+
+  requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', resize);
+canvas.addEventListener('mousemove', e => {
+  if (mouse.down) {
+    const dx = e.clientX - mouse.lx;
+    const dy = e.clientY - mouse.ly;
+    targetRotY += dx * 0.005;
+    targetRotX += dy * 0.005;
+    targetRotX = Math.max(-1.2, Math.min(1.2, targetRotX));
+    mouse.lx = e.clientX;
+    mouse.ly = e.clientY;
+  }
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+canvas.addEventListener('mousedown', e => {
+  mouse.down = true;
+  mouse.lx = e.clientX;
+  mouse.ly = e.clientY;
+  canvas.style.cursor = 'grabbing';
+});
+canvas.addEventListener('mouseup', () => {
+  mouse.down = false;
+  canvas.style.cursor = 'default';
+});
+canvas.addEventListener('mouseleave', () => {
+  mouse.down = false;
+  mouse.x = -9999;
+  canvas.style.cursor = 'default';
+});
+
+// Touch support
+canvas.addEventListener('touchstart', e => {
+  mouse.down = true;
+  mouse.lx = e.touches[0].clientX;
+  mouse.ly = e.touches[0].clientY;
+  mouse.x = mouse.lx;
+  mouse.y = mouse.ly;
+}, { passive: true });
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  if (mouse.down) {
+    const dx = t.clientX - mouse.lx;
+    const dy = t.clientY - mouse.ly;
+    targetRotY += dx * 0.005;
+    targetRotX += dy * 0.005;
+    targetRotX = Math.max(-1.2, Math.min(1.2, targetRotX));
+    mouse.lx = t.clientX;
+    mouse.ly = t.clientY;
+  }
+  mouse.x = t.clientX;
+  mouse.y = t.clientY;
+}, { passive: false });
+canvas.addEventListener('touchend', () => { mouse.down = false; });
+
+resize();
+animate();
+</script>
+</body>
+</html>

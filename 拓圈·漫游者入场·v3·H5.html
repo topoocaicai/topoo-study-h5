@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TOPOO · 拓圈</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --sky-dark:#0B0F1E;--sky-mid:#151B33;--sky-nebula:#1a2040;
+  --amber:#E8B44C;--amber-glow:rgba(232,180,76,.3);
+  --rust:#D96B6B;--blue:#4A9EB8;--purple:#9B7BBF;--green:#A0B87A;
+  --amber-soft:rgba(232,180,76,.15);--amber-border:rgba(232,180,76,.35);
+  --text-primary:rgba(255,255,255,.9);
+  --text-secondary:rgba(255,255,255,.6);
+  --text-ghost:rgba(255,255,255,.25);
+}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;}
+body{
+  font-family:-apple-system,"PingFang SC","Noto Sans SC",sans-serif;
+  -webkit-font-smoothing:antialiased;color:#fff;
+  -webkit-user-select:none;user-select:none;
+}
+#app{width:100vw;height:100vh;position:relative;overflow:hidden;}
+
+/* ===== 星空背景 ===== */
+.starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite alternate;opacity:0;}
+@keyframes twinkle{0%{opacity:.1;transform:scale(.6)}100%{opacity:1;transform:scale(1.2)}}
+
+/* ===== 场景系统 ===== */
+.scene{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity 1.2s cubic-bezier(.23,1,.32,1);
+  z-index:1;
+}
+.scene.active{opacity:1;pointer-events:auto;}
+.scene.leaving{opacity:0;pointer-events:none;}
+
+/* ===== 进度条 ===== */
+.progress-bar{
+  position:fixed;bottom:0;left:0;width:100%;height:2px;z-index:100;
+  background:rgba(255,255,255,.05);
+}
+.progress-fill{
+  height:100%;width:0;
+  background:linear-gradient(90deg,var(--amber),var(--rust));
+  transition:width .8s ease;
+}
+
+/* ===== 通用按钮 ===== */
+.btn-next{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:14px 40px;border-radius:100px;
+  border:1px solid var(--amber-border);
+  color:var(--amber);font-size:13px;letter-spacing:2px;
+  cursor:pointer;transition:all .3s ease;
+  background:transparent;margin-top:36px;
+  opacity:0;transform:translateY(15px);
+  transition:opacity .6s ease,transform .6s ease,border-color .3s,background .3s;
+  pointer-events:none;
+}
+.btn-next.show{opacity:1;transform:translateY(0);pointer-events:auto;}
+.btn-next:active{background:rgba(232,180,76,.1);transform:scale(.97);}
+
+/* ===== 场景1：启动（一个呼吸光点） ===== */
+#scene-boot{z-index:10;background:#000;cursor:pointer;}
+.boot-dot{
+  width:12px;height:12px;border-radius:50%;background:var(--amber);
+  box-shadow:0 0 40px var(--amber-glow),0 0 80px rgba(232,180,76,.1);
+  opacity:0;animation:boot-pulse 2s ease infinite;
+}
+@keyframes boot-pulse{0%,100%{opacity:.2;transform:scale(.7)}50%{opacity:1;transform:scale(1.1)}}
+.boot-hint{
+  position:absolute;bottom:80px;
+  font-size:12px;color:var(--text-ghost);letter-spacing:3px;
+  animation:hint-fade 2.5s ease infinite alternate;
+}
+@keyframes hint-fade{0%{opacity:.15}100%{opacity:.4}}
+
+/* ===== 场景2：坠落 ===== */
+#scene-land{z-index:9;background:#000;overflow:hidden;}
+.land-point{
+  width:8px;height:8px;border-radius:50%;background:var(--amber);
+  position:absolute;top:15%;
+  box-shadow:0 0 20px var(--amber-glow);
+  opacity:0;transform:scale(.3);
+}
+.land-point.falling{
+  animation:fall .8s cubic-bezier(.23,1,.32,1) forwards;
+}
+@keyframes fall{
+  0%{opacity:.3;transform:scale(.3);top:15%;}
+  60%{opacity:1;transform:scale(1.5);}
+  100%{opacity:1;transform:scale(1);top:50%;}
+}
+.land-ripple{
+  position:absolute;width:4px;height:4px;border-radius:50%;
+  border:1px solid var(--amber);top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  opacity:0;
+}
+.land-ripple.spread{animation:ripple 1.5s ease-out forwards;}
+@keyframes ripple{
+  0%{width:4px;height:4px;opacity:.8;}
+  100%{width:300px;height:300px;opacity:0;}
+}
+.land-text{
+  position:absolute;bottom:28%;text-align:center;
+  font-size:15px;color:var(--text-secondary);letter-spacing:2px;
+  opacity:0;
+  animation:fadeUp 1.2s ease .8s forwards;
+}
+@keyframes fadeUp{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+.land-btn{
+  position:absolute;bottom:18%;
+  padding:12px 36px;border-radius:100px;
+  border:1px solid var(--amber-border);color:var(--amber);
+  font-size:12px;letter-spacing:3px;cursor:pointer;
+  background:transparent;
+  opacity:0;animation:fadeUp 1s ease 1.6s forwards;
+  transition:background .3s;
+}
+.land-btn:active{background:rgba(232,180,76,.1);}
+
+/* ===== 场景3：走路（核心创新） ===== */
+#scene-walk{z-index:8;background:var(--sky-dark);overflow:hidden;}
+.walk-canvas{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  z-index:1;
+}
+.walk-hint{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  text-align:center;z-index:5;
+  transition:opacity .8s ease;pointer-events:none;
+}
+.walk-hint-icon{
+  width:60px;height:60px;margin:0 auto 16px;
+  border:1px solid rgba(255,255,255,.15);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  animation:touch-bounce 2s ease infinite;
+}
+@keyframes touch-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.walk-hint-icon svg{width:24px;height:24px;opacity:.4;}
+.walk-hint-text{font-size:13px;color:var(--text-ghost);letter-spacing:2px;}
+.walk-counter{
+  position:fixed;top:24px;left:50%;transform:translateX(-50%);
+  z-index:50;
+  display:flex;align-items:center;gap:12px;
+  padding:8px 20px;border-radius:100px;
+  background:rgba(11,15,30,.7);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.06);
+  opacity:0;transition:opacity .5s;
+}
+.walk-counter.show{opacity:1;}
+.walk-counter-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--amber);
+  box-shadow:0 0 6px var(--amber-glow);
+  animation:dot-pulse 1.5s ease infinite;
+}
+@keyframes dot-pulse{0%,100%{opacity:.4}50%{opacity:1}}
+.walk-counter-text{
+  font-size:11px;color:var(--text-secondary);letter-spacing:1px;
+  font-family:'Courier New',monospace;
+}
+.walk-star-discovery{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.5);
+  z-index:60;pointer-events:none;opacity:0;
+  transition:all .6s cubic-bezier(.23,1,.32,1);
+}
+.walk-star-discovery.show{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto;}
+.walk-discovery-inner{
+  text-align:center;
+  padding:32px 28px;border-radius:16px;
+  background:rgba(11,15,30,.92);backdrop-filter:blur(16px);
+  border:1px solid rgba(232,180,76,.2);
+  box-shadow:0 0 60px rgba(232,180,76,.08);
+  max-width:320px;width:88vw;
+}
+.walk-discovery-close{
+  margin-top:20px;padding:10px 28px;border-radius:100px;
+  border:1px solid rgba(255,255,255,.1);color:var(--text-secondary);
+  font-size:12px;letter-spacing:1px;cursor:pointer;
+  background:transparent;transition:all .3s;
+}
+.walk-discovery-close:active{background:rgba(255,255,255,.05);}
+
+/* ===== 场景4：星系全景 ===== */
+#scene-galaxy{z-index:7;background:var(--sky-dark);overflow:hidden;}
+.galaxy-container{
+  position:relative;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+}
+.galaxy-hint{
+  position:absolute;bottom:12%;text-align:center;
+  opacity:0;animation:fadeUp 1s ease 1.5s forwards;
+}
+.galaxy-hint-main{font-size:14px;color:var(--text-secondary);letter-spacing:2px;}
+.galaxy-hint-sub{font-size:11px;color:var(--text-ghost);margin-top:8px;letter-spacing:1px;}
+.galaxy-planet{
+  position:absolute;border-radius:50%;
+  cursor:pointer;transition:all .4s cubic-bezier(.23,1,.32,1);
+  opacity:0;
+}
+.galaxy-planet.show{opacity:1;}
+.galaxy-planet:active{transform:scale(1.15);}
+.galaxy-planet-label{
+  position:absolute;bottom:-24px;left:50%;transform:translateX(-50%);
+  font-size:10px;color:var(--text-ghost);letter-spacing:1px;
+  white-space:nowrap;
+  opacity:0;transition:opacity .3s;
+}
+.galaxy-planet:hover .galaxy-planet-label,
+.galaxy-planet:active .galaxy-planet-label{opacity:1;}
+.galaxy-main{
+  width:120px;height:120px;
+  background:radial-gradient(circle at 35% 35%,#2a3560,#0B0F1E 70%);
+  border:1px solid rgba(232,180,76,.15);
+  box-shadow:0 0 60px rgba(232,180,76,.1),0 0 120px rgba(74,158,184,.05),
+    inset 0 0 30px rgba(232,180,76,.05);
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  animation:planet-float 6s ease-in-out infinite;
+}
+@keyframes planet-float{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-6px)}}
+.galaxy-main::after{
+  content:'';position:absolute;top:15%;left:20%;width:25%;height:20%;
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(232,180,76,.12),transparent);
+}
+.galaxy-ring{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:220px;height:50px;border-radius:50%;
+  border:1px solid rgba(232,180,76,.08);
+  animation:ring-rotate 20s linear infinite;
+}
+@keyframes ring-rotate{0%{transform:translate(-50%,-50%) rotateX(75deg) rotateZ(0deg)}100%{transform:translate(-50%,-50%) rotateX(75deg) rotateZ(360deg)}}
+
+/* ===== 场景5：选方向 ===== */
+#scene-choose{z-index:6;background:var(--sky-dark);}
+.choose-container{
+  text-align:center;padding:0 20px;max-width:400px;width:100%;
+  max-height:100vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding-top:48px;padding-bottom:100px;
+}
+.choose-title{
+  font-size:17px;font-weight:600;color:var(--text-primary);
+  letter-spacing:1px;margin-bottom:8px;
+}
+.choose-sub{
+  font-size:12px;color:var(--text-ghost);margin-bottom:32px;
+  letter-spacing:1px;
+}
+.choose-options{display:flex;flex-direction:column;gap:12px;width:100%;}
+.choose-card{
+  display:flex;align-items:center;gap:16px;
+  padding:18px 20px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.06);
+  background:rgba(255,255,255,.02);
+  cursor:pointer;transition:all .3s ease;text-align:left;
+}
+.choose-card:active{
+  transform:scale(.97);
+  border-color:var(--amber);
+  background:rgba(232,180,76,.06);
+}
+.choose-card.selected{
+  border-color:var(--amber);
+  background:rgba(232,180,76,.08);
+}
+.choose-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:20px;
+}
+.choose-text{font-size:14px;color:var(--text-primary);line-height:1.4;font-weight:500;}
+.choose-desc{font-size:11px;color:var(--text-ghost);margin-top:3px;line-height:1.5;}
+.choose-confirm{
+  margin-top:32px;padding:14px;border-radius:100px;
+  background:linear-gradient(135deg,var(--amber),var(--rust));
+  color:#fff;font-size:14px;letter-spacing:2px;
+  cursor:pointer;border:none;transition:all .3s;
+  opacity:.4;pointer-events:none;font-weight:500;
+}
+.choose-confirm.show{opacity:1;pointer-events:auto;}
+.choose-confirm:active{transform:scale(.97);opacity:.85;}
+
+/* ===== 场景6：身份卡 ===== */
+#scene-card{z-index:5;background:var(--sky-dark);}
+.card-wrapper{
+  perspective:800px;width:280px;height:420px;
+  cursor:pointer;
+}
+.id-card{
+  width:280px;height:420px;position:relative;
+  background:linear-gradient(160deg,#0d1225 0%,#151B33 40%,#1a2340 100%);
+  border-radius:16px;border:1px solid rgba(232,180,76,.25);
+  box-shadow:0 0 60px rgba(232,180,76,.08),0 20px 60px rgba(0,0,0,.5);
+  overflow:hidden;
+  transform:scale(.7) rotateY(15deg);opacity:0;
+  transition:all 1.2s cubic-bezier(.23,1,.32,1);
+}
+.id-card.reveal{
+  transform:scale(1) rotateY(0deg);opacity:1;
+}
+.card-stars{position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;border-radius:16px;}
+.card-stars .mini-star{
+  position:absolute;border-radius:50%;background:#fff;
+  animation:twinkle var(--d,2s) ease-in-out infinite alternate;
+}
+.card-inner{position:relative;z-index:2;padding:28px 24px;height:100%;display:flex;flex-direction:column;}
+.card-logo{display:flex;align-items:center;gap:8px;margin-bottom:auto;}
+.card-logo img{width:28px;height:28px;}
+.card-logo-text{
+  font-family:Georgia,serif;letter-spacing:3px;font-size:11px;
+  color:var(--amber);text-transform:uppercase;
+}
+.card-center{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.card-role-label{
+  font-size:11px;letter-spacing:4px;color:rgba(255,255,255,.4);
+  text-transform:uppercase;margin-bottom:12px;
+}
+.card-infinity{
+  font-size:48px;color:var(--amber);margin-bottom:16px;
+  opacity:.7;filter:drop-shadow(0 0 12px rgba(232,180,76,.3));
+}
+.card-number{
+  font-family:Georgia,serif;font-size:32px;font-weight:400;
+  letter-spacing:2px;color:#fff;margin-bottom:8px;
+}
+.card-number-label{font-size:12px;color:rgba(255,255,255,.35);letter-spacing:1px;}
+.card-bottom{
+  text-align:center;padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+.card-bottom-text{
+  font-size:10px;color:rgba(255,255,255,.3);letter-spacing:2px;
+}
+.card-date{font-size:9px;color:rgba(255,255,255,.2);margin-top:4px;font-family:Georgia,serif;}
+.card-actions{
+  position:absolute;bottom:-60px;left:0;right:0;
+  display:flex;justify-content:center;gap:16px;
+  opacity:0;transition:opacity .6s ease;transition-delay:1s;
+}
+.card-actions.show{opacity:1;}
+.card-action-btn{
+  padding:12px 24px;border-radius:100px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.03);
+  color:var(--text-secondary);font-size:12px;
+  cursor:pointer;transition:all .3s;letter-spacing:1px;
+}
+.card-action-btn.primary{
+  border-color:var(--amber-border);color:var(--amber);
+}
+.card-action-btn:active{background:rgba(232,180,76,.08);}
+
+/* ===== 场景7：欢迎 ===== */
+#scene-welcome{z-index:4;background:var(--sky-dark);}
+.welcome-container{
+  text-align:center;padding:0 32px;max-width:380px;
+}
+.welcome-infinity{
+  font-size:56px;color:var(--amber);margin-bottom:24px;
+  filter:drop-shadow(0 0 20px rgba(232,180,76,.3));
+  animation:glow-breathe 2s ease infinite alternate;
+}
+@keyframes glow-breathe{
+  0%{filter:drop-shadow(0 0 20px rgba(232,180,76,.2));transform:scale(1);}
+  100%{filter:drop-shadow(0 0 30px rgba(232,180,76,.4));transform:scale(1.05);}
+}
+.welcome-line{
+  font-size:15px;color:var(--text-secondary);line-height:2;
+  opacity:0;transform:translateY(10px);
+  transition:all .5s ease;
+}
+.welcome-line.show{opacity:1;transform:translateY(0);}
+.welcome-line.highlight{color:var(--amber);font-size:17px;}
+
+/* ===== 碎片故事卡片 ===== */
+.fragment-card{
+  padding:24px 20px;border-radius:14px;
+  background:rgba(11,15,30,.92);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.06);
+  max-width:300px;width:85vw;
+}
+.fragment-color-bar{
+  width:40px;height:3px;border-radius:2px;margin-bottom:16px;
+}
+.fragment-tag{
+  font-size:10px;letter-spacing:2px;color:var(--text-ghost);
+  margin-bottom:8px;
+}
+.fragment-title{
+  font-size:16px;color:var(--text-primary);line-height:1.5;
+  margin-bottom:10px;font-weight:500;
+}
+.fragment-body{
+  font-size:13px;color:var(--text-secondary);line-height:1.8;
+}
+.fragment-img-placeholder{
+  width:100%;height:140px;border-radius:10px;
+  margin-top:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:var(--text-ghost);letter-spacing:1px;
+}
+
+/* ===== 闪光效果 ===== */
+.flash{
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:50;
+  background:radial-gradient(circle,rgba(232,180,76,.15),transparent 70%);
+  opacity:0;pointer-events:none;
+  animation:flash-in .8s ease forwards;
+}
+@keyframes flash-in{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+
+/* ===== 场景底部提示 ===== */
+.scene-footer{
+  position:absolute;bottom:60px;left:0;right:0;
+  display:flex;justify-content:center;z-index:10;
+}
+.hint{
+  font-size:11px;color:var(--text-ghost);letter-spacing:1px;margin-top:16px;
+  animation:hint-fade 2s ease infinite alternate;
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="starfield" id="starfield"></div>
+
+  <!-- ===== 场景1：启动 ===== -->
+  <div class="scene active" id="scene-boot" onclick="startFall()">
+    <div class="boot-dot" id="boot-dot"></div>
+    <div class="boot-hint">轻触，降落</div>
+  </div>
+
+  <!-- ===== 场景2：坠落着陆 ===== -->
+  <div class="scene" id="scene-land">
+    <div class="land-point" id="land-point"></div>
+    <div class="land-ripple" id="land-ripple"></div>
+    <div class="land-text">你降落在了这里。</div>
+    <div class="land-btn" onclick="startWalk()">试着走走看 →</div>
+  </div>
+
+  <!-- ===== 场景3：走路 ===== -->
+  <div class="scene" id="scene-walk">
+    <canvas class="walk-canvas" id="walk-canvas"></canvas>
+    <div class="walk-hint" id="walk-hint">
+      <div class="walk-hint-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.5">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </div>
+      <div class="walk-hint-text">用手指划动，开始探索</div>
+    </div>
+    <div class="walk-counter" id="walk-counter">
+      <div class="walk-counter-dot"></div>
+      <div class="walk-counter-text" id="walk-counter-text">0 步</div>
+    </div>
+    <div class="walk-star-discovery" id="walk-discovery">
+      <div class="walk-discovery-inner" id="walk-discovery-inner"></div>
+    </div>
+  </div>
+
+  <!-- ===== 场景4：星系全景 ===== -->
+  <div class="scene" id="scene-galaxy">
+    <div class="galaxy-container" id="galaxy-container">
+      <!-- 主星球 -->
+      <div class="galaxy-planet galaxy-main" id="galaxy-main" onclick="galaxyClick('main')">
+        <div class="galaxy-planet-label">TOPOO</div>
+      </div>
+      <div class="galaxy-ring"></div>
+      <!-- 小星球由JS生成 -->
+    </div>
+    <div class="galaxy-hint" id="galaxy-hint">
+      <div class="galaxy-hint-main">这些星球，住着和你一样的人。</div>
+      <div class="galaxy-hint-sub">点击任意星球，了解它的故事</div>
+    </div>
+    <div class="scene-footer">
+      <div class="btn-next" id="btn-galaxy" onclick="goChoose()">
+        <span>我想成为这里的一员</span>
+        <span>→</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 场景5：选方向 ===== -->
+  <div class="scene" id="scene-choose">
+    <div class="choose-container" id="choose-container"></div>
+  </div>
+
+  <!-- ===== 场景6：身份卡 ===== -->
+  <div class="scene" id="scene-card">
+    <div class="card-wrapper">
+      <div class="id-card" id="id-card">
+        <div class="card-stars" id="card-stars"></div>
+        <div class="card-inner">
+          <div class="card-logo">
+            <img src="file:///C:/Users/Administrator/Desktop/拓圈角色/拓圈logo.png" alt="TOPOO">
+            <span class="card-logo-text">TOPOO</span>
+          </div>
+          <div class="card-center">
+            <div class="card-role-label" id="card-role-label">WANDERER</div>
+            <div class="card-infinity">∞</div>
+            <div class="card-number" id="card-number">000000</div>
+            <div class="card-number-label">你的星球编号</div>
+          </div>
+          <div class="card-bottom">
+            <div class="card-bottom-text">让小而美被世界看见</div>
+            <div class="card-date" id="card-date"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-actions" id="card-actions">
+        <button class="card-action-btn primary" onclick="saveCard()">保存身份卡</button>
+        <button class="card-action-btn" onclick="shareCard()">分享给朋友</button>
+      </div>
+    </div>
+    <div class="hint" style="position:absolute;bottom:40px;">长按身份卡可保存图片</div>
+  </div>
+
+  <!-- ===== 场景7：欢迎 ===== -->
+  <div class="scene" id="scene-welcome">
+    <div class="welcome-container" id="welcome-container"></div>
+  </div>
+
+  <!-- 进度条 -->
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+
+<script>
+/* ========================================
+   全局状态
+======================================== */
+const state = {
+  currentScene: 'boot',
+  steps: 0,           // 走路步数
+  fragmentsFound: 0,  // 发现碎片数
+  fragments: [],      // 碎片数据
+  selectedRole: null,
+  walkerNumber: 0,
+  isWalking: false,
+  walkStarted: false,
+  discoveries: [],    // 已发现索引
+};
+
+/* ========================================
+   星空背景生成
+======================================== */
+function createStarfield(){
+  const el = document.getElementById('starfield');
+  const count = 80;
+  for(let i=0;i<count;i++){
+    const s = document.createElement('div');
+    s.className='star';
+    s.style.cssText=`
+      left:${Math.random()*100}%;top:${Math.random()*100}%;
+      width:${1+Math.random()*2}px;height:${1+Math.random()*2}px;
+      --d:${2+Math.random()*4}s;
+      animation-delay:${Math.random()*3}s;
+    `;
+    el.appendChild(s);
+  }
+}
+createStarfield();
+
+/* ========================================
+   碎片故事数据
+======================================== */
+state.fragments = [
+  {
+    tag: 'NO.001',
+    color: '#D96B6B', // 火/门店
+    title: '一家只开周三的咖啡店',
+    body: '老板说："不想每天营业，只想在想做的时候，把最好的给对的人。"来的人，都是朋友介绍的朋友。',
+    imgColor: 'linear-gradient(135deg,#2a1518,#1a1015)',
+  },
+  {
+    tag: 'NO.002',
+    color: '#4A9EB8', // 水/内容
+    title: '一条播放了3次的短视频',
+    body: '没有爆款，没有十万+。但那3个人里，有一个成为了她的第一个客户。"这就够了。"',
+    imgColor: 'linear-gradient(135deg,#121a25,#0d1520)',
+  },
+  {
+    tag: 'NO.003',
+    color: '#A0B87A', // 木/产品
+    title: '从厨房走出来的手工皂',
+    body: '本来只是送给邻居，后来邻居的同事开始问，同事的朋友开始买。"我没想过创业，是产品自己找到了路。"',
+    imgColor: 'linear-gradient(135deg,#151a12,#101510)',
+  },
+  {
+    tag: 'NO.004',
+    color: '#E8B44C', // 金/服务
+    title: '帮她改了一版PPT',
+    body: '收了200块。她拿去路演，拿到了天使轮。"这是我做过最值的设计。"',
+    imgColor: 'linear-gradient(135deg,#1a1810,#15120d)',
+  },
+  {
+    tag: 'NO.005',
+    color: '#9B7BBF', // 土/活动
+    title: '10个人的市集',
+    body: '没有大品牌，没有抽奖，没有喊麦。就是一群做东西的人，摆在路边，等人走过来。结束后，每个人都想办第二场。',
+    imgColor: 'linear-gradient(135deg,#16121a,#110e18)',
+  },
+  {
+    tag: 'NO.006',
+    color: '#D96B6B', // 火
+    title: '那个辞职开面包店的人',
+    body: '同事说他疯了。父母说他不稳定。他每天4点起床揉面。"累是真的累，但踏实也是真的踏实。"',
+    imgColor: 'linear-gradient(135deg,#201515,#181010)',
+  },
+];
+
+/* ========================================
+   场景切换
+======================================== */
+function switchScene(from, to, delay=0){
+  setTimeout(()=>{
+    const fromEl = document.getElementById('scene-'+from);
+    const toEl = document.getElementById('scene-'+to);
+    if(fromEl){
+      fromEl.classList.remove('active');
+      fromEl.classList.add('leaving');
+    }
+    setTimeout(()=>{
+      if(fromEl) fromEl.classList.remove('leaving');
+      if(toEl) toEl.classList.add('active');
+      state.currentScene = to;
+      updateProgress();
+    }, 400);
+  }, delay);
+}
+
+/* ========================================
+   进度条
+======================================== */
+const sceneOrder = ['boot','land','walk','galaxy','choose','card','welcome'];
+function updateProgress(){
+  const idx = sceneOrder.indexOf(state.currentScene);
+  const pct = ((idx+1)/sceneOrder.length)*100;
+  document.getElementById('progress-fill').style.width = pct+'%';
+}
+
+/* ========================================
+   场景1→2：启动 → 坠落着陆
+======================================== */
+function startFall(){
+  const boot = document.getElementById('scene-boot');
+  boot.style.pointerEvents='none';
+  const dot = document.getElementById('boot-dot');
+  dot.style.animation='none';
+  dot.style.opacity='1';
+  dot.style.transform='scale(.5)';
+  dot.style.transition='all 1s ease';
+  dot.style.transform='scale(1.5)';
+
+  setTimeout(()=>{switchScene('boot','land',0);}, 600);
+  setTimeout(()=>{
+    document.getElementById('land-point').classList.add('falling');
+  }, 1200);
+  setTimeout(()=>{
+    document.getElementById('land-ripple').classList.add('spread');
+    document.getElementById('land-ripple').style.marginLeft='-150px';
+    document.getElementById('land-ripple').style.marginTop='-150px';
+  }, 1800);
+}
+
+/* ========================================
+   场景2→3：着陆 → 走路
+======================================== */
+function startWalk(){
+  switchScene('land','walk');
+  setTimeout(()=>{initWalkScene();},800);
+}
+
+/* ========================================
+   场景3：走路（核心交互）
+======================================== */
+let walkCanvas, walkCtx;
+let walkTrails = [];
+let walkParticles = [];
+let walkAnimFrame;
+let walkPlanets = [];
+
+function initWalkScene(){
+  walkCanvas = document.getElementById('walk-canvas');
+  walkCtx = walkCanvas.getContext('2d');
+  resizeWalkCanvas();
+  window.addEventListener('resize', resizeWalkCanvas);
+
+  // 生成远景星球（CSS占位）
+  generateWalkPlanets();
+
+  // 触摸/鼠标事件
+  walkCanvas.addEventListener('touchstart', walkTouchStart, {passive:false});
+  walkCanvas.addEventListener('touchmove', walkTouchMove, {passive:false});
+  walkCanvas.addEventListener('touchend', walkTouchEnd);
+  walkCanvas.addEventListener('mousedown', walkMouseDown);
+  walkCanvas.addEventListener('mousemove', walkMouseMove);
+  walkCanvas.addEventListener('mouseup', walkMouseUp);
+
+  // 开始渲染循环
+  walkRenderLoop();
+}
+
+function resizeWalkCanvas(){
+  walkCanvas.width = window.innerWidth * 2; // retina
+  walkCanvas.height = window.innerHeight * 2;
+  walkCanvas.style.width = window.innerWidth + 'px';
+  walkCanvas.style.height = window.innerHeight + 'px';
+  walkCtx.scale(2,2);
+  generateWalkPlanets();
+}
+
+function generateWalkPlanets(){
+  walkPlanets = [];
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const colors = [
+    {bg:'rgba(232,180,76,.08)',border:'rgba(232,180,76,.12)',glow:'rgba(232,180,76,.04)',size:80},   // 金主星
+    {bg:'rgba(217,107,107,.06)',border:'rgba(217,107,107,.1)',glow:'rgba(217,107,107,.03)',size:50},  // 火
+    {bg:'rgba(74,158,184,.06)',border:'rgba(74,158,184,.1)',glow:'rgba(74,158,184,.03)',size:60},    // 水
+    {bg:'rgba(160,184,122,.06)',border:'rgba(160,184,122,.1)',glow:'rgba(160,184,122,.03)',size:45},  // 木
+    {bg:'rgba(155,123,191,.06)',border:'rgba(155,123,191,.1)',glow:'rgba(155,123,191,.03)',size:55},  // 紫
+  ];
+  for(let i=0;i<5;i++){
+    const c = colors[i];
+    walkPlanets.push({
+      x: 80 + Math.random()*(w-160),
+      y: 60 + Math.random()*(h-120),
+      size: c.size + Math.random()*20,
+      bg: c.bg,
+      border: c.border,
+      glow: c.glow,
+    });
+  }
+}
+
+let lastWalkX=0, lastWalkY=0, lastWalkTime=0;
+
+function walkTouchStart(e){
+  e.preventDefault();
+  if(!state.walkStarted){
+    state.walkStarted = true;
+    document.getElementById('walk-hint').style.opacity='0';
+    document.getElementById('walk-counter').classList.add('show');
+  }
+  const t = e.touches[0];
+  lastWalkX = t.clientX;
+  lastWalkY = t.clientY;
+  lastWalkTime = Date.now();
+  state.isWalking = true;
+}
+
+function walkTouchMove(e){
+  e.preventDefault();
+  if(!state.isWalking) return;
+  const t = e.touches[0];
+  addWalkTrail(t.clientX, t.clientY);
+  lastWalkX = t.clientX;
+  lastWalkY = t.clientY;
+}
+
+function walkTouchEnd(){
+  state.isWalking = false;
+}
+
+function walkMouseDown(e){
+  if(!state.walkStarted){
+    state.walkStarted = true;
+    document.getElementById('walk-hint').style.opacity='0';
+    document.getElementById('walk-counter').classList.add('show');
+  }
+  lastWalkX = e.clientX;
+  lastWalkY = e.clientY;
+  state.isWalking = true;
+}
+
+function walkMouseMove(e){
+  if(!state.isWalking) return;
+  addWalkTrail(e.clientX, e.clientY);
+  lastWalkX = e.clientX;
+  lastWalkY = e.clientY;
+}
+
+function walkMouseUp(){ state.isWalking = false; }
+
+function addWalkTrail(x, y){
+  const now = Date.now();
+  const dx = x - lastWalkX;
+  const dy = y - lastWalkY;
+  const dist = Math.sqrt(dx*dx+dy*dy);
+
+  if(dist < 3) return;
+
+  // 每移动一定距离算一步
+  if(dist > 15 && now - lastWalkTime > 100){
+    state.steps++;
+    document.getElementById('walk-counter-text').textContent = state.steps + ' 步';
+    lastWalkTime = now;
+
+    // 每走8步触发一次碎片发现
+    if(state.steps > 0 && state.steps % 8 === 0 && state.fragmentsFound < state.fragments.length){
+      triggerDiscovery();
+    }
+
+    // 走够50步，自动进入星系全景
+    if(state.steps >= 50 && state.currentScene === 'walk'){
+      setTimeout(()=>{ goToGalaxy(); }, 800);
+    }
+  }
+
+  // 添加光点轨迹
+  walkTrails.push({
+    x, y,
+    alpha: 1,
+    size: 2 + Math.random()*3,
+    vx: (Math.random()-.5)*.3,
+    vy: -Math.random()*.5 - .2,
+    life: 120,
+  });
+
+  // 偶尔添加大光点
+  if(Math.random() < .1){
+    walkTrails.push({
+      x, y,
+      alpha: .8,
+      size: 4 + Math.random()*4,
+      vx: (Math.random()-.5)*.2,
+      vy: -Math.random()*.3 - .1,
+      life: 80,
+    });
+  }
+}
+
+function walkRenderLoop(){
+  if(state.currentScene !== 'walk'){
+    cancelAnimationFrame(walkAnimFrame);
+    return;
+  }
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  walkCtx.clearRect(0,0,w,h);
+
+  // 画远景星球
+  for(const p of walkPlanets){
+    walkCtx.save();
+    // glow
+    const grd = walkCtx.createRadialGradient(p.x,p.y,p.size*.3,p.x,p.y,p.size*2);
+    grd.addColorStop(0, p.glow);
+    grd.addColorStop(1, 'transparent');
+    walkCtx.fillStyle = grd;
+    walkCtx.beginPath();
+    walkCtx.arc(p.x, p.y, p.size*2, 0, Math.PI*2);
+    walkCtx.fill();
+
+    // planet body
+    walkCtx.fillStyle = p.bg;
+    walkCtx.beginPath();
+    walkCtx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+    walkCtx.fill();
+
+    walkCtx.strokeStyle = p.border;
+    walkCtx.lineWidth = 1;
+    walkCtx.stroke();
+
+    // highlight
+    const hGrd = walkCtx.createRadialGradient(
+      p.x - p.size*.25, p.y - p.size*.25, p.size*.1,
+      p.x, p.y, p.size
+    );
+    hGrd.addColorStop(0, 'rgba(255,255,255,.06)');
+    hGrd.addColorStop(1, 'transparent');
+    walkCtx.fillStyle = hGrd;
+    walkCtx.beginPath();
+    walkCtx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+    walkCtx.fill();
+    walkCtx.restore();
+  }
+
+  // 画光点轨迹
+  for(let i=walkTrails.length-1;i>=0;i--){
+    const t = walkTrails[i];
+    t.alpha -= 1/t.life;
+    t.x += t.vx;
+    t.y += t.vy;
+    t.size *= .995;
+    if(t.alpha <= 0){
+      walkTrails.splice(i,1);
+      continue;
+    }
+    walkCtx.save();
+    walkCtx.globalAlpha = t.alpha;
+    walkCtx.fillStyle = '#E8B44C';
+    walkCtx.shadowColor = 'rgba(232,180,76,.6)';
+    walkCtx.shadowBlur = 8;
+    walkCtx.beginPath();
+    walkCtx.arc(t.x, t.y, Math.max(0.5,t.size), 0, Math.PI*2);
+    walkCtx.fill();
+    walkCtx.restore();
+  }
+
+  walkAnimFrame = requestAnimationFrame(walkRenderLoop);
+}
+
+/* ========================================
+   碎片发现
+======================================== */
+function triggerDiscovery(){
+  // 找一个还没发现的碎片
+  let idx;
+  do { idx = Math.floor(Math.random()*state.fragments.length); }
+  while(state.discoveries.includes(idx) && state.discoveries.length < state.fragments.length);
+
+  if(state.discoveries.includes(idx)) return;
+  state.discoveries.push(idx);
+  state.fragmentsFound++;
+
+  const f = state.fragments[idx];
+  const el = document.getElementById('walk-discovery-inner');
+  el.innerHTML = `
+    <div class="fragment-color-bar" style="background:${f.color}"></div>
+    <div class="fragment-tag">${f.tag} · 碎片故事</div>
+    <div class="fragment-title">${f.title}</div>
+    <div class="fragment-body">${f.body}</div>
+    <div class="fragment-img-placeholder" style="background:${f.imgColor}">
+      [ ${f.tag} 场景照片 ]
+    </div>
+    <button class="walk-discovery-close" onclick="closeDiscovery()">继续探索</button>
+  `;
+
+  document.getElementById('walk-discovery').classList.add('show');
+}
+
+function closeDiscovery(){
+  document.getElementById('walk-discovery').classList.remove('show');
+}
+
+/* ========================================
+   场景3→4：走路 → 星系全景
+======================================== */
+function goToGalaxy(){
+  state.isWalking = false;
+  cancelAnimationFrame(walkAnimFrame);
+
+  // 显示"抬头看"提示
+  const hint = document.createElement('div');
+  hint.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:70;text-align:center;pointer-events:none;';
+  hint.innerHTML=`
+    <div style="font-size:15px;color:var(--text-secondary);letter-spacing:3px;opacity:0;animation:fadeUp .8s ease forwards;">前方有什么？</div>
+  `;
+  document.getElementById('app').appendChild(hint);
+
+  setTimeout(()=>{
+    switchScene('walk','galaxy');
+    setTimeout(()=>{
+      initGalaxy();
+      hint.remove();
+    },800);
+  },1200);
+}
+
+/* ========================================
+   场景4：星系全景
+======================================== */
+function initGalaxy(){
+  const container = document.getElementById('galaxy-container');
+
+  // 小星球
+  const planets = [
+    {name:'创造',color:'rgba(217,107,107,.5)',bg:'radial-gradient(circle at 35% 35%,#3a1a1a,#1a0d0d)',size:40,top:'35%',left:'20%',delay:200},
+    {name:'内容',color:'rgba(74,158,184,.5)',bg:'radial-gradient(circle at 35% 35%,#1a2a35,#0d1520)',size:50,top:'25%',left:'72%',delay:400},
+    {name:'产品',color:'rgba(160,184,122,.5)',bg:'radial-gradient(circle at 35% 35%,#1a2515,#0d150d)',size:35,top:'65%',left:'25%',delay:600},
+    {name:'服务',color:'rgba(232,180,76,.5)',bg:'radial-gradient(circle at 35% 35%,#2a2515,#15120d)',size:38,top:'68%',left:'75%',delay:800},
+    {name:'活动',color:'rgba(155,123,191,.5)',bg:'radial-gradient(circle at 35% 35%,#201528,#110e18)',size:45,top:'45%',left:'85%',delay:1000},
+  ];
+
+  planets.forEach(p=>{
+    const el = document.createElement('div');
+    el.className = 'galaxy-planet';
+    el.style.cssText=`
+      width:${p.size}px;height:${p.size}px;
+      background:${p.bg};
+      border:1px solid ${p.color};
+      box-shadow:0 0 30px ${p.color.replace('.5','.15')},inset 0 0 15px rgba(255,255,255,.03);
+      top:${p.top};left:${p.left};transform:translate(-50%,-50%);
+    `;
+    el.innerHTML=`<div class="galaxy-planet-label">${p.name}</div>`;
+    el.onclick=()=>galaxyClick(p.name);
+    container.appendChild(el);
+
+    setTimeout(()=>{el.classList.add('show');}, p.delay);
+  });
+
+  // 主星球
+  setTimeout(()=>{document.getElementById('galaxy-main').classList.add('show');},100);
+
+  // 按钮
+  setTimeout(()=>{
+    document.getElementById('btn-galaxy').classList.add('show');
+  },2000);
+}
+
+function galaxyClick(name){
+  // 简单的文字提示
+  const tips = {
+    main: '这里是拓圈。所有星球汇聚的地方。',
+    '创造': '创造者们在这里，做他们相信的事。',
+    '内容': '故事从这里流出，流到该去的地方。',
+    '产品': '好产品不需要吆喝，它自己会说话。',
+    '服务': '专业，是最优雅的竞争力。',
+    '活动': '人与人的碰撞，是最好的内容。',
+  };
+  const flash = document.createElement('div');
+  flash.className='flash';
+  flash.style.zIndex='55';
+  document.getElementById('app').appendChild(flash);
+
+  const toast = document.createElement('div');
+  toast.style.cssText=`
+    position:fixed;top:20%;left:50%;transform:translateX(-50%) translateY(10px);
+    z-index:70;padding:16px 28px;border-radius:12px;
+    background:rgba(11,15,30,.9);backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,.08);
+    font-size:13px;color:rgba(255,255,255,.7);letter-spacing:1px;
+    text-align:center;max-width:280px;line-height:1.8;
+    opacity:0;transition:all .5s ease;pointer-events:none;
+  `;
+  toast.textContent = tips[name] || '';
+  document.getElementById('app').appendChild(toast);
+
+  setTimeout(()=>{toast.style.opacity='1';toast.style.transform='translateX(-50%) translateY(0)';},100);
+  setTimeout(()=>{
+    toast.style.opacity='0';
+    setTimeout(()=>{toast.remove();flash.remove();},500);
+  },2500);
+}
+
+/* ========================================
+   场景4→5：星系 → 选方向
+======================================== */
+function goChoose(){
+  switchScene('galaxy','choose');
+  setTimeout(()=>{initChoose();},800);
+}
+
+/* ========================================
+   场景5：选方向（角色选择）
+======================================== */
+const roles = [
+  {
+    id:'seeker', icon:'🔭', label:'探索者 Seeker',
+    desc:'我在找方向，想探索这里有什么',
+    color:'#4A9EB8',
+  },
+  {
+    id:'creator', icon:'🔥', label:'创造者 Creator',
+    desc:'我有产品/内容/技能，想让更多人看到',
+    color:'#A0B87A',
+  },
+  {
+    id:'social', icon:'⚡', label:'碰撞者',
+    desc:'我想认识同频的人，一起做点事',
+    color:'#D96B6B',
+  },
+  {
+    id:'learner', icon:'🌱', label:'学习者',
+    desc:'我想学点好玩的东西，边玩边成长',
+    color:'#E8B44C',
+  },
+  {
+    id:'worker', icon:'🛠', label:'工作者 Worker',
+    desc:'我能帮别人做事，拍视频/写文案/做设计',
+    color:'#9B7BBF',
+  },
+  {
+    id:'looker', icon:'👁', label:'漫游者 Wanderer',
+    desc:'我就是来看看，先了解一下',
+    color:'#888780',
+  },
+];
+
+function initChoose(){
+  const c = document.getElementById('choose-container');
+  c.innerHTML = `
+    <div class="choose-title">你想在拓圈成为什么？</div>
+    <div class="choose-sub">选择你最有共鸣的那个，没有对错</div>
+    <div class="choose-options" id="choose-options"></div>
+    <button class="choose-confirm" id="choose-confirm" onclick="confirmRole()">确认选择</button>
+  `;
+
+  const opts = document.getElementById('choose-options');
+  roles.forEach(r=>{
+    const card = document.createElement('div');
+    card.className='choose-card';
+    card.setAttribute('data-role', r.id);
+    card.innerHTML=`
+      <div class="choose-icon" style="background:${r.color}15;color:${r.color}">${r.icon}</div>
+      <div>
+        <div class="choose-text">${r.label}</div>
+        <div class="choose-desc">${r.desc}</div>
+      </div>
+    `;
+    card.onclick=()=>selectRole(r.id, card);
+    opts.appendChild(card);
+  });
+}
+
+function selectRole(id, el){
+  state.selectedRole = id;
+  document.querySelectorAll('.choose-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('choose-confirm').classList.add('show');
+}
+
+function confirmRole(){
+  if(!state.selectedRole) return;
+  switchScene('choose','card');
+  setTimeout(()=>{initCard();},800);
+}
+
+/* ========================================
+   场景6：身份卡
+======================================== */
+function initCard(){
+  // 生成编号
+  state.walkerNumber = String(Math.floor(Math.random()*900000)+100000);
+  document.getElementById('card-number').textContent = state.walkerNumber;
+
+  // 角色标签
+  const role = roles.find(r=>r.id===state.selectedRole);
+  document.getElementById('card-role-label').textContent = role ? role.label.split(' ')[0].toUpperCase() : 'WANDERER';
+
+  // 日期
+  const now = new Date();
+  document.getElementById('card-date').textContent =
+    now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+String(now.getDate()).padStart(2,'0')+' EST.';
+
+  // 星星装饰
+  const stars = document.getElementById('card-stars');
+  stars.innerHTML='';
+  for(let i=0;i<20;i++){
+    const s = document.createElement('div');
+    s.className='mini-star';
+    s.style.cssText=`
+      left:${Math.random()*100}%;top:${Math.random()*100}%;
+      width:${1+Math.random()}px;height:${1+Math.random()}px;
+      --d:${1.5+Math.random()*2}s;animation-delay:${Math.random()*2}s;
+    `;
+    stars.appendChild(s);
+  }
+
+  // 翻转动画
+  setTimeout(()=>{
+    document.getElementById('id-card').classList.add('reveal');
+  },200);
+
+  // 显示操作按钮
+  setTimeout(()=>{
+    document.getElementById('card-actions').classList.add('show');
+  },1500);
+}
+
+function saveCard(){
+  // 提示长按保存
+  const toast = document.createElement('div');
+  toast.style.cssText=`
+    position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
+    padding:10px 24px;border-radius:100px;
+    background:rgba(11,15,30,.9);border:1px solid rgba(232,180,76,.2);
+    font-size:12px;color:var(--amber);letter-spacing:1px;z-index:200;
+    animation:fadeUp .4s ease forwards;
+  `;
+  toast.textContent='长按身份卡，保存到相册';
+  document.getElementById('app').appendChild(toast);
+  setTimeout(()=>{toast.style.opacity='0';setTimeout(()=>toast.remove(),500);},2500);
+}
+
+function shareCard(){
+  // 显示分享提示
+  const toast = document.createElement('div');
+  toast.style.cssText=`
+    position:fixed;bottom:100px;left:50%;transform:translateX(-50%);
+    padding:10px 24px;border-radius:100px;
+    background:rgba(11,15,30,.9);border:1px solid rgba(232,180,76,.2);
+    font-size:12px;color:var(--amber);letter-spacing:1px;z-index:200;
+    animation:fadeUp .4s ease forwards;
+  `;
+  toast.textContent='截图或长按保存后分享';
+  document.getElementById('app').appendChild(toast);
+  setTimeout(()=>{toast.style.opacity='0';setTimeout(()=>toast.remove(),500);},2500);
+}
+
+// 点击身份卡进入欢迎页
+document.querySelector('.card-wrapper').addEventListener('dblclick', ()=>{
+  switchScene('card','welcome');
+  setTimeout(()=>{initWelcome();},800);
+});
+
+/* ========================================
+   场景7：欢迎
+======================================== */
+function initWelcome(){
+  const role = roles.find(r=>r.id===state.selectedRole);
+  const c = document.getElementById('welcome-container');
+  c.innerHTML = `
+    <div class="welcome-infinity">∞</div>
+    <div class="welcome-line highlight" style="transition-delay:.3s">欢迎来到拓圈，${role?role.label.split(' ')[0]:'漫游者'}。</div>
+    <div class="welcome-line" style="transition-delay:.8s">你的编号是 ${state.walkerNumber}。</div>
+    <div class="welcome-line" style="transition-delay:1.3s">这是你在这里的第一步。</div>
+    <div class="welcome-line" style="transition-delay:1.8s">慢慢走，不着急。</div>
+    <div class="welcome-line" style="transition-delay:2.3s;color:var(--text-ghost);font-size:12px">所有伟大的旅程，都从一个人开始。</div>
+    <div style="height:40px"></div>
+    <div class="hint">拓圈 Topoo · 让小而美被世界看见</div>
+  `;
+  setTimeout(()=>{
+    c.querySelectorAll('.welcome-line').forEach(l=>l.classList.add('show'));
+  },100);
+}
+
+/* ========================================
+   初始化
+======================================== */
+updateProgress();
+</script>
+</body>
+</html>

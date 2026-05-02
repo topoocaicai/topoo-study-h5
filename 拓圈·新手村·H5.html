@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TOPOO · 拓圈新手村</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --paper:#F5F0E8;--sky-dark:#0B0F1E;--sky-mid:#151B33;
+    --amber:#E8B44C;--rust:#D96B6B;--blue:#4A9EB8;
+    --purple:#9B7BBF;--green:#A0B87A;
+    --text:#1A1A1A;--text-light:#888780;--border:#E8E6E3;
+  }
+  html{scroll-behavior:smooth;overflow:hidden;}
+  body{
+    font-family:-apple-system,"PingFang SC","Noto Sans SC",sans-serif;
+    background:#000;color:#fff;overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ===== 全局容器 ===== */
+  #app{width:100vw;height:100vh;position:relative;overflow:hidden;}
+  .screen{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    display:none;flex-direction:column;align-items:center;justify-content:center;
+    opacity:0;transition:opacity .8s ease;
+  }
+  .screen.active{display:flex;opacity:1;}
+
+  /* ===== 星空背景 ===== */
+  .starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+  .star{
+    position:absolute;border-radius:50%;background:#fff;
+    animation:twinkle var(--d,3s) ease-in-out infinite alternate;
+  }
+  @keyframes twinkle{0%{opacity:.2;transform:scale(.8)}100%{opacity:1;transform:scale(1.2)}}
+
+  /* ===== 通用排版 ===== */
+  .screen-content{position:relative;z-index:2;text-align:center;padding:40px 24px;max-width:420px;width:100%;}
+  .brand{font-family:Georgia,serif;letter-spacing:4px;font-size:13px;color:var(--amber);margin-bottom:24px;text-transform:uppercase;}
+  .title{font-size:28px;font-weight:700;line-height:1.4;margin-bottom:20px;letter-spacing:1px;}
+  .subtitle{font-size:15px;color:rgba(255,255,255,.65);line-height:1.8;margin-bottom:32px;}
+  .btn{
+    display:inline-block;padding:14px 40px;border-radius:100px;
+    border:1.5px solid rgba(255,255,255,.3);color:#fff;font-size:14px;
+    cursor:pointer;transition:all .3s ease;background:transparent;
+    letter-spacing:2px;
+  }
+  .btn:hover,.btn:active{background:rgba(255,255,255,.1);border-color:var(--amber);color:var(--amber);}
+  .btn-primary{background:var(--amber);color:var(--sky-dark);border-color:var(--amber);font-weight:600;}
+  .btn-primary:hover,.btn-primary:active{background:#d9a33e;transform:scale(1.02);}
+
+  /* ===== 进度条 ===== */
+  .progress{position:fixed;bottom:0;left:0;height:2px;background:var(--amber);z-index:100;transition:width .5s ease;}
+
+  /* ===== 导航点 ===== */
+  .nav-dots{
+    position:fixed;right:16px;top:50%;transform:translateY(-50%);
+    z-index:100;display:flex;flex-direction:column;gap:10px;
+  }
+  .nav-dot{
+    width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.25);
+    cursor:pointer;transition:all .3s ease;border:none;outline:none;padding:0;
+  }
+  .nav-dot.active{background:var(--amber);transform:scale(1.3);}
+  .nav-dot:hover{background:rgba(255,255,255,.5);}
+
+  /* ===== 箭头 ===== */
+  .arrow{
+    position:absolute;bottom:40px;left:50%;transform:translateX(-50%);
+    z-index:10;animation:bounce 2s ease-in-out infinite;cursor:pointer;
+    opacity:.5;transition:opacity .3s;
+  }
+  .arrow:hover{opacity:1;}
+  .arrow svg{width:24px;height:24px;}
+  @keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-8px)}}
+
+  /* ===== 屏1：开屏 ===== */
+  #s1 .title{font-size:22px;}
+  #s1 .big-title{
+    font-family:Georgia,serif;font-size:56px;letter-spacing:6px;
+    background:linear-gradient(135deg,var(--amber),var(--rust),var(--amber));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;margin-bottom:8px;
+  }
+  #s1 .en-name{font-family:Georgia,serif;font-size:14px;letter-spacing:8px;color:rgba(255,255,255,.35);margin-bottom:32px;}
+  .fade-in{animation:fadeIn 1.2s ease forwards;opacity:0;}
+  .fade-in-d1{animation-delay:.3s;}
+  .fade-in-d2{animation-delay:.6s;}
+  .fade-in-d3{animation-delay:.9s;}
+  .fade-in-d4{animation-delay:1.4s;}
+  .fade-in-d5{animation-delay:2s;}
+  @keyframes fadeIn{to{opacity:1;}}
+
+  /* ===== 屏2：探索vs喂养 ===== */
+  .vs-container{display:flex;gap:16px;margin:24px 0;width:100%;}
+  .vs-card{
+    flex:1;padding:24px 16px;border-radius:16px;cursor:pointer;
+    transition:all .4s ease;position:relative;overflow:hidden;
+  }
+  .vs-card.feed{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);}
+  .vs-card.explore{background:rgba(232,180,76,.08);border:1px solid rgba(232,180,76,.25);}
+  .vs-card:hover{transform:translateY(-2px);}
+  .vs-card .vs-label{font-size:11px;letter-spacing:3px;margin-bottom:12px;opacity:.5;}
+  .vs-card .vs-title{font-size:18px;font-weight:600;margin-bottom:10px;}
+  .vs-card .vs-desc{font-size:12px;line-height:1.8;opacity:.6;}
+  .vs-card .vs-icon{font-size:28px;margin-bottom:12px;}
+
+  /* ===== 屏3：星球 ===== */
+  .planets{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:24px 0;max-width:360px;}
+  .planet{
+    width:90px;height:90px;border-radius:50%;cursor:pointer;
+    transition:all .4s ease;position:relative;display:flex;align-items:center;
+    justify-content:center;font-size:11px;text-align:center;
+    animation:float var(--fd,4s) ease-in-out infinite;
+    border:2px solid transparent;
+  }
+  .planet:hover{transform:scale(1.15);border-color:var(--amber);z-index:5;}
+  .planet::after{
+    content:'';position:absolute;inset:-4px;border-radius:50%;
+    background:radial-gradient(circle,rgba(232,180,76,.1),transparent);
+    opacity:0;transition:opacity .3s;
+  }
+  .planet:hover::after{opacity:1;}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+  /* 星球弹出详情 */
+  .planet-modal{
+    display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+    z-index:200;background:rgba(11,15,30,.92);align-items:center;justify-content:center;
+    flex-direction:column;padding:40px 24px;
+  }
+  .planet-modal.show{display:flex;animation:fadeIn .4s ease;}
+  .planet-modal .close-btn{
+    position:absolute;top:24px;right:24px;background:none;border:none;
+    color:rgba(255,255,255,.5);font-size:24px;cursor:pointer;padding:8px;
+  }
+  .planet-modal .close-btn:hover{color:#fff;}
+  .pm-emoji{font-size:48px;margin-bottom:16px;}
+  .pm-name{font-size:22px;font-weight:600;margin-bottom:8px;}
+  .pm-vibe{font-size:13px;color:var(--amber);margin-bottom:16px;letter-spacing:2px;}
+  .pm-desc{font-size:14px;color:rgba(255,255,255,.7);line-height:1.9;max-width:320px;}
+
+  /* ===== 屏4：角色 ===== */
+  .roles{display:flex;flex-direction:column;gap:10px;width:100%;margin:20px 0;}
+  .role-card{
+    display:flex;align-items:center;gap:14px;padding:14px 18px;
+    border-radius:14px;background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);cursor:pointer;
+    transition:all .3s ease;text-align:left;
+  }
+  .role-card:hover,.role-card.active{background:rgba(232,180,76,.08);border-color:rgba(232,180,76,.25);}
+  .role-card.active .role-detail{max-height:200px;opacity:1;margin-top:10px;}
+  .role-icon{font-size:24px;flex-shrink:0;width:36px;text-align:center;}
+  .role-info{flex:1;}
+  .role-name{font-size:15px;font-weight:600;}
+  .role-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;}
+  .role-detail{
+    max-height:0;opacity:0;overflow:hidden;transition:all .4s ease;
+    font-size:12px;color:rgba(255,255,255,.55);line-height:1.8;
+  }
+
+  /* ===== 屏5：玩法 ===== */
+  .game-mechanics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:20px 0;width:100%;}
+  .mechanic{
+    padding:18px 14px;border-radius:12px;background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.06);text-align:center;
+    transition:all .3s ease;cursor:default;
+  }
+  .mechanic:hover{background:rgba(232,180,76,.06);border-color:rgba(232,180,76,.2);}
+  .mechanic-icon{font-size:24px;margin-bottom:8px;}
+  .mechanic-name{font-size:13px;font-weight:600;margin-bottom:4px;}
+  .mechanic-desc{font-size:11px;color:rgba(255,255,255,.45);line-height:1.6;}
+
+  /* ===== 屏6：实力 ===== */
+  .strengths{display:flex;flex-direction:column;gap:12px;margin:20px 0;width:100%;}
+  .strength{
+    display:flex;align-items:flex-start;gap:14px;padding:16px;
+    border-radius:12px;background:rgba(255,255,255,.03);
+    border-left:3px solid;text-align:left;
+  }
+  .strength-icon{font-size:20px;flex-shrink:0;margin-top:2px;}
+  .strength-name{font-size:14px;font-weight:600;margin-bottom:3px;}
+  .strength-desc{font-size:12px;color:rgba(255,255,255,.5);line-height:1.7;}
+
+  /* ===== 屏7：入口 ===== */
+  .values{display:flex;flex-direction:column;gap:14px;margin:24px 0;width:100%;max-width:340px;}
+  .value{
+    padding:16px 20px;border-radius:12px;text-align:center;
+    border:1px solid rgba(232,180,76,.2);background:rgba(232,180,76,.04);
+    transition:all .3s ease;
+  }
+  .value:hover{background:rgba(232,180,76,.08);}
+  .value-num{font-family:Georgia,serif;font-size:12px;color:var(--amber);letter-spacing:2px;margin-bottom:6px;}
+  .value-title{font-size:15px;font-weight:600;margin-bottom:4px;}
+  .value-desc{font-size:12px;color:rgba(255,255,255,.5);line-height:1.7;}
+
+  /* ===== 提示文字 ===== */
+  .hint{font-size:11px;color:rgba(255,255,255,.3);margin-top:16px;letter-spacing:1px;}
+  .click-hint{animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:.3}50%{opacity:.7}}
+
+  /* ===== 顶部品牌栏 ===== */
+  .top-bar{
+    position:fixed;top:0;left:0;width:100%;z-index:100;
+    padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(to bottom,rgba(11,15,30,.8),transparent);
+    pointer-events:none;
+  }
+  .top-bar>*{pointer-events:auto;}
+  .top-brand{font-family:Georgia,serif;font-size:12px;letter-spacing:4px;color:var(--amber);}
+  .top-page{font-size:11px;color:rgba(255,255,255,.35);letter-spacing:2px;}
+
+  /* ===== 音频按钮 ===== */
+  .audio-btn{
+    position:fixed;top:16px;right:16px;z-index:101;
+    width:36px;height:36px;border-radius:50%;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+    color:rgba(255,255,255,.6);font-size:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:all .3s ease;
+  }
+  .audio-btn:hover{background:rgba(255,255,255,.15);color:#fff;}
+  .audio-btn.muted::after{content:'✕';position:absolute;font-size:10px;}
+
+  /* ===== 适配 ===== */
+  @media(max-width:380px){
+    .title{font-size:22px;}
+    #s1 .big-title{font-size:42px;}
+    .planet{width:72px;height:72px;font-size:10px;}
+    .vs-container{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<!-- 星空背景 -->
+<div class="starfield" id="starfield"></div>
+
+<!-- 顶部品牌栏 -->
+<div class="top-bar" id="topBar" style="opacity:0;">
+  <span class="top-brand">TOPOO</span>
+  <span class="top-page" id="pageNum"></span>
+</div>
+
+<!-- 音频按钮 -->
+<button class="audio-btn" id="audioBtn" title="音效" style="opacity:0;">🔊</button>
+
+<!-- 进度条 -->
+<div class="progress" id="progress" style="width:0%;"></div>
+
+<!-- 导航点 -->
+<div class="nav-dots" id="navDots"></div>
+
+<!-- ===== 屏1：开屏 ===== -->
+<div class="screen active" id="s1">
+  <div class="screen-content">
+    <div class="brand fade-in fade-in-d1">WELCOME TO</div>
+    <div class="big-title fade-in fade-in-d2">拓圈</div>
+    <div class="en-name fade-in fade-in-d2">T O P O O</div>
+    <p class="subtitle fade-in fade-in-d3" style="margin-bottom:40px;">
+      你睁开眼睛，眼前是一片星空。<br>你不知道自己在哪，也不知道要做什么。<br>没关系，慢慢来。
+    </p>
+    <div class="fade-in fade-in-d4">
+      <button class="btn btn-primary" onclick="goTo(1)">开始探索</button>
+    </div>
+  </div>
+  <div class="arrow fade-in fade-in-d5" onclick="goTo(1)" style="opacity:0;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M12 5v14M5 12l7 7 7-7"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ===== 屏2：探索vs喂养 ===== -->
+<div class="screen" id="s2">
+  <div class="screen-content">
+    <div class="brand">THE DIFFERENCE</div>
+    <div class="title">这个世界<br>和别的地方不一样</div>
+    <div class="vs-container">
+      <div class="vs-card feed">
+        <div class="vs-icon">🥄</div>
+        <div class="vs-label">别的地方</div>
+        <div class="vs-title">喂养</div>
+        <div class="vs-desc">算法推给你，你被动接收。不用思考，不用选择。刷完之后，空虚。</div>
+      </div>
+      <div class="vs-card explore">
+        <div class="vs-icon">🧭</div>
+        <div class="vs-label">拓圈</div>
+        <div class="vs-title">探索</div>
+        <div class="vs-desc">你自己走，自己看，自己感受。找到同频的人，找到让你心动的事。</div>
+      </div>
+    </div>
+    <p class="subtitle" style="font-size:13px;">
+      被喂养的多巴胺，质地是"爽但空洞"。<br>主动发现的多巴胺，质地是"我找到了"。
+    </p>
+    <p class="hint click-hint">点击任意星球继续 →</p>
+  </div>
+  <div class="arrow" onclick="goTo(2)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M12 5v14M5 12l7 7 7-7"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ===== 屏3：星球 ===== -->
+<div class="screen" id="s3">
+  <div class="screen-content">
+    <div class="brand">TOPSPACE</div>
+    <div class="title">这里有好多星球</div>
+    <p class="subtitle" style="margin-bottom:16px;font-size:13px;">每个星球是一群性格相近的人<br>不是因为卖同样的东西，是因为精神状态一样</p>
+    <div class="planets">
+      <div class="planet" style="background:radial-gradient(circle at 35% 35%,#3a2a1a,#1a1008);--fd:3.5s;" onclick="showPlanet(0)">
+        <span>☕<br>酒鬼</span>
+      </div>
+      <div class="planet" style="background:radial-gradient(circle at 35% 35%,#1a2a3a,#0a1520);--fd:4.2s;" onclick="showPlanet(1)">
+        <span>📖<br>读书</span>
+      </div>
+      <div class="planet" style="background:radial-gradient(circle at 35% 35%,#2a1a2a,#150a18);--fd:3.8s;" onclick="showPlanet(2)">
+        <span>🎨<br>造物</span>
+      </div>
+      <div class="planet" style="background:radial-gradient(circle at 35% 35%,#1a2a1a,#0a180a);--fd:4.5s;" onclick="showPlanet(3)">
+        <span>🏃<br>行动派</span>
+      </div>
+      <div class="planet" style="background:radial-gradient(circle at 35% 35%,#2a2a1a,#18150a);--fd:5s;" onclick="showPlanet(4)">
+        <span>🎬<br>内容</span>
+      </div>
+      <div class="planet" style="background:radial-gradient(circle at 35% 35%,#1a1a2a,#0a0a18);--fd:3.2s;" onclick="showPlanet(5)">
+        <span>💡<br>灵感</span>
+      </div>
+      <div class="planet" style="background:radial-gradient(circle at 35% 35%,#2a1a1a,#180a0a);--fd:4.8s;" onclick="showPlanet(6)">
+        <span>🐱<br>猫奴</span>
+      </div>
+      <div class="planet" style="background:radial-gradient(circle at 35% 35%,#222,#111);border:1px dashed rgba(255,255,255,.15);--fd:3s;" onclick="showPlanet(7)">
+        <span>✨<br>你的</span>
+      </div>
+    </div>
+    <p class="hint click-hint">点击星球看看里面什么样</p>
+  </div>
+  <div class="arrow" onclick="goTo(3)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M12 5v14M5 12l7 7 7-7"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ===== 屏4：角色 ===== -->
+<div class="screen" id="s4">
+  <div class="screen-content">
+    <div class="brand">WHO ARE YOU</div>
+    <div class="title">你能成为谁</div>
+    <p class="subtitle" style="margin-bottom:12px;font-size:13px;">你不用一开始就想好自己是谁<br>先进来探索，慢慢找到自己的位置</p>
+    <div class="roles">
+      <div class="role-card" onclick="toggleRole(this)">
+        <div class="role-icon">🌌</div>
+        <div class="role-info">
+          <div class="role-name">漫游者 Wanderer</div>
+          <div class="role-sub">刚睁开眼睛，闲逛探索</div>
+          <div class="role-detail">你刚到拓圈，什么都还没想好。没关系，先逛逛。完全免费，没有门槛。你会得到一张漫游者身份卡——"我是第XXXXX位拓圈漫游者"，可以分享给朋友。</div>
+        </div>
+      </div>
+      <div class="role-card" onclick="toggleRole(this)">
+        <div class="role-icon">🔭</div>
+        <div class="role-info">
+          <div class="role-name">探索者 Seeker</div>
+          <div class="role-sub">正式加入，在找方向</div>
+          <div class="role-detail">你决定留下来认真看看。有专属编号，开始接触星球、碰撞、活动。通过任务、付费、积分三条线积累经验，慢慢发现自己想成为什么。</div>
+        </div>
+      </div>
+      <div class="role-card" onclick="toggleRole(this)">
+        <div class="role-icon">🔥</div>
+        <div class="role-info">
+          <div class="role-name">创造者 Creator</div>
+          <div class="role-sub">有东西要卖，拓圈的核心</div>
+          <div class="role-detail">你有一个产品、一个门店、一个IP、或者一门手艺。产品型、门店型、活动型、内容型、服务型——任何有价值的东西，都可以在拓圈里流通。拓圈帮你从"有东西"到"能卖出去"。</div>
+        </div>
+      </div>
+      <div class="role-card" onclick="toggleRole(this)">
+        <div class="role-icon">🛠️</div>
+        <div class="role-info">
+          <div class="role-name">工作者 Worker</div>
+          <div class="role-sub">用技能帮别人做得更好</div>
+          <div class="role-detail">你擅长运营、设计、策划、数据分析。碳基工作者（人）+硅基工作者（AI）协作，你做30%的关键判断，AI做70%的基础工作。按件计费，多劳多得。</div>
+        </div>
+      </div>
+      <div class="role-card" onclick="toggleRole(this)">
+        <div class="role-icon">🔗</div>
+        <div class="role-info">
+          <div class="role-name">链接者 Linker</div>
+          <div class="role-sub">擅长搭桥、推广、撮合</div>
+          <div class="role-detail">你能把对的人连在一起，能发现合作机会，能推动事情发生。你不一定有产品或技能，但你有社交资源和传播能力。介绍创造者和探索者就能获得分润。</div>
+        </div>
+      </div>
+      <div class="role-card" onclick="toggleRole(this)">
+        <div class="role-icon">🚀</div>
+        <div class="role-info">
+          <div class="role-name">开拓者 Pioneer</div>
+          <div class="role-sub">满级玩家，建造自己的星球</div>
+          <div class="role-detail">这是终极形态。从其他角色成长到满级后，你可以自己建造和运营一颗星球，成为掌灯人。你的星球，你的规则，你的王国。</div>
+        </div>
+      </div>
+    </div>
+    <p class="hint click-hint">点击角色卡片查看详情</p>
+  </div>
+  <div class="arrow" onclick="goTo(4)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M12 5v14M5 12l7 7 7-7"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ===== 屏5：玩法 ===== -->
+<div class="screen" id="s5">
+  <div class="screen-content">
+    <div class="brand">HOW TO PLAY</div>
+    <div class="title">你怎么玩</div>
+    <p class="subtitle" style="margin-bottom:12px;font-size:13px;">不是苦大仇深地"协作"<br>是自然而然地碰撞出火花</p>
+    <div class="game-mechanics">
+      <div class="mechanic">
+        <div class="mechanic-icon">💥</div>
+        <div class="mechanic-name">碰撞</div>
+        <div class="mechanic-desc">人和人之间不是被安排合作，是自然碰撞出火花</div>
+      </div>
+      <div class="mechanic">
+        <div class="mechanic-icon">⭐</div>
+        <div class="mechanic-name">经验值</div>
+        <div class="mechanic-desc">做任务、发内容、帮别人，都能攒经验升级</div>
+      </div>
+      <div class="mechanic">
+        <div class="mechanic-icon">🏆</div>
+        <div class="mechanic-name">月度挑战</div>
+        <div class="mechanic-desc">圈内周挑战、月度挑战赛、季度黑马榜</div>
+      </div>
+      <div class="mechanic">
+        <div class="mechanic-icon">🎁</div>
+        <div class="mechanic-name">星球活动</div>
+        <div class="mechanic-desc">盲盒、快闪、新品试吃、灵感工坊</div>
+      </div>
+      <div class="mechanic">
+        <div class="mechanic-icon">🏅</div>
+        <div class="mechanic-name">赛季头衔</div>
+        <div class="mechanic-desc">临时荣誉过期就没了，拿到就是你的勋章</div>
+      </div>
+      <div class="mechanic">
+        <div class="mechanic-icon">🤝</div>
+        <div class="mechanic-name">集体赋能</div>
+        <div class="mechanic-desc">全圈完成任务，平台给所有人加buff</div>
+      </div>
+    </div>
+    <p class="subtitle" style="font-size:12px;margin-top:16px;">
+      来玩一趟 → 顺便买东西 → 顺便学到东西<br>
+      参加是锦上添花，不参加也没损失。底色是好玩。
+    </p>
+  </div>
+  <div class="arrow" onclick="goTo(5)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M12 5v14M5 12l7 7 7-7"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ===== 屏6：实力 ===== -->
+<div class="screen" id="s6">
+  <div class="screen-content">
+    <div class="brand">WHY US</div>
+    <div class="title">这不是空想</div>
+    <p class="subtitle" style="margin-bottom:12px;font-size:13px;">好玩归好玩，背后有真东西撑着<br>你在这里找到自己，顺便赚到真金白银</p>
+    <div class="strengths">
+      <div class="strength" style="border-color:var(--amber);">
+        <div class="strength-icon">📱</div>
+        <div>
+          <div class="strength-name">抖音电商官方服务商</div>
+          <div class="strength-desc">有平台资质和资源对接通道，不是谁都有的壁垒</div>
+        </div>
+      </div>
+      <div class="strength" style="border-color:var(--blue);">
+        <div class="strength-icon">🤖</div>
+        <div>
+          <div class="strength-name">AI + 人工协作</div>
+          <div class="strength-desc">硅基工作者做70%基础工作，大幅降低赋能成本</div>
+        </div>
+      </div>
+      <div class="strength" style="border-color:var(--rust);">
+        <div class="strength-icon">📡</div>
+        <div>
+          <div class="strength-name">OPC内容矩阵</div>
+          <div class="strength-desc">同时运营1000+个抖音账号，流量池是真实的</div>
+        </div>
+      </div>
+      <div class="strength" style="border-color:var(--purple);">
+        <div class="strength-icon">🔄</div>
+        <div>
+          <div class="strength-name">五类创造者飞轮</div>
+          <div class="strength-desc">产品、门店、活动、内容、服务——互相成为客户，内循环</div>
+        </div>
+      </div>
+      <div class="strength" style="border-color:var(--green);">
+        <div class="strength-icon">📈</div>
+        <div>
+          <div class="strength-name">号段是资产</div>
+          <div class="strength-desc">不是消费，是投资。号码越靠前越值钱，权重跟着号走，号可以交易</div>
+        </div>
+      </div>
+    </div>
+    <p class="subtitle" style="font-size:12px;margin-top:16px;">
+      就算最后没赚到钱<br>学到的东西和认识的人，也是你的
+    </p>
+  </div>
+  <div class="arrow" onclick="goTo(6)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M12 5v14M5 12l7 7 7-7"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ===== 屏7：入口 ===== -->
+<div class="screen" id="s7">
+  <div class="screen-content">
+    <div class="brand">JOIN US</div>
+    <div class="title">你准备好了吗</div>
+    <p class="subtitle" style="margin-bottom:8px;font-size:13px;">加入拓圈只需要认同三件事</p>
+    <div class="values">
+      <div class="value">
+        <div class="value-num">01</div>
+        <div class="value-title">长期主义</div>
+        <div class="value-desc">不急功近利，愿意花时间打磨自己<br>相信慢就是快</div>
+      </div>
+      <div class="value">
+        <div class="value-num">02</div>
+        <div class="value-title">探索精神</div>
+        <div class="value-desc">知道自己是谁，或者正在寻找<br>在拓圈里发现方向和同频的人</div>
+      </div>
+      <div class="value">
+        <div class="value-num">03</div>
+        <div class="value-title">同频共振</div>
+        <div class="value-desc">相信碰撞的力量<br>愿意跟一群人一起走</div>
+      </div>
+    </div>
+    <div style="margin-top:8px;">
+      <button class="btn btn-primary" style="padding:16px 48px;font-size:15px;" onclick="joinTopoo()">我想加入拓圈</button>
+    </div>
+    <p class="hint" style="margin-top:20px;">不认这三条的人，进来了也待不住<br>拓圈不是流量池，是筛选器</p>
+  </div>
+</div>
+
+<!-- 星球弹窗 -->
+<div class="planet-modal" id="planetModal">
+  <button class="close-btn" onclick="closePlanet()">✕</button>
+  <div class="pm-emoji" id="pmEmoji"></div>
+  <div class="pm-name" id="pmName"></div>
+  <div class="pm-vibe" id="pmVibe"></div>
+  <div class="pm-desc" id="pmDesc"></div>
+  <button class="btn" style="margin-top:28px;" onclick="closePlanet()">知道了</button>
+</div>
+
+<script>
+// ===== 数据 =====
+const TOTAL = 7;
+let current = 0;
+let muted = false;
+
+const planetData = [
+  {emoji:'☕', name:'酒鬼星球', vibe:'一群喝着咖啡聊人生的人', desc:'这里有咖啡师、手冲达人、品酒师。他们不一定靠卖咖啡活着，但他们聚在一起的时候，灵感会自己冒出来。今天星球特供：10杯两块钱美式。'},
+  {emoji:'📖', name:'读书星球', vibe:'安静但深邃', desc:'每个人都在读不同的书，但读完之后会一起聊。不功利，不打卡，就是纯粹的"我读了这本，我觉得棒"。偶尔约一场线下读书会。'},
+  {emoji:'🎨', name:'造物星球', vibe:'一群动手做东西的疯子', desc:'手作、木工、陶艺、插画、服装设计……他们相信最好的产品是做出来的，不是想出来的。碰撞工坊每周开放，材料免费。'},
+  {emoji:'🏃', name:'行动派星球', vibe:'说干就干，不磨叽', desc:'这里的人坐不住。想法有了就执行，摔了就爬起来。月度挑战赛里永远排名前三。加入条件：上周至少做过一件"说了就做"的事。'},
+  {emoji:'🎬', name:'内容星球', vibe:'每天都在生产内容的人', desc:'短视频、直播、播客、图文、vlog。他们不只是做内容，他们用内容连接世界。互相帮忙转发、互相出镜、互相碰撞灵感。'},
+  {emoji:'💡', name:'灵感星球', vibe:'点子永远比睡眠多', desc:'凌晨三点还在聊天的人。创意工作者、策划人、脑暴狂魔。这颗星球不需要"正经"，只需要"有意思"。灵感盲盒每月开启一次。'},
+  {emoji:'🐱', name:'猫奴星球', vibe:'七只猫的菜菜在这里', desc:'养猫的人自带一种温柔。这里不只聊猫，但聊猫的时候最容易破冰。线下约饭的频率全拓圈最高，因为猫奴之间有天然的默契。'},
+  {emoji:'✨', name:'你的星球', vibe:'等你来定义', desc:'以上都不是你的风格？那你自己造一颗。找几个同频的人，一起定义这颗星球的精神状态。开拓者才有资格建星球——这是你的终极目标。'}
+];
+
+// ===== 初始化星空 =====
+function initStars(){
+  const sf = document.getElementById('starfield');
+  const count = Math.min(120, Math.floor(window.innerWidth * window.innerHeight / 6000));
+  for(let i=0;i<count;i++){
+    const s = document.createElement('div');
+    s.className='star';
+    const size = Math.random()*2+0.5;
+    s.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${Math.random()*3+2}s;animation-delay:${Math.random()*3}s;opacity:${Math.random()*0.5+0.2};`;
+    sf.appendChild(s);
+  }
+}
+
+// ===== 初始化导航点 =====
+function initDots(){
+  const nd = document.getElementById('navDots');
+  for(let i=0;i<TOTAL;i++){
+    const d = document.createElement('button');
+    d.className='nav-dot'+(i===0?' active':'');
+    d.onclick=()=>goTo(i+1);
+    d.title=`第${i+1}页`;
+    nd.appendChild(d);
+  }
+}
+
+// ===== 页面切换 =====
+function goTo(idx){
+  if(idx<0||idx>=TOTAL) return;
+  const screens = document.querySelectorAll('.screen');
+  const old = current;
+  screens[current].classList.remove('active');
+  setTimeout(()=>{screens[current].style.display='none';},800);
+
+  current = idx;
+  screens[current].style.display='flex';
+  setTimeout(()=>{screens[current].classList.add('active');},50);
+
+  // 更新UI
+  document.getElementById('progress').style.width = ((current+1)/TOTAL*100)+'%';
+  document.getElementById('pageNum').textContent = `${current+1} / ${TOTAL}`;
+  document.getElementById('topBar').style.opacity = current===0?'0':'1';
+  document.getElementById('audioBtn').style.opacity = current===0?'0':'1';
+
+  // 更新导航点
+  document.querySelectorAll('.nav-dot').forEach((d,i)=>{
+    d.classList.toggle('active',i===current);
+  });
+}
+
+// ===== 星球弹窗 =====
+function showPlanet(idx){
+  const p = planetData[idx];
+  document.getElementById('pmEmoji').textContent = p.emoji;
+  document.getElementById('pmName').textContent = p.name;
+  document.getElementById('pmVibe').textContent = p.vibe;
+  document.getElementById('pmDesc').textContent = p.desc;
+  document.getElementById('planetModal').classList.add('show');
+}
+function closePlanet(){
+  document.getElementById('planetModal').classList.remove('show');
+}
+
+// ===== 角色卡片切换 =====
+function toggleRole(card){
+  const wasActive = card.classList.contains('active');
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('active'));
+  if(!wasActive) card.classList.add('active');
+}
+
+// ===== 加入按钮 =====
+function joinTopoo(){
+  // 这里可以跳转到微信/表单等
+  alert('欢迎加入拓圈！\n请添加拓荒者菜菜微信，开始你的探索之旅。');
+}
+
+// ===== 音频按钮（预留） =====
+document.getElementById('audioBtn').addEventListener('click',function(){
+  muted=!muted;
+  this.textContent=muted?'🔇':'🔊';
+  this.classList.toggle('muted',muted);
+});
+
+// ===== 触摸滑动 =====
+let touchStartY=0;
+document.addEventListener('touchstart',e=>{touchStartY=e.touches[0].clientY;},{passive:true});
+document.addEventListener('touchend',e=>{
+  const diff = touchStartY - e.changedTouches[0].clientY;
+  if(Math.abs(diff)>50){
+    if(diff>0) goTo(current+1); // 上滑→下一页
+    else goTo(current-1); // 下滑→上一页
+  }
+},{passive:true});
+
+// ===== 鼠标滚轮 =====
+let wheelLock=false;
+document.addEventListener('wheel',e=>{
+  if(wheelLock) return;
+  wheelLock=true;
+  setTimeout(()=>wheelLock=false,1000);
+  if(e.deltaY>0) goTo(current+1);
+  else goTo(current-1);
+},{passive:true});
+
+// ===== 键盘 =====
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'||e.key===' ') goTo(current+1);
+  else if(e.key==='ArrowUp') goTo(current-1);
+});
+
+// ===== 启动 =====
+initStars();
+initDots();
+</script>
+</body>
+</html>

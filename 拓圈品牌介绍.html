@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOPOO · 拓圈</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  :root {
+    --bg: #FAF9F7;
+    --text: #1A1A1A;
+    --text-light: #666666;
+    --text-lighter: #A0A0A0;
+    --border: #EBEBEB;
+    /* 主色——靛青，沉稳有辨识度 */
+    --accent: #7CB9C8;
+    --accent-light: #B8D4E3;
+    --accent-bg: rgba(124,185,200,0.06);
+  }
+  
+  html { scroll-behavior: smooth; }
+  
+  body {
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", "PingFang SC", "Noto Sans SC", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 容器 */
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+  
+  /* 导航 */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(250,249,247,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  
+  nav .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 56px;
+  }
+  
+  .logo {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--text);
+  }
+  
+  .logo span {
+    color: var(--text-light);
+    font-weight: 300;
+    font-size: 11px;
+    margin-left: 8px;
+    letter-spacing: 1px;
+  }
+  
+  nav .nav-links {
+    display: flex;
+    gap: 24px;
+    list-style: none;
+  }
+  
+  nav .nav-links a {
+    text-decoration: none;
+    color: var(--text-light);
+    font-size: 12px;
+    letter-spacing: 1px;
+    transition: color 0.3s;
+  }
+  
+  nav .nav-links a:hover { color: var(--accent); }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 120px 32px 80px;
+  }
+  
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--text-lighter);
+    margin-bottom: 40px;
+    text-transform: uppercase;
+  }
+  
+  .hero-title {
+    font-size: 42px;
+    font-weight: 200;
+    letter-spacing: 12px;
+    margin-bottom: 24px;
+    line-height: 1.3;
+  }
+  
+  .hero-title strong {
+    font-weight: 600;
+  }
+  
+  .hero-sub {
+    font-size: 15px;
+    color: var(--text-light);
+    font-weight: 300;
+    max-width: 400px;
+    line-height: 2;
+  }
+  
+  .hero-planet {
+    width: 120px;
+    height: 120px;
+    margin: 60px auto 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #B8D4E3, #7CB9C8 30%, #5A9AAF 55%, #468899 80%, #36707F);
+    box-shadow: 0 20px 60px rgba(124,185,200,0.25), 0 0 0 1px rgba(124,185,200,0.1), inset 0 -8px 20px rgba(54,112,127,0.3);
+    position: relative;
+    animation: planetFloat 6s ease-in-out infinite;
+  }
+
+  @keyframes planetFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  
+  .hero-planet::before {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    top: 25%;
+    left: 22%;
+    filter: blur(6px);
+  }
+  
+  .hero-planet::after {
+    content: '';
+    position: absolute;
+    width: 180px;
+    height: 8px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotateX(75deg);
+    border: 1px solid rgba(124,185,200,0.2);
+    border-radius: 50%;
+  }
+  
+  .scroll-hint {
+    margin-top: 60px;
+    font-size: 11px;
+    color: var(--text-lighter);
+    letter-spacing: 2px;
+  }
+  
+  .scroll-hint::after {
+    content: '';
+    display: block;
+    width: 1px;
+    height: 40px;
+    background: var(--border);
+    margin: 12px auto 0;
+  }
+
+  /* Section 通用 */
+  section {
+    padding: 100px 0;
+  }
+  
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+  
+  .section-title {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    margin-bottom: 48px;
+    line-height: 1.6;
+  }
+  
+  .section-title strong {
+    font-weight: 600;
+  }
+
+  /* 关于 */
+  .about-text {
+    font-size: 15px;
+    color: #444;
+    line-height: 2.2;
+    font-weight: 300;
+  }
+  
+  .about-text p { margin-bottom: 24px; }
+
+  /* 分隔 */
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    margin: 0;
+  }
+
+  /* 理念三块 */
+  .values {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 48px;
+    margin-top: 48px;
+  }
+  
+  .value-item {
+    padding: 40px 0;
+    border-top: 1px solid var(--border);
+    transition: background 0.3s;
+  }
+  
+  .value-num {
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+  
+  .value-title {
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  
+  .value-desc {
+    font-size: 14px;
+    color: var(--text-light);
+    line-height: 2;
+    font-weight: 300;
+  }
+
+  /* 角色 */
+  .roles-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    margin-top: 48px;
+  }
+  
+  .role-card {
+    background: var(--bg);
+    padding: 36px 28px;
+    transition: background 0.3s;
+  }
+  
+  .role-card:hover { background: var(--accent-bg); }
+  
+  .role-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    margin-bottom: 20px;
+  }
+  
+  .role-name-zh {
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  
+  .role-name-en {
+    font-size: 11px;
+    color: var(--text-lighter);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  
+  .role-desc {
+    font-size: 13px;
+    color: var(--text-light);
+    line-height: 1.9;
+    font-weight: 300;
+  }
+
+  /* 五行 */
+  .elements {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 48px;
+    flex-wrap: wrap;
+  }
+  
+  .element-item {
+    text-align: center;
+    width: 100px;
+  }
+  
+  .element-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 500;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .element-item:hover .element-circle {
+    transform: scale(1.08);
+  }
+  
+  .element-name {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  
+  .element-type {
+    font-size: 11px;
+    color: var(--text-lighter);
+  }
+
+  /* 碰撞 */
+  .collision-section {
+    text-align: center;
+    padding: 120px 0;
+    background: linear-gradient(180deg, var(--bg) 0%, var(--accent-bg) 50%, var(--bg) 100%);
+  }
+  
+  .collision-quote {
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: 3px;
+    line-height: 1.8;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+  
+  .collision-quote strong {
+    font-weight: 600;
+    color: var(--accent);
+  }
+  
+  .collision-sub {
+    font-size: 13px;
+    color: var(--text-lighter);
+    letter-spacing: 1px;
+  }
+
+  /* 大陆 */
+  .continents {
+    margin-top: 48px;
+  }
+  
+  .continent-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s;
+  }
+  
+  .continent-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .continent-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  
+  .continent-name {
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: 2px;
+  }
+  
+  .continent-keyword {
+    font-size: 12px;
+    color: var(--text-lighter);
+    letter-spacing: 1px;
+  }
+  
+  .continent-status {
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-light);
+  }
+  
+  .continent-status.active {
+    color: var(--accent);
+    border-color: var(--accent-light);
+    background: var(--accent-bg);
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 80px 0;
+    border-top: 1px solid var(--border);
+  }
+  
+  .footer-logo {
+    font-size: 20px;
+    font-weight: 200;
+    letter-spacing: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .footer-logo strong { font-weight: 600; }
+  
+  .footer-tagline {
+    font-size: 13px;
+    color: var(--text-lighter);
+    letter-spacing: 3px;
+    margin-bottom: 40px;
+  }
+  
+  .footer-info {
+    font-size: 11px;
+    color: var(--text-lighter);
+    letter-spacing: 1px;
+    line-height: 2.2;
+  }
+
+  /* 响应式 */
+  @media (max-width: 480px) {
+    .hero-title { font-size: 32px; letter-spacing: 8px; }
+    .hero-sub { font-size: 14px; }
+    .section-title { font-size: 24px; }
+    .roles-grid { grid-template-columns: 1fr; }
+    .elements { gap: 16px; }
+    .element-item { width: 80px; }
+    nav .nav-links { gap: 16px; }
+    nav .nav-links a { font-size: 11px; }
+    .container { padding: 0 24px; }
+    .hero-planet { width: 100px; height: 100px; }
+    .collision-quote { font-size: 18px; letter-spacing: 2px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 导航 -->
+<nav>
+  <div class="container">
+    <div class="logo">TOPOO <span>拓圈</span></div>
+    <ul class="nav-links">
+      <li><a href="#about">关于</a></li>
+      <li><a href="#values">理念</a></li>
+      <li><a href="#roles">角色</a></li>
+      <li><a href="#world">世界</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-eyebrow">EXPLORE · COLLIDE · GROW</div>
+  <h1 class="hero-title">让小而美<br>被世界看见</h1>
+  <p class="hero-sub">一个属于探索者的球形空间<br>在碰撞中找到同频的人</p>
+  <div class="hero-planet"></div>
+  <div class="scroll-hint">向下探索</div>
+</div>
+
+<!-- 关于 -->
+<section id="about">
+  <div class="container">
+    <div class="section-label">ABOUT</div>
+    <h2 class="section-title">不是流量池<br>是<strong>筛选器</strong></h2>
+    <div class="about-text">
+      <p>在算法时代，人越来越像数据。平台比你更了解你，你不用思考、不用选择，被动地接收被推荐的一切。刷完两个小时，关掉手机，什么都不记得。</p>
+      <p>拓圈要做的事情很简单——把"人"这个字还给每个人。</p>
+      <p>你进入一个球形空间，面前有很多星球。没有人告诉你该去哪颗星球，你自己走，自己看，自己感受。你在不同星球间穿梭、碰撞、发现——最终找到跟你同频的人和事。</p>
+      <p>这不是被喂养，是主动探索。被动的多巴胺质地是"爽但空洞"，主动发现的多巴胺质地是"我找到了"。</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 理念 -->
+<section id="values">
+  <div class="container">
+    <div class="section-label">VALUES</div>
+    <h2 class="section-title">加入拓圈之前<br>你需要认同<strong>三件事</strong></h2>
+    <div class="values">
+      <div class="value-item">
+        <div class="value-num">01</div>
+        <div class="value-title">长期主义</div>
+        <div class="value-desc">不急功近利，愿意花时间打磨自己和产品。相信慢就是快，好东西值得等待。</div>
+      </div>
+      <div class="value-item">
+        <div class="value-num">02</div>
+        <div class="value-title">探索精神</div>
+        <div class="value-desc">知道自己是谁，或者正在寻找自己是谁。在拓圈里发现自己的方向，和同频的人。</div>
+      </div>
+      <div class="value-item">
+        <div class="value-num">03</div>
+        <div class="value-title">同频共振</div>
+        <div class="value-desc">相信碰撞的力量。愿意跟一群人一起走，不是一个人抱着手机单打独斗。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 角色 -->
+<section id="roles">
+  <div class="container">
+    <div class="section-label">ROLES</div>
+    <h2 class="section-title">五种角色<br>一个<strong>生态</strong></h2>
+    <div class="roles-grid">
+      <div class="role-card">
+        <div class="role-icon" style="background: linear-gradient(135deg, #B8D4E3, #7CB9C8);"></div>
+        <div class="role-name-zh">漫游者</div>
+        <div class="role-name-en">WANDERER</div>
+        <div class="role-desc">路过星空的旅人。在星球间穿梭、观察、感受，寻找属于自己的频率。</div>
+      </div>
+      <div class="role-card">
+        <div class="role-icon" style="background: linear-gradient(135deg, #A8C8A0, #7BAF8B);"></div>
+        <div class="role-name-zh">探索者</div>
+        <div class="role-name-en">SEEKER</div>
+        <div class="role-desc">已踏入这片大陆的探索者。带着意图寻找方向，在碰撞中发现自己。</div>
+      </div>
+      <div class="role-card">
+        <div class="role-icon" style="background: linear-gradient(135deg, #E8A87C, #D4785A);"></div>
+        <div class="role-name-zh">创造者</div>
+        <div class="role-name-en">CREATOR</div>
+        <div class="role-desc">星球的建设者。拥有一个东西要分享，用灵魂创造价值，在碰撞中生长。</div>
+      </div>
+      <div class="role-card">
+        <div class="role-icon" style="background: linear-gradient(135deg, #C4B5D4, #9B8AAE);"></div>
+        <div class="role-name-zh">工作者</div>
+        <div class="role-name-en">WORKER</div>
+        <div class="role-desc">幕后力量的锻造者。用技能让创造者更强，是生态中最可靠的支撑。</div>
+      </div>
+      <div class="role-card">
+        <div class="role-icon" style="background: linear-gradient(135deg, #F2D07A, #E8B84D);"></div>
+        <div class="role-name-zh">链接者</div>
+        <div class="role-name-en">LINKER</div>
+        <div class="role-desc">星球之间的桥梁。搭线、撮合、推广，让碰撞跨越星球的边界。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 五行 -->
+<section>
+  <div class="container">
+    <div class="section-label">ELEMENTS</div>
+    <h2 class="section-title">创造者的<strong>五种属性</strong></h2>
+    <div class="elements">
+      <div class="element-item">
+        <div class="element-circle" style="background: linear-gradient(135deg, #E8A87C, #D4785A); color: #fff;">火</div>
+        <div class="element-name">门店型</div>
+        <div class="element-type">火塘 · 烟火气</div>
+      </div>
+      <div class="element-item">
+        <div class="element-circle" style="background: linear-gradient(135deg, #B8D4E3, #7CB9C8); color: #fff;">水</div>
+        <div class="element-name">内容型</div>
+        <div class="element-type">流淌 · 渗透</div>
+      </div>
+      <div class="element-item">
+        <div class="element-circle" style="background: linear-gradient(135deg, #A8C8A0, #7BAF8B); color: #fff;">木</div>
+        <div class="element-name">产品型</div>
+        <div class="element-type">生长 · 从0到1</div>
+      </div>
+      <div class="element-item">
+        <div class="element-circle" style="background: linear-gradient(135deg, #F2D07A, #E8B84D); color: #fff;">金</div>
+        <div class="element-name">服务型</div>
+        <div class="element-type">锻造 · 硬通货</div>
+      </div>
+      <div class="element-item">
+        <div class="element-circle" style="background: linear-gradient(135deg, #C4B5D4, #9B8AAE); color: #fff;">土</div>
+        <div class="element-name">活动型</div>
+        <div class="element-type">承载 · 万物</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 碰撞 -->
+<section class="collision-section">
+  <div class="container">
+    <div class="collision-quote">
+      不是协作，不是合作<br>
+      是<strong>碰撞</strong>
+    </div>
+    <p class="collision-sub">创造者之间互相扔想法、砸灵感，炸出谁都没想过的东西</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 世界 -->
+<section id="world">
+  <div class="container">
+    <div class="section-label">WORLD</div>
+    <h2 class="section-title">一片大陆<br>就是一座<strong>城市</strong></h2>
+    <div class="continents">
+      <div class="continent-item">
+        <div class="continent-left">
+          <div class="continent-dot" style="background: #7CB9C8;"></div>
+          <div>
+            <div class="continent-name">金陵大陆</div>
+            <div class="continent-keyword">创造 · 探索 · 起点</div>
+          </div>
+        </div>
+        <div class="continent-status active">已点亮</div>
+      </div>
+      <div class="continent-item">
+        <div class="continent-left">
+          <div class="continent-dot" style="background: #9B8AAE;"></div>
+          <div>
+            <div class="continent-name">姑苏大陆</div>
+            <div class="continent-keyword">美学 · 设计 · 精致</div>
+          </div>
+        </div>
+        <div class="continent-status">即将解锁</div>
+      </div>
+      <div class="continent-item">
+        <div class="continent-left">
+          <div class="continent-dot" style="background: #7BAF8B;"></div>
+          <div>
+            <div class="continent-name">钱塘大陆</div>
+            <div class="continent-keyword">流动 · 电商 · 数字</div>
+          </div>
+        </div>
+        <div class="continent-status">即将解锁</div>
+      </div>
+      <div class="continent-item">
+        <div class="continent-left">
+          <div class="continent-dot" style="background: #D4785A;"></div>
+          <div>
+            <div class="continent-name">锦官大陆</div>
+            <div class="continent-keyword">自在 · 美食 · 文创</div>
+          </div>
+        </div>
+        <div class="continent-status">未开放</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 产品定位 -->
+<section>
+  <div class="container">
+    <div class="section-label">POSITIONING</div>
+    <h2 class="section-title">产品试验田<br>商业研究所<br><strong>碰撞场</strong></h2>
+    <div class="about-text">
+      <p>拓圈不是一个平台，是一个生态。创造者在这里试验产品、打磨内容、验证想法；探索者在这里发现、体验、碰撞。</p>
+      <p>一颗健康的星球需要五行均衡——火的烟火气、水的流动感、木的生长力、金的锻造力、土的承载感。缺了哪个元素，生态都不完整。</p>
+      <p>而星球本身是有生命的。它的能量、价值观，随着创造者的碰撞不断变化。不碰撞的星球是死的，碰撞的星球才是活的。</p>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-logo"><strong>TOPOO</strong></div>
+    <div class="footer-tagline">让小而美被世界看见</div>
+    <div class="footer-info">
+      拓圈（南京）文化科技有限公司<br>
+      TOPSPACE · 拓圈宇宙
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

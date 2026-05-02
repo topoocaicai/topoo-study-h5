@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拓圈项目思维导图</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0d0d0d;
+  color: #e8e8e8;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.page {
+  min-width: 1600px;
+  padding: 60px 40px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* ── 顶部标题 ── */
+.header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+.header h1 {
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 8px;
+  background: linear-gradient(135deg, #ff6b35, #f7c948);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.header p {
+  margin-top: 10px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 3px;
+}
+
+/* ── 核心定位横幅 ── */
+.core-banner {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 50px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.core-pill {
+  padding: 10px 24px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid;
+  letter-spacing: 1px;
+}
+.core-pill.orange { background: rgba(255,107,53,0.12); border-color: rgba(255,107,53,0.4); color: #ff8c5a; }
+.core-pill.yellow { background: rgba(247,201,72,0.12); border-color: rgba(247,201,72,0.4); color: #f7c948; }
+.core-pill.gray { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); }
+
+/* ── 主体三列布局 ── */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  width: 100%;
+  max-width: 1500px;
+  margin-bottom: 24px;
+}
+
+/* 单个角色卡片 */
+.role-card {
+  border-radius: 20px;
+  border: 1px solid;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.role-card.creator { border-color: rgba(255,107,53,0.3); background: rgba(255,107,53,0.04); }
+.role-card.worker  { border-color: rgba(59,130,246,0.3); background: rgba(59,130,246,0.04); }
+.role-card.seeker  { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.04); }
+
+.role-header {
+  padding: 20px 24px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.role-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 800;
+  flex-shrink: 0;
+}
+.creator .role-icon { background: linear-gradient(135deg,#ff6b35,#f7c948); color: #0d0d0d; }
+.worker  .role-icon { background: linear-gradient(135deg,#3b82f6,#60a5fa); color: #fff; }
+.seeker  .role-icon { background: linear-gradient(135deg,#10b981,#34d399); color: #fff; }
+
+.role-title { font-size: 18px; font-weight: 700; }
+.role-en { font-size: 11px; opacity: 0.45; letter-spacing: 2px; margin-top: 2px; }
+.role-desc { font-size: 12px; opacity: 0.55; margin-top: 4px; }
+
+.role-body { padding: 16px 20px; flex: 1; }
+
+/* 子类型 */
+.sub-type { margin-bottom: 14px; }
+.sub-type-title {
+  font-size: 12px; font-weight: 700;
+  padding: 4px 12px; border-radius: 6px; display: inline-block;
+  margin-bottom: 8px;
+}
+.sub-type-title.product { background: rgba(255,107,53,0.2); color: #ff8c5a; }
+.sub-type-title.content { background: rgba(59,130,246,0.2); color: #60a5fa; }
+.sub-type-title.service { background: rgba(16,185,129,0.2); color: #34d399; }
+.sub-type-title.blue    { background: rgba(59,130,246,0.15); color: #60a5fa; }
+.sub-type-title.green   { background: rgba(16,185,129,0.15); color: #34d399; }
+.sub-type-title.purple  { background: rgba(139,92,246,0.15); color: #a78bfa; }
+
+.steps {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+.step {
+  padding: 3px 9px; border-radius: 4px;
+  font-size: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  white-space: nowrap;
+}
+.step-arrow {
+  font-size: 10px; opacity: 0.3; display: flex; align-items: center;
+}
+
+.info-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.info-item {
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  line-height: 1.5;
+}
+.info-item .label {
+  font-size: 10px; opacity: 0.4; display: block; margin-bottom: 2px;
+}
+
+.divider { height: 1px; background: rgba(255,255,255,0.06); margin: 12px 0; }
+
+/* ── Linker + 平台能力 两列 ── */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  width: 100%;
+  max-width: 1500px;
+  margin-bottom: 24px;
+}
+
+/* ── 商业模型全宽 ── */
+.full-row {
+  width: 100%;
+  max-width: 1500px;
+  margin-bottom: 24px;
+}
+
+.full-card {
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.02);
+  padding: 24px 28px;
+}
+
+.full-card h3 {
+  font-size: 15px; font-weight: 700; margin-bottom: 16px;
+  color: rgba(255,255,255,0.8);
+  display: flex; align-items: center; gap: 8px;
+}
+.full-card h3::before {
+  content: ''; display: block;
+  width: 4px; height: 16px; border-radius: 2px;
+}
+.full-card.biz h3::before { background: #f59e0b; }
+.full-card.target h3::before { background: #ec4899; }
+.full-card.support h3::before { background: #3b82f6; }
+
+.biz-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.biz-item {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+.biz-item .biz-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.biz-item .biz-val { font-size: 22px; font-weight: 800; color: #f7c948; }
+.biz-item .biz-note { font-size: 10px; opacity: 0.4; margin-top: 4px; line-height: 1.4; }
+
+.target-row {
+  display: flex; gap: 16px; align-items: stretch; flex-wrap: wrap;
+}
+.year-block {
+  flex: 1; min-width: 200px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+.year-label { font-size: 11px; opacity: 0.4; letter-spacing: 1px; margin-bottom: 8px; }
+.year-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+.year-items { display: flex; flex-direction: column; gap: 4px; }
+.year-item { font-size: 12px; opacity: 0.65; display: flex; align-items: center; gap: 6px; }
+.year-item::before { content: '·'; opacity: 0.4; }
+
+.support-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+.support-item {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(59,130,246,0.06);
+  border: 1px solid rgba(59,130,246,0.15);
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.support-item .si-num {
+  font-size: 20px; font-weight: 800; color: #60a5fa;
+  display: block; margin-bottom: 4px;
+}
+
+/* Linker卡片 */
+.role-card.linker { border-color: rgba(139,92,246,0.3); background: rgba(139,92,246,0.04); }
+.linker .role-icon { background: linear-gradient(135deg,#8b5cf6,#a78bfa); color: #fff; }
+
+/* 平台能力卡片 */
+.role-card.platform { border-color: rgba(100,116,139,0.3); background: rgba(100,116,139,0.04); }
+.platform .role-icon { background: linear-gradient(135deg,#475569,#64748b); color: #fff; }
+
+/* 自生长 */
+.grow-card {
+  border-radius: 20px;
+  border: 1px solid rgba(255,107,53,0.25);
+  background: linear-gradient(135deg, rgba(255,107,53,0.06), rgba(247,201,72,0.04));
+  padding: 28px 36px;
+  text-align: center;
+}
+.grow-card .formula {
+  font-size: 18px; font-weight: 700; letter-spacing: 2px;
+  color: rgba(255,255,255,0.85); margin-bottom: 10px;
+}
+.grow-card .formula span { color: #f7c948; }
+.grow-card .grow-desc { font-size: 13px; opacity: 0.5; line-height: 1.7; }
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- 标题 -->
+  <div class="header">
+    <h1>拓 圈</h1>
+    <p>Topoo · 让小而美被看见</p>
+  </div>
+
+  <!-- 核心标签 -->
+  <div class="core-banner">
+    <div class="core-pill orange">平台生态</div>
+    <div class="core-pill gray">集成抖音电商官方服务商资源</div>
+    <div class="core-pill gray">AI + 人工协作</div>
+    <div class="core-pill gray">OPC内容矩阵</div>
+    <div class="core-pill yellow">集群概念 · 非单一公司</div>
+  </div>
+
+  <!-- 三大主角色 -->
+  <div class="main-grid">
+
+    <!-- 创造者 -->
+    <div class="role-card creator">
+      <div class="role-header">
+        <div class="role-icon">C</div>
+        <div>
+          <div class="role-title">创造者 Creator</div>
+          <div class="role-en">CREATOR</div>
+          <div class="role-desc">你有一个东西要卖</div>
+        </div>
+      </div>
+      <div class="role-body">
+
+        <div class="sub-type">
+          <div class="sub-type-title product">① 产品型</div>
+          <div style="font-size:11px;opacity:0.45;margin-bottom:6px;">有实体/虚拟产品，要打抖音市场</div>
+          <div class="steps">
+            <span class="step">诊断定位</span>
+            <span class="step-arrow">→</span>
+            <span class="step">内容打磨</span>
+            <span class="step-arrow">→</span>
+            <span class="step">渠道铺设</span>
+            <span class="step-arrow">→</span>
+            <span class="step">验证调优</span>
+            <span class="step-arrow">→</span>
+            <span class="step">IP放大</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="sub-type">
+          <div class="sub-type-title content">② 内容型</div>
+          <div style="font-size:11px;opacity:0.45;margin-bottom:6px;">能做内容能种草，但缺变现支撑</div>
+          <div class="steps">
+            <span class="step">定位诊断</span>
+            <span class="step-arrow">→</span>
+            <span class="step">内容+选品一体化</span>
+            <span class="step-arrow">→</span>
+            <span class="step">制作发布</span>
+            <span class="step-arrow">→</span>
+            <span class="step">数据优化</span>
+            <span class="step-arrow">→</span>
+            <span class="step">商业变现</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="sub-type">
+          <div class="sub-type-title service">③ 服务型</div>
+          <div style="font-size:11px;opacity:0.45;margin-bottom:6px;">有技能有创意，要把能力变成产品</div>
+          <div class="steps">
+            <span class="step">能力包装</span>
+            <span class="step-arrow">→</span>
+            <span class="step">服务产品化</span>
+            <span class="step-arrow">→</span>
+            <span class="step">生态对接</span>
+            <span class="step-arrow">→</span>
+            <span class="step">信任建设</span>
+            <span class="step-arrow">→</span>
+            <span class="step">能力放大</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="info-list">
+          <div class="info-item">
+            <span class="label">经济模型</span>
+            种子期保证金入驻 · 免会员费 · 以完成任务形式激活
+          </div>
+          <div class="info-item">
+            <span class="label">目标配比（南京）</span>
+            产品型 400 / 内容型 300 / 服务型 300
+          </div>
+          <div class="info-item">
+            <span class="label">三类飞轮</span>
+            三种创造者互为客户 · 内循环生态
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 工作者 -->
+    <div class="role-card worker">
+      <div class="role-header">
+        <div class="role-icon">W</div>
+        <div>
+          <div class="role-title">工作者 Worker</div>
+          <div class="role-en">WORKER</div>
+          <div class="role-desc">你想用技能帮别人做事</div>
+        </div>
+      </div>
+      <div class="role-body">
+
+        <div class="sub-type">
+          <div class="sub-type-title blue">碳基工作者（人）</div>
+          <div class="info-list">
+            <div class="info-item">品牌运营 / 创意执行 / 商业对接 / 数据策略</div>
+            <div class="info-item">
+              <span class="label">成长路径</span>
+              见习 → 正式 → 资深 → 导师级（自裂变）
+            </div>
+            <div class="info-item">
+              <span class="label">结算方式</span>
+              按件计费 · 实时结算 · 不是平台发薪
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="sub-type">
+          <div class="sub-type-title green">硅基工作者（AI）</div>
+          <div class="steps" style="gap:6px;">
+            <span class="step">内容生产</span>
+            <span class="step">数据分析</span>
+            <span class="step">诊断咨询</span>
+            <span class="step">运营自动化</span>
+            <span class="step">学习成长</span>
+          </div>
+          <div style="font-size:11px;opacity:0.4;margin-top:8px;">Token结算 · AI做70%基础 · 人做30%关键判断</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="info-list">
+          <div class="info-item">
+            <span class="label">与创造者关系</span>
+            赋能关系 · 非雇佣 · 帮创造者跑得更快
+          </div>
+          <div class="info-item">
+            <span class="label">门槛</span>
+            无硬性门槛 · 任何人都可以选择成为工作者
+          </div>
+          <div class="info-item">
+            <span class="label">经济模型</span>
+            培训费 · 前期可免 · 成本内嵌于每笔交易
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 探索者 -->
+    <div class="role-card seeker">
+      <div class="role-header">
+        <div class="role-icon">S</div>
+        <div>
+          <div class="role-title">探索者 Seeker</div>
+          <div class="role-en">SEEKER</div>
+          <div class="role-desc">刚起步 · 还不确定要做什么</div>
+        </div>
+      </div>
+      <div class="role-body">
+
+        <div class="info-item" style="margin-bottom:12px;font-size:13px;font-weight:600;background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.2);">
+          免费进入 · 完成任务攒经验
+        </div>
+
+        <div class="sub-type">
+          <div class="sub-type-title green">三条升级路径（可混搭）</div>
+          <div class="info-list">
+            <div class="info-item">
+              <span class="label">任务线</span>
+              免费完成平台任务 · 积累经验值
+            </div>
+            <div class="info-item">
+              <span class="label">付费线</span>
+              花钱加速成长 · 跳过等待期
+            </div>
+            <div class="info-item">
+              <span class="label">积分线</span>
+              日常活跃行为积分 · 兑换资源和权益
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="sub-type">
+          <div class="sub-type-title green">毕业机制</div>
+          <div class="info-list">
+            <div class="info-item">达到经验值 → 完成角色意向测试</div>
+            <div class="info-item">系统推荐 + 用户自己决定 → 选择成为哪种角色</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="info-list">
+          <div class="info-item">
+            <span class="label">目标（南京）</span>
+            10万人
+          </div>
+          <div class="info-item">
+            <span class="label">拉新渠道</span>
+            OPC大赛 / 高校资源 / 抖音导流 / 线下活动裂变
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Linker + 平台能力 -->
+  <div class="bottom-grid">
+
+    <!-- 链接者 -->
+    <div class="role-card linker">
+      <div class="role-header">
+        <div class="role-icon">L</div>
+        <div>
+          <div class="role-title">链接者 Linker</div>
+          <div class="role-en">LINKER</div>
+          <div class="role-desc">你擅长搭桥和撮合</div>
+        </div>
+      </div>
+      <div class="role-body">
+        <div class="info-list">
+          <div class="info-item">
+            <span class="label">进入方式</span>
+            免费进入 · 3个月转正考核
+          </div>
+          <div class="info-item">
+            <span class="label">转正条件</span>
+            3个月内撮合3单 或 拉新10人
+          </div>
+          <div class="info-item">
+            <span class="label">收益方式</span>
+            按结果付佣金 · 直接从交易中分成 · 不拉人不撮合就没有收益
+          </div>
+          <div class="info-item">
+            <span class="label">目标（南京）</span>
+            50人
+          </div>
+          <div class="info-item">
+            <span class="label">作用</span>
+            生态润滑剂 · 推动平台内资源流通
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 平台能力 -->
+    <div class="role-card platform">
+      <div class="role-header">
+        <div class="role-icon" style="font-size:14px;">平台</div>
+        <div>
+          <div class="role-title">平台核心能力</div>
+          <div class="role-en">PLATFORM CAPABILITY</div>
+          <div class="role-desc">拓圈凭什么做这件事</div>
+        </div>
+      </div>
+      <div class="role-body">
+        <div class="info-list">
+          <div class="info-item">
+            <span class="label">① 资质壁垒</span>
+            集成抖音电商官方服务商资源 · 平台资质 + 资源对接通道
+          </div>
+          <div class="info-item">
+            <span class="label">② AI + 人工协作</span>
+            硅基承担基础工作 · 大幅降低赋能成本和门槛
+          </div>
+          <div class="info-item">
+            <span class="label">③ OPC内容矩阵</span>
+            同时运营1000+个抖音账号 · 规模效应
+          </div>
+          <div class="info-item">
+            <span class="label">④ 内容+选品一体化</span>
+            内容为卖货服务 · 选品是内容策略的一部分
+          </div>
+          <div class="info-item">
+            <span class="label">⑤ 三类创造者飞轮</span>
+            产品/内容/服务型互为客户 · 内循环生态自驱动
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 商业模型 -->
+  <div class="full-row">
+    <div class="full-card biz">
+      <h3>商业模型</h3>
+      <div class="biz-grid">
+        <div class="biz-item">
+          <div class="biz-name">带货佣金（核心）</div>
+          <div class="biz-val">约279万</div>
+          <div class="biz-note">全年GMV ~2790万 · 平台抽成10% · 南京第一年</div>
+        </div>
+        <div class="biz-item">
+          <div class="biz-name">工作者培训费</div>
+          <div class="biz-val">约30万</div>
+          <div class="biz-note">专业方向培训 · 前期可免</div>
+        </div>
+        <div class="biz-item">
+          <div class="biz-name">增值服务</div>
+          <div class="biz-val">约30万</div>
+          <div class="biz-note">AI工具 / 高级课程 / 资源对接</div>
+        </div>
+        <div class="biz-item">
+          <div class="biz-name">预估净利润</div>
+          <div class="biz-val">219-269万</div>
+          <div class="biz-note">成本70-120万 · 轻资产高杠杆模型</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:12px;opacity:0.4;line-height:1.8;padding:12px 16px;background:rgba(255,255,255,0.02);border-radius:10px;border:1px solid rgba(255,255,255,0.05);">
+        成本结构：碳基工作者按件计费 · Linker按结果付佣金 · 所有人员成本内嵌于交易，平台不承担固定人力成本<br>
+        底层逻辑：大量种子进入 → 平台赋能 → 部分人跑出来 → 成功案例放大 → 吸引更多人  |  成功率从1%提升到4%-5%，增量即平台价值
+      </div>
+    </div>
+  </div>
+
+  <!-- 三年目标 -->
+  <div class="full-row">
+    <div class="full-card target">
+      <h3>三年规划</h3>
+      <div class="target-row">
+        <div class="year-block">
+          <div class="year-label">YEAR 01</div>
+          <div class="year-title">南京打样</div>
+          <div class="year-items">
+            <div class="year-item">探索者 10万人</div>
+            <div class="year-item">创造者 1000人</div>
+            <div class="year-item">工作者 200人</div>
+            <div class="year-item">链接者 50人</div>
+            <div class="year-item">OPC账号 1000+个</div>
+            <div class="year-item">营收约339万 / 利润约219-269万</div>
+          </div>
+        </div>
+        <div class="year-block">
+          <div class="year-label">YEAR 02</div>
+          <div class="year-title">城市复制</div>
+          <div class="year-items">
+            <div class="year-item">复制到3-5个城市</div>
+            <div class="year-item">验证模型的城市迁移能力</div>
+            <div class="year-item">南京样本形成标准化运营体系</div>
+            <div class="year-item">OPC矩阵规模倍增</div>
+          </div>
+        </div>
+        <div class="year-block">
+          <div class="year-label">YEAR 03</div>
+          <div class="year-title">全国成型</div>
+          <div class="year-items">
+            <div class="year-item">布局10+城市</div>
+            <div class="year-item">全国平台成型</div>
+            <div class="year-item">生态自驱 · 平台自生长</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 终极目标 -->
+  <div class="full-row">
+    <div class="grow-card">
+      <div class="formula">
+        定位准确 <span>+</span> 规则设定 <span>+</span> 逻辑理清 <span>=</span> 自生长
+      </div>
+      <div class="grow-desc">
+        拓圈的终极形态：不靠推，不靠催，平台自己在转——创造者在赋能，工作者在成长，链接者在撮合，探索者在进入<br>
+        共建 · 共创 · 共治 · 共享 · 让每个人都能在里面自生长
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
