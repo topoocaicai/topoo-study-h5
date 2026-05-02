@@ -134,6 +134,15 @@
   .service-item .si-text strong { color: var(--text); font-weight: 600; }
   .quote-bar { background: var(--heritage-light); border-left: 3px solid var(--heritage); border-radius: 0 8px 8px 0; padding: 20px 24px; margin-bottom: 32px; }
   .quote-bar p { font-size: 14px; color: var(--heritage); line-height: 1.8; font-style: italic; }
+  .day-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 40px; }
+  .ds-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 12px 8px; text-align: center; position: relative; overflow: hidden; }
+  .ds-card::before { content:''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .ds-card.d1::before { background: var(--rust); }
+  .ds-card.d2::before { background: var(--amber); }
+  .ds-card.d3::before { background: var(--blue); }
+  .ds-card .ds-day { font-size: 9px; color: var(--text-lighter); letter-spacing: 1px; margin-bottom: 4px; }
+  .ds-card .ds-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 2px; white-space: nowrap; }
+  .ds-card .ds-loc { font-size: 9px; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .back-cover { min-height: 50vh; background: var(--sky-dark); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; padding: 80px 40px; }
   .back-cover::before { content:''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 65% 18%, rgba(74,158,184,.5),transparent),radial-gradient(1px 1px at 80% 45%, rgba(255,255,255,.3),transparent),radial-gradient(1px 1px at 35% 72%, rgba(74,158,184,.4),transparent); pointer-events: none; }
   .back-cover .bc-logo { position: relative; z-index: 1; margin-bottom: 24px; width: 64px; height: 64px; border-radius: 16px; background: #F5F0E8; display: flex; align-items: center; justify-content: center; }
@@ -167,8 +176,8 @@
   <div class="cover-main">
     <div class="cover-eyebrow">古都南京 · 文脉探索营</div>
     <div class="cover-intl">International Study Program · Immersion Track</div>
-    <div class="cover-title">英国</div>
-    <span class="cover-title-accent">英国14日13晚·全面沉浸 / 英国14日13晚 Study Program for United Kingdom University Students</span>
+    <div class="cover-title">中国南京</div>
+    <span class="cover-title-accent">英国14日13晚 · 全面沉浸<br>United Kingdom 14D13N · Study Program for University Students</span>
     <div class="cover-divider"></div>
     <div class="cover-subtitle">两周时间，五个阶段<br>从看见中国到理解中国，从体验文化到创造文化<br>从大不列颠到六朝古都的文化之旅
 A Cultural Journey from Britain to the Ancient Capital</div>
@@ -195,12 +204,12 @@ A Cultural Journey from Britain to the Ancient Capital</div>
       <div class="overview-card">
         <div class="oc-label">项目名称</div>
         <div class="oc-value">古都文脉探索营 · 全面沉浸版</div>
-        <div class="oc-note">海外学生中华文化全景研学项目（大中小学通用版）</div>
+        <div class="oc-note">海外学生中华文化全景研学项目</div>
       </div>
       <div class="overview-card">
         <div class="oc-label">适用对象</div>
         <div class="oc-value">United Kingdom大学生 / University Students from United Kingdom</div>
-        <div class="oc-note">按年龄段分层活动，大学版侧重学术研究，中小学侧重体验探索</div>
+        <div class="oc-note">面向英国高校在读大学生，按专业背景分组活动</div>
       </div>
       <div class="overview-card">
         <div class="oc-label">行程规模</div>
