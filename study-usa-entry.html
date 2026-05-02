@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>拓圈研学 · 东盟 · 南京文脉探索营 / TOPOO Study Tour · ASEAN</title>
+<title>拓圈研学 · 美国 · 南京文脉探索营 / TOPOO Study Tour · United States</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   :root {
@@ -17,15 +17,15 @@
     --green:#A0B87A; --green-light:#EBF2E0; --green-dark:#7D9A58;
     --sky-dark:#0B0F1E;
     --heritage:#8B6F47; --heritage-light:#F0E8DB;
-    --main:#4A9EB8; --main-light:#DAEEF5; --main-dark:#357A95;
+    --main:#A0B87A; --main-light:#EBF2E0; --main-dark:#7D9A58;
   }
   html { scroll-behavior:smooth; }
   body { font-family:-apple-system,"SF Pro Display","Helvetica Neue","PingFang SC","Noto Sans SC",sans-serif; background:var(--paper); color:var(--text); font-size:15px; line-height:1.7; -webkit-font-smoothing:antialiased; }
   .page { max-width:900px; margin:0 auto; padding:0 32px; }
   .cover { min-height:100vh; background:var(--sky-dark); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; overflow:hidden; padding:60px 40px; }
-  .cover::before { content:''; position:absolute; top:0; left:0; right:0; bottom:0; background:radial-gradient(1px 1px at 22% 81%, rgba(74,158,184,0.40581903708322775),transparent),radial-gradient(1px 1px at 17% 56%, rgba(74,158,184,0.3671978331200533),transparent),radial-gradient(1px 1px at 71% 61%, rgba(74,158,184,0.4380554824369575),transparent),radial-gradient(1px 1px at 67% 59%, rgba(74,158,184,0.471535788285516),transparent),radial-gradient(1px 1px at 54% 63%, rgba(255,255,255,0.4031741239018781),transparent),radial-gradient(1px 1px at 89% 53%, rgba(255,255,255,0.4386405796560116),transparent),radial-gradient(1px 1px at 59% 52%, rgba(255,255,255,0.22312805402811073),transparent),radial-gradient(1px 1px at 27% 36%, rgba(255,255,255,0.3816613213548981),transparent),radial-gradient(1px 1px at 43% 63%, rgba(74,158,184,0.5031345105796649),transparent),radial-gradient(1px 1px at 44% 69%, rgba(74,158,184,0.3671322550303803),transparent),radial-gradient(1px 1px at 37% 20%, rgba(255,255,255,0.40259060284937326),transparent),radial-gradient(1px 1px at 71% 30%, rgba(74,158,184,0.4623308315695516),transparent),radial-gradient(1px 1px at 91% 33%, rgba(74,158,184,0.4694903161258237),transparent),radial-gradient(1px 1px at 12% 80%, rgba(255,255,255,0.22659203079555232),transparent),radial-gradient(1px 1px at 95% 8%, rgba(74,158,184,0.658686746685711),transparent); pointer-events:none; }
-  .cover-pattern { position:absolute; bottom:0; left:0; right:0; height:180px; background:linear-gradient(to top,rgba(74,158,184,.12) 0%,transparent 100%); pointer-events:none; }
-  .cover-pattern::before { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background:linear-gradient(90deg,transparent,rgba(74,158,184,.4),rgba(232,180,76,.3),rgba(74,158,184,.3),transparent); }
+  .cover::before { content:''; position:absolute; top:0; left:0; right:0; bottom:0; background:radial-gradient(1px 1px at 34% 55%, rgba(255,255,255,0.4483965888319602),transparent),radial-gradient(1px 1px at 82% 83%, rgba(160,184,122,0.6791051389586408),transparent),radial-gradient(1px 1px at 47% 43%, rgba(160,184,122,0.6016868749290396),transparent),radial-gradient(1px 1px at 19% 31%, rgba(160,184,122,0.6445782727494521),transparent),radial-gradient(1px 1px at 92% 89%, rgba(160,184,122,0.5613451070085032),transparent),radial-gradient(1px 1px at 49% 63%, rgba(160,184,122,0.6514195217320343),transparent),radial-gradient(1px 1px at 27% 86%, rgba(255,255,255,0.285686594649787),transparent),radial-gradient(1px 1px at 70% 82%, rgba(160,184,122,0.3003991043682903),transparent),radial-gradient(1px 1px at 51% 70%, rgba(160,184,122,0.5143932142562172),transparent),radial-gradient(1px 1px at 44% 78%, rgba(160,184,122,0.406914408525868),transparent),radial-gradient(1px 1px at 88% 69%, rgba(160,184,122,0.6279076200730986),transparent),radial-gradient(1px 1px at 82% 17%, rgba(160,184,122,0.3726530811012736),transparent),radial-gradient(1px 1px at 25% 91%, rgba(160,184,122,0.6815623633819288),transparent),radial-gradient(1px 1px at 19% 49%, rgba(255,255,255,0.21027630203878425),transparent),radial-gradient(1px 1px at 77% 75%, rgba(160,184,122,0.39368664528898195),transparent); pointer-events:none; }
+  .cover-pattern { position:absolute; bottom:0; left:0; right:0; height:180px; background:linear-gradient(to top,rgba(160,184,122,.12) 0%,transparent 100%); pointer-events:none; }
+  .cover-pattern::before { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background:linear-gradient(90deg,transparent,rgba(160,184,122,.4),rgba(232,180,76,.3),rgba(74,158,184,.3),transparent); }
   .cover-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 20px; border:1px solid rgba(255,255,255,.12); border-radius:100px; margin-bottom:40px; position:relative; z-index:1; }
   .cover-badge img { width:24px; height:24px; border-radius:6px; }
   .cover-badge span { font-size:11px; letter-spacing:3px; color:rgba(255,255,255,.45); font-family:Georgia,serif; }
@@ -42,7 +42,7 @@
   .cover-meta-item .label { font-size:10px; color:rgba(255,255,255,.3); letter-spacing:2px; margin-top:4px; }
   .cover-version { position:absolute; bottom:40px; font-size:10px; color:rgba(255,255,255,.15); letter-spacing:2px; z-index:1; }
   .back-cover { min-height:40vh; background:var(--sky-dark); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; overflow:hidden; padding:60px 40px; }
-  .back-cover::before { content:''; position:absolute; top:0; left:0; right:0; bottom:0; background:radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 65% 18%,rgba(74,158,184,.5),transparent); pointer-events:none; }
+  .back-cover::before { content:''; position:absolute; top:0; left:0; right:0; bottom:0; background:radial-gradient(1px 1px at 20% 30%,rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 65% 18%,rgba(160,184,122,.5),transparent); pointer-events:none; }
   .back-cover .bc-logo { position:relative; z-index:1; margin-bottom:16px; width:64px; height:64px; border-radius:16px; background:#F5F0E8; display:flex; align-items:center; justify-content:center; }
   .back-cover .bc-logo img { width:40px; height:auto; }
   .back-cover .bc-slogan { position:relative; z-index:1; font-size:14px; color:rgba(255,255,255,.35); letter-spacing:2px; margin-top:8px; }
@@ -118,9 +118,9 @@
   </div>
   <div class="cover-main">
     <div class="cover-eyebrow">古都南京 · 文脉探索营 / Nanjing Cultural Camp</div>
-    <div class="cover-title">东盟</div>
+    <div class="cover-title">美国</div>
     <span class="cover-title-accent">中华文化研学之旅 · 大学生专场</span>
-    <span class="cover-title-en">Chinese Culture Study Tour for University Students from ASEAN Countries</span>
+    <span class="cover-title-en">Chinese Culture Study Tour for University Students from the United States</span>
     <div class="cover-divider"></div>
     <div class="cover-subtitle">读万卷书，行万里路<br>在六朝古都中触摸中华文明的脉搏<br>Read ten thousand books, walk ten thousand miles — Touch the pulse of Chinese civilization.</div>
   </div>
@@ -135,7 +135,7 @@
     </div>
   </div>
   <div class="cover-pattern"></div>
-  <div class="cover-version">TOPOO STUDY TOUR · ASEAN · 2026</div>
+  <div class="cover-version">TOPOO STUDY TOUR · UNITED STATES · 2026</div>
 </div>
 
 <div class="page">
@@ -181,11 +181,11 @@
     <div class="section-title">选择你的研学行程 / Choose Your Program</div>
     <div class="section-desc">三大行程方案，按需选择，同样的文脉深度，不同的探索节奏。<br>Three programs, same cultural depth, different exploration rhythms.</div>
     <div class="choose-grid">
-      <a class="choose-card" href="拓圈研学·东盟·4日3晚·古都文脉探索营.html">
+      <a class="choose-card" href="study-usa-4d3n.html">
         <div class="choose-icon">🌿</div>
         <div class="choose-duration">4日3晚 / 4Days3Nights</div>
         <div class="choose-name">文脉初探<span class="choose-name-accent">Cultural Primer / 初识金陵</span></div>
-        <div class="choose-price"><span class="currency">¥</span>9,980<span class="unit">/人 · per person</span></div>
+        <div class="choose-price"><span class="currency">¥</span>19,980<span class="unit">/人 · per person</span></div>
         <div class="choose-tags">
           <span class="choose-tag">大学生 / University</span>
           <span class="choose-tag">南京 / Nanjing</span>
@@ -193,11 +193,11 @@
         </div>
         <div class="choose-arrow">查看详情 / View Details <span>→</span></div>
       </a>
-      <a class="choose-card" href="拓圈研学·东盟·7日6晚·古都文脉探索营.html">
+      <a class="choose-card" href="study-usa-7d6n.html">
         <div class="choose-icon">🌳</div>
         <div class="choose-duration">7日6晚 / 7Days6Nights</div>
         <div class="choose-name">深度探索<span class="choose-name-accent">Deep Dive / 深度体验</span></div>
-        <div class="choose-price"><span class="currency">¥</span>15,980<span class="unit">/人 · per person</span></div>
+        <div class="choose-price"><span class="currency">¥</span>25,980<span class="unit">/人 · per person</span></div>
         <div class="choose-tags">
           <span class="choose-tag">大学生 / University</span>
           <span class="choose-tag">南京 / Nanjing</span>
@@ -205,11 +205,11 @@
         </div>
         <div class="choose-arrow">查看详情 / View Details <span>→</span></div>
       </a>
-      <a class="choose-card" href="拓圈研学·东盟·14日13晚·古都文脉探索营.html">
+      <a class="choose-card" href="study-usa-14d13n.html">
         <div class="choose-icon">🌲</div>
         <div class="choose-duration">14日13晚 / 14Days13Nights</div>
         <div class="choose-name">全面沉浸<span class="choose-name-accent">Full Immersion / 全面体验</span></div>
-        <div class="choose-price"><span class="currency">¥</span>23,980<span class="unit">/人 · per person</span></div>
+        <div class="choose-price"><span class="currency">¥</span>33,980<span class="unit">/人 · per person</span></div>
         <div class="choose-tags">
           <span class="choose-tag">大学生 / University</span>
           <span class="choose-tag">南京 / Nanjing</span>
@@ -266,8 +266,8 @@
   <div class="bc-slogan">让小而美被世界看见 / Let the Small and Beautiful Be Seen</div>
   <div class="bc-info">
     TOPOO · TopSpace<br>
-    古都文脉探索营 · 东盟 · 入口页<br>
-    Nanjing Cultural Camp · ASEAN · Entry Page<br>
+    古都文脉探索营 · 美国 · 入口页<br>
+    Nanjing Cultural Camp · United States · Entry Page<br>
     <br>
     本方案最终解释权归主办方所有<br>
     Final interpretation right reserved by the organizer
