@@ -62,7 +62,14 @@
   .route-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; }
   .route-card:hover::before { height:6px; }
   .route-card-header { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
-  .route-card-icon { font-size:36px; flex-shrink:0; }
+  .route-card-icon { width:14px; height:14px; border-radius:50%; flex-shrink:0; }
+  .card-k12 .route-card-icon { background:#A0B87A; }
+  .card-hkmt .route-card-icon { background:#D96B6B; }
+  .card-uk .route-card-icon { background:#E8B44C; }
+  .card-usa .route-card-icon { background:#A0B87A; }
+  .card-russia .route-card-icon { background:#D96B6B; }
+  .card-asean .route-card-icon { background:#4A9EB8; }
+  .card-europe .route-card-icon { background:#9B7BBF; }
   .route-card-info { flex:1; }
   .route-card-name { font-size:20px; font-weight:700; color:var(--text); letter-spacing:1px; line-height:1.4; }
   .route-card-name-en { font-size:11px; color:var(--text-lighter); font-family:Georgia,serif; letter-spacing:1px; margin-top:2px; }
@@ -177,7 +184,7 @@
     <div class="route-grid">
       <a class="route-card card-k12" href="study-domestic-k12-entry.html">
         <div class="route-card-header">
-          <div class="route-card-icon">🏫</div>
+          <div class="route-card-icon"></div>
           <div class="route-card-info">
             <div class="route-card-name">国内中小学生</div>
             <div class="route-card-name-en">Domestic K-12 Students</div>
@@ -194,7 +201,7 @@
     <div class="route-grid">
       <a class="route-card card-hkmt" href="study-hk-macao-taiwan-entry.html">
         <div class="route-card-header">
-          <div class="route-card-icon">🌊</div>
+          <div class="route-card-icon"></div>
           <div class="route-card-info">
             <div class="route-card-name">港澳台</div>
             <div class="route-card-name-en">Hong Kong, Macao & Taiwan</div>
@@ -211,7 +218,7 @@
     <div class="route-grid">
       <a class="route-card card-uk" href="study-uk-entry.html">
         <div class="route-card-header">
-          <div class="route-card-icon">🇬🇧</div>
+          <div class="route-card-icon"></div>
           <div class="route-card-info">
             <div class="route-card-name">英国</div>
             <div class="route-card-name-en">United Kingdom</div>
@@ -224,7 +231,7 @@
 
       <a class="route-card card-usa" href="study-usa-entry.html">
         <div class="route-card-header">
-          <div class="route-card-icon">🇺🇸</div>
+          <div class="route-card-icon"></div>
           <div class="route-card-info">
             <div class="route-card-name">美国</div>
             <div class="route-card-name-en">United States</div>
@@ -237,7 +244,7 @@
 
       <a class="route-card card-russia" href="study-russia-entry.html">
         <div class="route-card-header">
-          <div class="route-card-icon">🇷🇺</div>
+          <div class="route-card-icon"></div>
           <div class="route-card-info">
             <div class="route-card-name">俄罗斯</div>
             <div class="route-card-name-en">Russia</div>
@@ -250,7 +257,7 @@
 
       <a class="route-card card-asean" href="study-asean-entry.html">
         <div class="route-card-header">
-          <div class="route-card-icon">🌏</div>
+          <div class="route-card-icon"></div>
           <div class="route-card-info">
             <div class="route-card-name">东盟</div>
             <div class="route-card-name-en">ASEAN Countries</div>
@@ -263,7 +270,7 @@
 
       <a class="route-card card-europe" href="study-europe-entry.html">
         <div class="route-card-header">
-          <div class="route-card-icon">🇪🇺</div>
+          <div class="route-card-icon"></div>
           <div class="route-card-info">
             <div class="route-card-name">欧洲大陆</div>
             <div class="route-card-name-en">Continental Europe</div>
