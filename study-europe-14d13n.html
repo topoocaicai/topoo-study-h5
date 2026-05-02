@@ -134,6 +134,15 @@
   .service-item .si-text strong { color: var(--text); font-weight: 600; }
   .quote-bar { background: var(--heritage-light); border-left: 3px solid var(--heritage); border-radius: 0 8px 8px 0; padding: 20px 24px; margin-bottom: 32px; }
   .quote-bar p { font-size: 14px; color: var(--heritage); line-height: 1.8; font-style: italic; }
+  .day-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 40px; }
+  .ds-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 12px 8px; text-align: center; position: relative; overflow: hidden; }
+  .ds-card::before { content:''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .ds-card.d1::before { background: var(--rust); }
+  .ds-card.d2::before { background: var(--amber); }
+  .ds-card.d3::before { background: var(--blue); }
+  .ds-card .ds-day { font-size: 9px; color: var(--text-lighter); letter-spacing: 1px; margin-bottom: 4px; }
+  .ds-card .ds-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 2px; white-space: nowrap; }
+  .ds-card .ds-loc { font-size: 9px; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .back-cover { min-height: 50vh; background: var(--sky-dark); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; padding: 80px 40px; }
   .back-cover::before { content:''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 65% 18%, rgba(74,158,184,.5),transparent),radial-gradient(1px 1px at 80% 45%, rgba(255,255,255,.3),transparent),radial-gradient(1px 1px at 35% 72%, rgba(74,158,184,.4),transparent); pointer-events: none; }
   .back-cover .bc-logo { position: relative; z-index: 1; margin-bottom: 24px; width: 64px; height: 64px; border-radius: 16px; background: #F5F0E8; display: flex; align-items: center; justify-content: center; }
@@ -200,7 +209,7 @@ East Meets West — Discover China in Nanjing</div>
       <div class="overview-card">
         <div class="oc-label">适用对象</div>
         <div class="oc-value">Continental Europe大学生 / University Students from Continental Europe</div>
-        <div class="oc-note">按年龄段分层活动，大学版侧重学术研究，中小学侧重体验探索</div>
+        <div class="oc-note">面向欧洲大陆高校在读大学生，按专业背景分组活动</div>
       </div>
       <div class="overview-card">
         <div class="oc-label">行程规模</div>
@@ -486,7 +495,7 @@ East Meets West — Discover China in Nanjing</div>
   <div class="section">
     <div class="section-label">Calligraphy Education</div>
     <div class="section-title">书法教育特色</div>
-    <div class="section-desc">本营特邀书法教育家、"南京市王羲之书法艺术研究会"发起人授课，采用独创"三三式"书法学习法，让海外学生在14天沉浸中系统感受汉字之美。</div>
+    <div class="section-desc">本营特邀书法教育家、"南京市王羲之书法艺术研究会"发起人授课，采用独创"三三式"书法学习法，让海外学生在研学中感受汉字之美、中华文化之深。</div>
     <div class="overview-grid">
       <div class="overview-card">
         <div class="oc-label">教学方法</div>
