@@ -55,8 +55,7 @@
     .cover-meta{gap:20px;}
     .nj-grid{grid-template-columns:1fr;}
     .choose-grid{grid-template-columns:1fr;}
-    .proj-grid{grid-template-columns:1fr;}
-    .choose-price{font-size:28px;}
+.choose-price{font-size:28px;}
   }
 
   .nj-section { padding:56px 0; border-bottom:1px solid var(--border-light); }
@@ -90,171 +89,15 @@
   .choose-arrow { margin-top:20px; font-size:13px; color:var(--main-dark); font-weight:500; letter-spacing:1px; }
   .choose-arrow span { display:inline-block; transition:transform .2s; }
   .choose-card:hover .choose-arrow span { transform:translateX(4px); }
-  .projects-section { padding:56px 0; border-top:1px solid var(--border-light); }
-  .projects-section .section-label { font-size:10px; letter-spacing:4px; color:var(--text-lighter); text-transform:uppercase; margin-bottom:8px; }
-  .projects-section .section-title { font-size:24px; font-weight:600; color:var(--text); letter-spacing:2px; margin-bottom:8px; }
-  .projects-section .section-desc { font-size:13px; color:var(--text-mid); line-height:1.8; margin-bottom:32px; max-width:600px; }
-  .proj-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  .proj-item { display:flex; gap:12px; padding:14px 16px; background:var(--paper-light); border:1px solid var(--border); border-radius:10px; align-items:flex-start; }
-  .proj-num { width:24px; height:24px; border-radius:50%; background:var(--main); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
-  .proj-text h5 { font-size:13px; font-weight:600; color:var(--text); margin-bottom:2px; }
+
+
+.proj-text h5 { font-size:13px; font-weight:600; color:var(--text); margin-bottom:2px; }
   .proj-text p { font-size:11px; color:var(--text-light); line-height:1.5; }
-  .flight-note { background:var(--blue-light); border:1px solid rgba(74,158,184,.2); border-radius:10px; padding:16px 20px; margin-top:32px; display:flex; align-items:center; gap:12px; }
-  .flight-note .fn-icon { font-size:20px; flex-shrink:0; }
-  .flight-note .fn-text { font-size:13px; color:var(--blue-dark); line-height:1.6; }
-  .price-note { background:var(--amber-light); border:1px solid rgba(232,180,76,.2); border-radius:10px; padding:16px 20px; margin-top:20px; display:flex; align-items:center; gap:12px; }
-  .price-note .pn-icon { font-size:20px; flex-shrink:0; }
-  .price-note .pn-text { font-size:13px; color:var(--amber-dark); line-height:1.6; font-weight:500; }
+
 
 </style>
 </head>
 <body>
-
-<!-- ===== 封面 / Cover ===== -->
-<div class="cover">
-  <div class="cover-badge">
-    <img src="https://topoocaicai.github.io/topoo-study-h5/topoo-logo.png" alt="TOPOO" onerror="this.style.display='none'">
-    <span>TOPOO · STUDY TOUR</span>
-  </div>
-  <div class="cover-main">
-    <div class="cover-eyebrow">古都南京 · 文脉探索营 / Nanjing Cultural Camp</div>
-    <div class="cover-title">中国南京</div>
-    <span class="cover-title-accent">中华文化研学之旅 · 英国大学生专场</span>
-    <span class="cover-title-en">Chinese Culture Study Tour for University Students from the United Kingdom</span>
-    <div class="cover-divider"></div>
-    <div class="cover-subtitle">读万卷书，行万里路<br>在六朝古都中触摸中华文明的脉搏<br>Read ten thousand books, walk ten thousand miles — Touch the pulse of Chinese civilization.</div>
-  </div>
-  <div class="cover-meta">
-    <div class="cover-meta-item">
-      <div class="val">大学生 / University</div>
-      <div class="label">适用学段 / Target</div>
-    </div>
-    <div class="cover-meta-item">
-      <div class="val">南京 / Nanjing</div>
-      <div class="label">研学目的地 / Destination</div>
-    </div>
-  </div>
-  <div class="cover-pattern"></div>
-  <div class="cover-version">TOPOO STUDY TOUR · UNITED KINGDOM · 2026</div>
-</div>
-
-<div class="page">
-<!-- ===== 南京城市介绍 / Nanjing City Profile ===== -->
-  <div class="nj-section">
-    <div class="section-label">City Profile / 城市介绍</div>
-    <div class="section-title">南京城市介绍 / Nanjing City Profile</div>
-    <div class="section-desc">
-      南京，江苏省省会，地处长江下游中部，是中国四大古都之一，有"六朝古都、十朝都会"之称。全市面积6587平方公里，常住人口约950万。<br>
-      Nanjing, capital of Jiangsu Province, is one of China's Four Great Ancient Capitals, known as the "Ancient Capital of Six Dynasties and Ten Regimes". Total area: 6,587 km², permanent population: approx. 9.5 million.
-    </div>
-    <div class="nj-grid">
-      <div class="nj-card">
-        <div class="nj-label">历史地位 / Historical Status</div>
-        <div class="nj-value">六朝古都 · 十朝都会</div>
-        <div class="nj-note">近2500年建城史，450年建都史，与西安、洛阳、北京并称中国四大古都<br>Approx. 2,500 years of city history, 450 years as a capital</div>
-      </div>
-      <div class="nj-card">
-        <div class="nj-label">科教实力 / Education</div>
-        <div class="nj-value">中国高等教育第三城</div>
-        <div class="nj-note">拥有53所高等院校，在校大学生超85万，仅次于北京、上海<br>53 universities, 850,000+ students — 3rd in China</div>
-      </div>
-      <div class="nj-card">
-        <div class="nj-label">地理气候 / Climate</div>
-        <div class="nj-value">北亚热带湿润气候</div>
-        <div class="nj-note">四季分明，春秋宜人。年平均温度15.4°C，是理想研学目的地<br>Four distinct seasons, avg. temp 15.4°C — ideal for study tours</div>
-      </div>
-      <div class="nj-card">
-        <div class="nj-label">产业名片 / Industry</div>
-        <div class="nj-value">六朝古都 · 创新名城</div>
-        <div class="nj-note">拥有软件谷、江北新区等国家级园区，长三角特大城市<br>Home to Natl Software Valley, major Yangtze Delta city</div>
-      </div>
-    </div>
-    <div class="nj-quote">
-      <p>"江南佳丽地，金陵帝王州。" 南京——世界文学之都，联合国教科文组织"世界图书之都"。<br>
-      "Beautiful Jiangnan, imperial Jinling." Nanjing — UNESCO City of Literature.</p>
-    </div>
-  </div>
-
-<!-- ===== 选择行程 / Choose Your Program ===== -->
-  <div class="choose-section">
-    <div class="section-label">Choose Your Program</div>
-    <div class="section-title">选择你的研学行程 / Choose Your Program</div>
-    <div class="section-desc">三大行程方案，按需选择，同样的文脉深度，不同的探索节奏。<br>Three programs, same cultural depth, different exploration rhythms.</div>
-    <div class="choose-grid">
-      <a class="choose-card" href="study-uk-4d3n.html">
-        <div class="choose-icon">🌿</div>
-        <div class="choose-duration">4日3晚 / 4Days3Nights</div>
-        <div class="choose-name">文脉初探<span class="choose-name-accent">Cultural Primer / 初识金陵</span></div>
-        <div class="choose-price"><span class="currency">¥</span>15,980<span class="unit">/人 · per person</span></div>
-        <div class="choose-tags">
-          <span class="choose-tag">大学生 / University</span>
-          <span class="choose-tag">南京 / Nanjing</span>
-          <span class="choose-tag">中英双语 / Bilingual</span>
-        </div>
-        <div class="choose-arrow">查看详情 / View Details <span>→</span></div>
-      </a>
-      <a class="choose-card" href="study-uk-7d6n.html">
-        <div class="choose-icon">🌳</div>
-        <div class="choose-duration">7日6晚 / 7Days6Nights</div>
-        <div class="choose-name">深度探索<span class="choose-name-accent">Deep Dive / 深度体验</span></div>
-        <div class="choose-price"><span class="currency">¥</span>22,980<span class="unit">/人 · per person</span></div>
-        <div class="choose-tags">
-          <span class="choose-tag">大学生 / University</span>
-          <span class="choose-tag">南京 / Nanjing</span>
-          <span class="choose-tag">中英双语 / Bilingual</span>
-        </div>
-        <div class="choose-arrow">查看详情 / View Details <span>→</span></div>
-      </a>
-      <a class="choose-card" href="study-uk-14d13n.html">
-        <div class="choose-icon">🌲</div>
-        <div class="choose-duration">14日13晚 / 14Days13Nights</div>
-        <div class="choose-name">全面沉浸<span class="choose-name-accent">Full Immersion / 全面体验</span></div>
-        <div class="choose-price"><span class="currency">¥</span>30,980<span class="unit">/人 · per person</span></div>
-        <div class="choose-tags">
-          <span class="choose-tag">大学生 / University</span>
-          <span class="choose-tag">南京 / Nanjing</span>
-          <span class="choose-tag">中英双语 / Bilingual</span>
-        </div>
-        <div class="choose-arrow">查看详情 / View Details <span>→</span></div>
-      </a>
-    </div>
-    <div class="flight-note">
-      <div class="fn-icon">✈️</div>
-      <div class="fn-text"><strong>机票说明 / Flight Info：</strong>往返机票需自行订购，或联系拓圈统一代订（指定航班）。报价不含往返南京大交通。<br>
-      Round-trip tickets can be self-booked or arranged by TOPOO (designated flights). Quotation excludes transport to/from Nanjing.</div>
-    </div>
-    <div class="price-note">
-      <div class="pn-icon">💡</div>
-      <div class="pn-text">报价为标准档价格，定制内容另加费用。可根据需求定制专属研学方案。<br>
-      Quotation is standard rate. Custom content incurs additional fees. Tailor-made programs available.</div>
-    </div>
-  </div>
-
-<!-- ===== 备选研学项目 / Optional Programs ===== -->
-  <div class="projects-section">
-    <div class="section-label">Optional Programs / 备选项目</div>
-    <div class="section-title">定制特色服务 · 备选项目</div>
-    <div class="section-desc">除标准行程外，还可从以下16个精品研学项目中自由选择搭配，定制专属研学方案。<br>
-    In addition to the standard itinerary, choose from 16 curated programs to customize your study tour.</div>
-    <div class="proj-grid">
-      <div class="proj-item"><div class="proj-num">1</div><div class="proj-text"><h5>南京云锦研究所 / Nanjing Yunjin</h5><p>国家级非遗，观摩大花楼木织机，动手制作云锦书签<br>Natl Intangible Heritage. Observe wooden looms, make bookmark</p></div></div>
-      <div class="proj-item"><div class="proj-num">2</div><div class="proj-text"><h5>金陵金箔 / Jinling Gold Foil</h5><p>国家级非遗，观摩捶箔切箔，体验贴金DIY<br>Natl Intangible Heritage. Gold foil hammering & DIY</p></div></div>
-      <div class="proj-item"><div class="proj-num">3</div><div class="proj-text"><h5>苏州苏绣研究所 / Suzhou Embroidery</h5><p>国家级苏绣非遗保护单位，学习劈丝针法<br>Natl Suzhou embroidery. Learn splitting-silk technique</p></div></div>
-      <div class="proj-item"><div class="proj-num">4</div><div class="proj-text"><h5>南通华艺集团 / Nantong Huayi</h5><p>国家级示范基地，蓝印花布/扎染体验<br>Natl demonstration base. Blue calico & tie-dye</p></div></div>
-      <div class="proj-item"><div class="proj-num">5</div><div class="proj-text"><h5>南京1865创意产业园 / Nanjing 1865 Park</h5><p>金陵机器制造局遗址，AR工业考古体验<br>Former arsenal site. AR industrial archaeology</p></div></div>
-      <div class="proj-item"><div class="proj-num">6</div><div class="proj-text"><h5>南航研学基地 / NUAA Base</h5><p>航空航天科普，体验飞行模拟驾驶<br>Aerospace science. Flight simulator experience</p></div></div>
-      <div class="proj-item"><div class="proj-num">7</div><div class="proj-text"><h5>苏州金龙（海格客车）/ Suzhou Jinlong</h5><p>智能客车龙头，试乘自动驾驶小巴<br>Smart bus leader. Ride autonomous shuttle</p></div></div>
-      <div class="proj-item"><div class="proj-num">8</div><div class="proj-text"><h5>卫岗乳业 / Weigang Dairy</h5><p>百年中华老字号，DIY酸奶/奶片制作<br>100-year-old brand. DIY yogurt & milk tablets</p></div></div>
-      <div class="proj-item"><div class="proj-num">9</div><div class="proj-text"><h5>镇江恒顺醋文化博物馆 / Zhenjiang Vinegar Museum</h5><p>国家4A级景区，体验原浆醋品鉴<br>Natl 4A scenic area. Original vinegar tasting</p></div></div>
-      <div class="proj-item"><div class="proj-num">10</div><div class="proj-text"><h5>苏州沙洲优黄文化园 / Suzhou Rice Wine Park</h5><p>江南黄酒文化地标，体验花雕酒坛彩绘<br>Jiangnan rice wine landmark. Wine jar painting</p></div></div>
-      <div class="proj-item"><div class="proj-num">11</div><div class="proj-text"><h5>南京上汽南汽 / SAIC Nanjing</h5><p>南京老牌汽车工业基地，观摩新能源制造<br>Legacy auto base. NEV manufacturing tour</p></div></div>
-      <div class="proj-item"><div class="proj-num">12</div><div class="proj-text"><h5>元气森林江苏工厂 / Genki Forest JS</h5><p>现代化无菌饮品工厂，饮品调配DIY<br>Modern aseptic plant. DIY drink blending</p></div></div>
-      <div class="proj-item"><div class="proj-num">13</div><div class="proj-text"><h5>洋河酒厂 / Yanghe Distillery</h5><p>国家4A级景区，绵柔白酒国标制定者<br>Natl 4A. Mianrou baijiu standard-setter</p></div></div>
-      <div class="proj-item"><div class="proj-num">14</div><div class="proj-text"><h5>今世缘 / Jinshiyuan</h5><p>国家4A级景区，"缘文化"主题体验<br>Natl 4A. "Yuan Culture" theme experience</p></div></div>
-      <div class="proj-item"><div class="proj-num">15</div><div class="proj-text"><h5>观朴非遗木作 / Guanpu Woodwork</h5><p>专注中式榫卯木作研学，鲁班锁拼装<br>Traditional mortise-tenon. Luban lock assembly</p></div></div>
-      <div class="proj-item"><div class="proj-num">16</div><div class="proj-text"><h5>南京机器人科普教育基地 / Nanjing Robot Base</h5><p>机器人与AI科普，机器狗表演体验<br>Robotics & AI popularization. Robot dog show</p></div></div>
-    </div>
-  </div>
 </div>
 
 <!-- ===== 封底 / Back Cover ===== -->
