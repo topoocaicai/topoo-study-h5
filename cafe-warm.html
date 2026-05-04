@@ -65,10 +65,16 @@ body{background:#0A1020;overflow:hidden;font-family:-apple-system,"PingFang SC",
       </div>
     </div>
     <div id="npcText" style="color:#C8D8E8;font-size:14px;line-height:1.7;min-height:48px;margin-bottom:16px;"></div>
-    <div id="npcOptions" style="display:flex;flex-direction:column;gap:8px;"></div>
-    <div style="text-align:right;margin-top:8px;">
-      <button id="npcClose" style="padding:6px 18px;background:transparent;border:1px solid #4A5568;border-radius:16px;color:#6A7A8A;font-size:12px;cursor:pointer;">离开对话</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;">
+      <div id="npcAttentionBox" style="padding:8px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;text-align:center;min-width:90px;">
+        <div style="color:rgba(255,255,255,.4);font-size:10px;margin-bottom:2px;">注意力</div>
+        <div id="npcAttentionVal" style="color:#D4A040;font-size:22px;font-weight:700;line-height:1;">100</div>
+      </div>
+      <button id="npcIgnite" style="flex:1;padding:12px 16px;background:linear-gradient(135deg,rgba(212,160,64,.15),rgba(232,93,48,.15));border:1.5px solid rgba(212,160,64,.5);border-radius:12px;color:#D4A040;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:1px;">
+        ✨ 点亮
+      </button>
     </div>
+    <div id="npcIgniteAnim" style="position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);pointer-events:none;font-size:28px;font-weight:700;color:#D4A040;opacity:0;transition:all .6s ease-out;text-shadow:0 0 20px rgba(212,160,64,.6);"></div>
   </div>
 </div>
 
@@ -104,6 +110,9 @@ scn.fog=new THREE.FogExp2(0x0A1020,0.0006);
 var appMode='block'; // 'block' | 'cafe'
 var cafeGroup=null;
 var blockGroup=new THREE.Group(); scn.add(blockGroup);
+// 注意力数值系统
+var npcAttention=100;
+function updateAttentionUI(){var el=document.getElementById('npcAttentionVal');if(el)el.textContent=npcAttention;}
 // Keep references to global objects for mode switching
 var gAmbient=null, gMoon=null, gHemi=null, gStars=null;
 var ren=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true});
@@ -922,8 +931,8 @@ function buildCafeScene(){
         add(cafe,new THREE.BoxGeometry(0.08,5.5,0.08),M2(0x4A2D1E),wi,3.75,-7.05);
     }
 
-    // 内部浅色墙
-    add(cafe,new THREE.BoxGeometry(18.5,4.8,12.5),M2(0xF5F0E8,{shin:5,spec:0x0A0A0A}),0,3.4,0);
+    // 内部浅色墙（暖黄色）
+    add(cafe,new THREE.BoxGeometry(18.5,4.8,12.5),M2(0xFFDD99,{shin:5,spec:0x1A1008}),0,3.4,0);
 
     // ----- 屋顶（精致坡屋顶）-----
     var roofMat=M2(0x2A2520,{shin:20,spec:0x333333});
@@ -1362,15 +1371,19 @@ function buildCafeScene(){
         cafeLight2.position.set(5,3.5,-11);
         scn.add(cafeLight2);lightCount++;
     }
-    // 咖啡馆内部暖光（进入后可见）
-    var cafeAmbient=new THREE.AmbientLight(0xFFCC88,0.35);
+    // 咖啡馆内部暖光（进入后可见）—— 加强版
+    var cafeAmbient=new THREE.AmbientLight(0xFFCC88,0.7);
     cafeGroup.add(cafeAmbient);
-    var cafeSpot=new THREE.SpotLight(0xFFDD99,0.5,25,Math.PI/5,0.5);
+    var cafeSpot=new THREE.SpotLight(0xFFDD99,1.5,30,Math.PI/4,0.4);
     cafeSpot.position.set(0,5.5,-4);
     cafeSpot.target.position.set(0,1,-7);
     cafeSpot.castShadow=true;
     cafeGroup.add(cafeSpot);
     cafeGroup.add(cafeSpot.target);
+    // 桌面点光源（暖黄光晕）
+    var tableLight=new THREE.PointLight(0xFFAA44,0.8,12);
+    tableLight.position.set(0,2.2,-6);
+    cafeGroup.add(tableLight);
 
     console.log('Cafe scene built, lights:',lightCount);
 }
@@ -1986,6 +1999,7 @@ var npcLineIdx=0;
 
 function openNpcDialog(){
     npcLineIdx=0;
+    updateAttentionUI();
     renderNpcDialog();
     document.getElementById('npcDialog').style.display='flex';
 }
@@ -2022,7 +2036,24 @@ function renderNpcDialog(){
     btn2.onclick=closeNpcDialog;
     optsDiv.appendChild(btn2);
 }
-document.getElementById('npcClose').onclick=closeNpcDialog;
+function updateAttentionUI(){
+    var el=document.getElementById('npcAttentionVal');
+    if(el)el.textContent=npcAttention;
+}
+// ===== 点亮按钮逻辑 =====
+document.getElementById('npcIgnite').onclick=function(){
+    npcAttention+=1;
+    updateAttentionUI();
+    var anim=document.getElementById('npcIgniteAnim');
+    anim.textContent='+1 ✨';
+    anim.style.opacity='1';
+    anim.style.transform='translate(-50%,-50%) translateY(-30px)';
+    setTimeout(function(){anim.style.opacity='0';anim.style.transform='translate(-50%,-50%) translateY(0)';},1200);
+};
+// ===== 点击遮罩层关闭对话框 =====
+document.getElementById('npcDialog').addEventListener('click',function(e){
+    if(e.target===this) closeNpcDialog();
+});
 document.getElementById('itemPopupClose').onclick=function(){document.getElementById('itemPopup').style.display='none';};
 
 // ===== 海报/笔记本弹框系统 =====
