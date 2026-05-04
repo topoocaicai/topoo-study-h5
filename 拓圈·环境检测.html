@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>拓圈·环境检测</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0A1020;color:#C8D8E8;font-family:-apple-system,"PingFang SC",sans-serif;padding:30px 20px;line-height:1.8;min-height:100vh}
+h1{color:#4A9EB8;font-size:18px;margin-bottom:20px;letter-spacing:2px}
+.box{background:rgba(26,42,58,.6);border:1px solid rgba(74,158,184,.3);border-radius:12px;padding:20px;margin-bottom:16px}
+.box h3{color:#D4A040;font-size:14px;margin-bottom:8px}
+.box p{font-size:13px;color:#8A9AAA;word-break:break-all}
+.ok{color:#A0B87A}.no{color:#E89090}.warn{color:#D4A040}
+.tip{margin-top:30px;padding:16px;background:rgba(212,160,64,.1);border:1px solid rgba(212,160,64,.3);border-radius:8px;font-size:13px;color:#D4A040;line-height:2}
+</style>
+</head>
+<body>
+<h1>&#x1F50D; 拓圈·环境检测</h1>
+
+<div class="box">
+<h3>&#x2705; 这个页面能打开吗？</h3>
+<p>如果你能看到这段文字，说明HTML文件本身可以正常读取。<br>如果看不到，说明文件传输出问题。</p>
+</div>
+
+<div class="box" id="jsTest" style="display:none">
+<h3 class="ok">&#x2705; JavaScript 已启用</h3>
+<p id="jsInfo">JS可以正常执行</p>
+</div>
+
+<div class="box" id="jsFail">
+<h3 class="no">&#x274C; JavaScript 未启用</h3>
+<p>JS被禁用了。3D页面需要JS才能运行。<br>请尝试：<br>1. 用系统自带浏览器（Safari/Chrome）打开<br>2. 不要在微信里直接打开本地HTML文件<br>3. 检查浏览器设置是否禁用了JS</p>
+</div>
+
+<div class="box" id="webglTest" style="display:none">
+<h3 id="webglTitle">WebGL 检测中...</h3>
+<p id="webglInfo"></p>
+</div>
+
+<div class="box" id="uaBox" style="display:none">
+<h3>&#x1F4F1; 浏览器信息</h3>
+<p id="uaText"></p>
+</div>
+
+<div class="tip">
+&#x1F4A1; <b>如何正确打开HTML文件：</b><br>
+<b>苹果手机：</b>先把文件存到"文件"App，用Safari打开<br>
+<b>安卓手机：</b>存到本地，用Chrome打开<br>
+<b>不要：</b>在微信里直接点开本地HTML文件（JS会被禁用）
+</div>
+
+<script>
+document.getElementById('jsTest').style.display='block';
+document.getElementById('jsFail').style.display='none';
+
+// WebGL test
+var cv=document.createElement('canvas');
+var gl=cv.getContext('webgl2')||cv.getContext('webgl');
+document.getElementById('webglTest').style.display='block';
+if(gl){
+    document.getElementById('webglTitle').className='ok';
+    document.getElementById('webglTitle').innerHTML='&#x2705; WebGL 支持';
+    document.getElementById('webglInfo').textContent='您的浏览器支持3D渲染，可以运行3D街区。';
+}else{
+    document.getElementById('webglTitle').className='no';
+    document.getElementById('webglTitle').innerHTML='&#x274C; WebGL 不支持';
+    document.getElementById('webglInfo').textContent='您的浏览器不支持3D渲染。建议使用Chrome或Safari。';
+}
+
+// UA
+document.getElementById('uaBox').style.display='block';
+document.getElementById('uaText').textContent=navigator.userAgent;
+</script>
+</body>
+</html>

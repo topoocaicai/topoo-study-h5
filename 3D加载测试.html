@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>3D加载测试</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0A1020;overflow:hidden;font-family:-apple-system,"PingFang SC",sans-serif}
+#loading{position:fixed;inset:0;background:#0A1020;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500}
+.ld-ring{width:48px;height:48px;border:3px solid rgba(74,158,184,.2);border-top:3px solid #4A9EB8;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ld-txt{color:#4A9EB8;font-size:13px;letter-spacing:2px}
+#result{position:fixed;inset:0;background:#0A1020;display:none;flex-direction:column;align-items:center;justify-content:center;color:#F5F0E8;padding:30px;text-align:center;line-height:2;font-size:14px}
+#result .ok{color:#A0B87A;font-size:20px;font-weight:bold}
+#result .no{color:#E89090;font-size:20px;font-weight:bold}
+</style>
+</head>
+<body>
+<div id="loading">
+    <div class="ld-ring"></div>
+    <div class="ld-txt">正在测试加载...</div>
+</div>
+<div id="result"></div>
+<script src="three.min.js"></script>
+<script>
+var ld=document.getElementById('loading');
+var res=document.getElementById('result');
+var html='';
+
+if(typeof THREE==='undefined'){
+    html='<div class="no">THREE.js 加载失败</div><div style="color:#8A9AAA;font-size:12px;margin-top:10px">本地文件加载被阻止</div><div style="color:#8A9AAA;font-size:11px;margin-top:10px">请尝试用Safari/Chrome打开</div>';
+}else{
+    html='<div class="ok">THREE.js 加载成功!</div>';
+    html+='<div style="color:#8A9AAA;font-size:12px;margin-top:10px">版本: r'+THREE.REVISION+'</div>';
+    html+='<div style="color:#8A9AAA;font-size:11px;margin-top:10px">UA: '+navigator.userAgent.substring(0,60)+'</div>';
+    // Quick 3D test
+    try{
+        var s=new THREE.Scene();
+        var c=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,0.1,100);
+        var r=new THREE.WebGLRenderer({antialias:true});
+        r.setSize(innerWidth,innerHeight);
+        r.domElement.style.position='fixed';
+        r.domElement.style.inset='0';
+        document.body.appendChild(r.domElement);
+        var box=new THREE.Mesh(new THREE.BoxGeometry(2,2,2),new THREE.MeshStandardMaterial({color:0x4A9EB8}));
+        box.position.y=1;
+        s.add(box);
+        s.add(new THREE.AmbientLight(0xffffff,0.5));
+        s.add(new THREE.DirectionalLight(0xffffff,1));
+        c.position.set(3,3,3);
+        c.lookAt(0,1,0);
+        function anim(){requestAnimationFrame(anim);box.rotation.y+=0.01;r.render(s,c);}
+        anim();
+        html+='<div style="color:#A0B87A;font-size:12px;margin-top:10px">3D渲染: 成功(旋转立方体)</div>';
+    }catch(e){
+        html+='<div class="no" style="font-size:12px;margin-top:10px">3D渲染失败: '+e.message+'</div>';
+    }
+    html+='<div style="color:#4A9EB8;font-size:11px;margin-top:20px">如果你能看到旋转的蓝色方块，说明3D完全正常!</div>';
+}
+
+ld.style.display='none';
+res.style.display='flex';
+res.innerHTML=html;
+</script>
+</body>
+</html>

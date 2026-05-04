@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TopSpace · 拓圈课堂</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#F5F0E8;--bg2:#EDE7DB;--bg3:#E5DFD3;
+--dark:#0B0F1E;--dark2:#1A1E2E;--dark3:#2A2E3E;
+--fire:#D96B6B;--water:#4A9EB8;--wood:#A0B87A;--gold:#E8B44C;--earth:#9B7BBF;
+--text:#2C2824;--text2:#5C5752;--text3:#8A8580;
+--radius:12px;--radius-lg:16px;--radius-xl:24px;
+}
+body{
+font-family:'Noto Sans SC',sans-serif;
+background:var(--bg);color:var(--text);
+line-height:1.8;font-size:15px;
+-webkit-font-smoothing:antialiased;
+}
+.page{
+max-width:420px;margin:0 auto;min-height:100vh;
+background:var(--bg);overflow-x:hidden;position:relative;
+}
+
+/* 导航 */
+.nav-bar{
+position:sticky;top:0;z-index:50;
+display:flex;align-items:center;
+padding:16px 24px 12px;
+background:rgba(245,240,232,0.92);
+backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.nav-back{font-size:18px;color:var(--text);cursor:pointer;padding:4px 8px 4px 0;text-decoration:none;}
+.nav-title-area{flex:1;text-align:center}
+.nav-title{font-size:16px;font-weight:700;letter-spacing:2px;color:var(--text)}
+.nav-subtitle{font-size:11px;color:var(--text3);margin-top:2px;letter-spacing:1px}
+.nav-right{width:40px}
+
+/* Hero */
+.hero{
+position:relative;
+padding:0 28px 40px;
+background:linear-gradient(165deg,#2A2518 0%,#3A3520 50%,#2A2818 100%);
+color:#fff;overflow:hidden;
+}
+.hero::before{
+content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;
+background:radial-gradient(circle,rgba(232,180,76,0.2) 0%,transparent 70%);
+border-radius:50%;
+}
+.hero::after{
+content:'';position:absolute;bottom:-30px;left:-30px;width:160px;height:160px;
+background:radial-gradient(circle,rgba(160,184,122,0.1) 0%,transparent 70%);
+border-radius:50%;
+}
+.hero-tag{
+display:inline-block;padding:4px 14px;
+background:rgba(232,180,76,0.15);border:1px solid rgba(232,180,76,0.25);
+border-radius:20px;font-size:12px;color:var(--gold);
+letter-spacing:1px;margin-bottom:16px;
+}
+.hero h1{
+font-family:'Noto Serif SC',serif;
+font-size:28px;font-weight:700;line-height:1.4;
+margin-bottom:10px;letter-spacing:2px;
+}
+.hero h1 span{color:var(--gold)}
+.hero-sub{
+font-size:13px;color:rgba(255,255,255,0.5);
+line-height:1.8;font-weight:300;
+}
+.hero-stars{
+position:absolute;top:10px;left:0;right:0;height:100%;
+pointer-events:none;
+}
+.hero-stars .star{
+position:absolute;background:#fff;border-radius:50%;
+animation:twinkle 3s ease-in-out infinite alternate;
+}
+@keyframes twinkle{0%{opacity:0.15}100%{opacity:0.7}}
+
+.content{padding:0 24px 60px;}
+
+/* 筛选 */
+.filter-bar{
+margin-top:-20px;position:relative;z-index:10;
+display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;
+}
+.filter-tag{
+flex-shrink:0;padding:7px 14px;border-radius:20px;
+font-size:12px;font-weight:500;cursor:pointer;
+transition:all 0.2s;background:#fff;color:var(--text3);
+box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.filter-tag.active{
+background:var(--gold);color:#fff;
+box-shadow:0 2px 10px rgba(232,180,76,0.3);
+}
+
+/* 通用section */
+.section-header{margin-top:32px;margin-bottom:14px}
+.section-title{
+font-family:'Noto Serif SC',serif;
+font-size:17px;font-weight:600;color:var(--dark);
+margin-bottom:4px;padding-left:14px;
+border-left:3px solid var(--gold);line-height:1.4;
+}
+.section-sub{font-size:12px;color:var(--text3)}
+
+/* 哲学心法 */
+.philo-list{display:flex;flex-direction:column;gap:10px}
+.philo-card{
+background:#fff;border-radius:var(--radius);
+padding:16px;box-shadow:0 2px 12px rgba(0,0,0,0.03);
+cursor:pointer;display:flex;gap:12px;align-items:center;
+transition:transform 0.2s;position:relative;overflow:hidden;
+}
+.philo-card:active{transform:scale(0.98)}
+.philo-card::before{
+content:'';position:absolute;top:0;left:0;
+width:3px;height:100%;border-radius:3px 0 0 3px;
+background:var(--gold);opacity:0.35;
+}
+.philo-icon{
+width:38px;height:38px;border-radius:10px;flex-shrink:0;
+background:rgba(232,180,76,0.08);
+display:flex;align-items:center;justify-content:center;
+font-size:16px;
+}
+.philo-info{flex:1}
+.philo-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.philo-desc{font-size:11px;color:var(--text3);line-height:1.6}
+.philo-arrow{font-size:14px;color:#D0C8C0;flex-shrink:0}
+
+/* 课程列表 */
+.course-list{display:flex;flex-direction:column;gap:8px}
+.course-card{
+background:#fff;border-radius:var(--radius);padding:14px 16px;
+box-shadow:0 2px 12px rgba(0,0,0,0.03);cursor:pointer;
+display:flex;align-items:center;gap:12px;transition:transform 0.2s;
+}
+.course-card:active{transform:scale(0.98)}
+.course-level{
+font-size:9px;font-weight:700;padding:4px 8px;border-radius:6px;
+flex-shrink:0;text-align:center;line-height:1.3;min-width:42px;
+}
+.lv-beginner{background:rgba(160,184,122,0.12);color:#7A9E50}
+.lv-mid{background:rgba(74,158,184,0.12);color:#4A9EB8}
+.lv-senior{background:rgba(217,107,107,0.12);color:#D96B6B}
+.lv-special{background:rgba(232,180,76,0.12);color:#C9942E}
+.lv-purple{background:rgba(155,123,191,0.12);color:#9B7BBF}
+.course-info{flex:1}
+.course-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.course-meta{font-size:10px;color:var(--text3);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.course-arrow{font-size:14px;color:#D0C8C0;flex-shrink:0}
+
+/* 师资 */
+.teacher-list{display:flex;flex-direction:column;gap:8px}
+.teacher-card{
+background:#fff;border-radius:var(--radius);padding:14px 16px;
+box-shadow:0 2px 12px rgba(0,0,0,0.03);
+display:flex;gap:12px;align-items:center;
+}
+.teacher-avatar{
+width:42px;height:42px;border-radius:50%;
+display:flex;align-items:center;justify-content:center;
+font-size:15px;font-weight:700;color:#fff;flex-shrink:0;
+}
+.teacher-info{flex:1}
+.teacher-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.teacher-title{font-size:10px;color:var(--text3);line-height:1.6}
+
+/* 底部引用 */
+.bottom-quote{
+margin-top:40px;
+background:linear-gradient(135deg,#2A2518,#3A3520);
+color:#fff;border-radius:var(--radius-xl);
+padding:28px 24px;position:relative;overflow:hidden;
+}
+.bottom-quote::before{
+content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,var(--gold),var(--fire));
+}
+.bq-text{
+font-family:'Noto Serif SC',serif;
+font-size:16px;line-height:2;
+color:rgba(255,255,255,0.85);
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+<!-- 导航 -->
+<div class="nav-bar">
+    <a class="nav-back" href="TopSpace·碰撞·主入口·H5.html">&#8249;</a>
+    <div class="nav-title-area">
+        <div class="nav-title">拓圈课堂</div>
+        <div class="nav-subtitle">COURSE · 哲学心法 + AI赋能</div>
+    </div>
+    <div class="nav-right"></div>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+    <div class="hero-stars" id="heroStars"></div>
+    <div class="hero-tag">&#9875; 工信部认证 &#183; 拓圈独家</div>
+    <h1>让小而美<br><span>被世界看见</span></h1>
+    <div class="hero-sub">哲学心法帮你找到方向，AI赋能帮你跑得更快<br>拓圈课堂，陪你从0到1长出自己的东西</div>
+</div>
+
+<div class="content">
+<!-- 筛选 -->
+<div class="filter-bar">
+    <div class="filter-tag active">全部</div>
+    <div class="filter-tag">&#9854; 哲学心法</div>
+    <div class="filter-tag">&#129302; AI赋能</div>
+    <div class="filter-tag">&#128220; 工信部认证</div>
+</div>
+
+<!-- 哲学心法 -->
+<div class="section-header">
+    <div class="section-title">&#9854; 哲学心法 &#183; 6讲</div>
+    <div class="section-sub">不是教手艺，是教你「心法」</div>
+</div>
+<div class="philo-list">
+    <div class="philo-card">
+        <div class="philo-icon">&#128269;</div>
+        <div class="philo-info">
+            <div class="philo-name">第一讲：探索 vs 喂养</div>
+            <div class="philo-desc">算法投喂让你被动空洞，主动探索才是真正的看见</div>
+        </div>
+        <div class="philo-arrow">&#8250;</div>
+    </div>
+    <div class="philo-card">
+        <div class="philo-icon">&#128171;</div>
+        <div class="philo-info">
+            <div class="philo-name">第二讲：痕迹即灵魂</div>
+            <div class="philo-desc">你碰撞过谁、点亮过什么，3个月后拼出你的灵魂画像</div>
+        </div>
+        <div class="philo-arrow">&#8250;</div>
+    </div>
+    <div class="philo-card">
+        <div class="philo-icon">&#129517;</div>
+        <div class="philo-info">
+            <div class="philo-name">第三讲：空白即力量</div>
+            <div class="philo-desc">不知道自己是谁没关系，留白是等待被碰撞填满的空间</div>
+        </div>
+        <div class="philo-arrow">&#8250;</div>
+    </div>
+    <div class="philo-card">
+        <div class="philo-icon">&#9889;</div>
+        <div class="philo-info">
+            <div class="philo-name">第四讲：共鸣靠「一瞬间」</div>
+            <div class="philo-desc">不是所有人都会触动你，但那一瞬间的碰撞更有意义</div>
+        </div>
+        <div class="philo-arrow">&#8250;</div>
+    </div>
+    <div class="philo-card">
+        <div class="philo-icon">&#10067;</div>
+        <div class="philo-info">
+            <div class="philo-name">第五讲：提问即筛选</div>
+            <div class="philo-desc">你问出的问题，本身就是你的灵魂在发声</div>
+        </div>
+        <div class="philo-arrow">&#8250;</div>
+    </div>
+    <div class="philo-card">
+        <div class="philo-icon">&#9854;</div>
+        <div class="philo-info">
+            <div class="philo-name">第六讲：愿力塑造未来</div>
+            <div class="philo-desc">一个人的念想是种子，一群人的念想是土壤</div>
+        </div>
+        <div class="philo-arrow">&#8250;</div>
+    </div>
+</div>
+
+<!-- AI赋能课程 -->
+<div class="section-header">
+    <div class="section-title">&#129302; AI赋能 &#183; 工信部认证</div>
+    <div class="section-sub">从入门到实战，体系化AI能力培养</div>
+</div>
+<div class="course-list">
+    <div class="course-card">
+        <div class="course-level lv-beginner">初级<br>13课</div>
+        <div class="course-info">
+            <div class="course-name">人工智能内容生成师（初级）</div>
+            <div class="course-meta">
+                <span>AI写作 &#183; PPT &#183; 数据分析 &#183; 设计</span>
+                <span>&#183;</span><span>工信部认证</span>
+            </div>
+        </div>
+        <div class="course-arrow">&#8250;</div>
+    </div>
+    <div class="course-card">
+        <div class="course-level lv-mid">中级<br>16课</div>
+        <div class="course-info">
+            <div class="course-name">人工智能内容生成师（中级）</div>
+            <div class="course-meta">
+                <span>提示词 &#183; 短视频 &#183; AI绘画 &#183; 智能体</span>
+                <span>&#183;</span><span>工信部认证</span>
+            </div>
+        </div>
+        <div class="course-arrow">&#8250;</div>
+    </div>
+    <div class="course-card">
+        <div class="course-level lv-senior">高级<br>11课</div>
+        <div class="course-info">
+            <div class="course-name">人工智能内容生成师（高级）</div>
+            <div class="course-meta">
+                <span>公文 &#183; 内容营销 &#183; 高级智能体搭建</span>
+                <span>&#183;</span><span>工信部认证</span>
+            </div>
+        </div>
+        <div class="course-arrow">&#8250;</div>
+    </div>
+    <div class="course-card">
+        <div class="course-level lv-special">专项<br>24课</div>
+        <div class="course-info">
+            <div class="course-name">DeepSeek应用工程师</div>
+            <div class="course-meta">
+                <span>DeepSeek全场景实操 &#183; 智能体开发</span>
+                <span>&#183;</span><span>工信部认证</span>
+            </div>
+        </div>
+        <div class="course-arrow">&#8250;</div>
+    </div>
+</div>
+
+<!-- 智能体方向 -->
+<div class="section-header">
+    <div class="section-title">&#129504; AI智能体方向</div>
+</div>
+<div class="course-list">
+    <div class="course-card">
+        <div class="course-level lv-beginner">初级<br>10课</div>
+        <div class="course-info">
+            <div class="course-name">AI智能体应用师（初级）</div>
+            <div class="course-meta"><span>提示词 &#183; 智能体搭建 &#183; 工作流入门</span></div>
+        </div>
+        <div class="course-arrow">&#8250;</div>
+    </div>
+    <div class="course-card">
+        <div class="course-level lv-mid">中级<br>9课</div>
+        <div class="course-info">
+            <div class="course-name">AI智能体应用师（中级）</div>
+            <div class="course-meta"><span>插件 &#183; 工作流实战 &#183; 知识库</span></div>
+        </div>
+        <div class="course-arrow">&#8250;</div>
+    </div>
+    <div class="course-card">
+        <div class="course-level lv-senior">高级<br>13课</div>
+        <div class="course-info">
+            <div class="course-name">AI智能体应用师（高级）</div>
+            <div class="course-meta"><span>应用型开发 &#183; Dify &#183; 多智能体协同</span></div>
+        </div>
+        <div class="course-arrow">&#8250;</div>
+    </div>
+</div>
+
+<!-- 职业专项 -->
+<div class="section-header">
+    <div class="section-title">&#128220; 职业专项认证</div>
+</div>
+<div class="course-list">
+    <div class="course-card">
+        <div class="course-level lv-purple">HR<br>12课</div>
+        <div class="course-info">
+            <div class="course-name">AI人力资源管理师</div>
+            <div class="course-meta"><span>绩效 &#183; 招聘 &#183; 薪酬 &#183; 人才盘点</span></div>
+        </div>
+        <div class="course-arrow">&#8250;</div>
+    </div>
+    <div class="course-card">
+        <div class="course-level" style="background:rgba(217,107,107,0.12);color:#D96B6B;">财务<br>13课</div>
+        <div class="course-info">
+            <div class="course-name">AI财税管理师</div>
+            <div class="course-meta"><span>自动化 &#183; 报表 &#183; 预算 &#183; 税务风控</span></div>
+        </div>
+        <div class="course-arrow">&#8250;</div>
+    </div>
+    <div class="course-card">
+        <div class="course-level" style="background:rgba(74,158,184,0.12);color:#4A9EB8;">讲师<br>10课</div>
+        <div class="course-info">
+            <div class="course-name">AI培训师</div>
+            <div class="course-meta"><span>课程开发 &#183; 智能体做课 &#183; 教学设计</span></div>
+        </div>
+        <div class="course-arrow">&#8250;</div>
+    </div>
+</div>
+
+<!-- 师资阵容 -->
+<div class="section-header">
+    <div class="section-title">&#127891; 师资阵容</div>
+</div>
+<div class="teacher-list">
+    <div class="teacher-card">
+        <div class="teacher-avatar" style="background:linear-gradient(135deg,#E8B44C,#D96B6B);">李</div>
+        <div class="teacher-info">
+            <div class="teacher-name">李老师 &#183; 核心主讲</div>
+            <div class="teacher-title">工信部项目主讲导师 &#183; 博奥智能首席AI专家 &#183; 格拉斯哥大学硕士</div>
+        </div>
+    </div>
+    <div class="teacher-card">
+        <div class="teacher-avatar" style="background:linear-gradient(135deg,#4A9EB8,#9B7BBF);">苏</div>
+        <div class="teacher-info">
+            <div class="teacher-name">苏老师</div>
+            <div class="teacher-title">北大硕士 &#183; 前腾讯/滴滴/美团 &#183; 著《DeepSeek操作应用大全》</div>
+        </div>
+    </div>
+    <div class="teacher-card">
+        <div class="teacher-avatar" style="background:linear-gradient(135deg,#D96B6B,#A0B87A);">安</div>
+        <div class="teacher-info">
+            <div class="teacher-name">安迪老师</div>
+            <div class="teacher-title">华为认证AI讲师 &#183; 微软Office大师级专家 &#183; 三本畅销书作者</div>
+        </div>
+    </div>
+    <div class="teacher-card">
+        <div class="teacher-avatar" style="background:linear-gradient(135deg,#A0B87A,#4A9EB8);">董</div>
+        <div class="teacher-info">
+            <div class="teacher-name">董老师</div>
+            <div class="teacher-title">前Meta高级工程师 &#183; 康奈尔大学CS硕士 &#183; 服务130+企业院校</div>
+        </div>
+    </div>
+    <div class="teacher-card">
+        <div class="teacher-avatar" style="background:linear-gradient(135deg,#9B7BBF,#D96B6B);">薛</div>
+        <div class="teacher-info">
+            <div class="teacher-name">薛老师</div>
+            <div class="teacher-title">中山大学CS本硕 &#183; 2024字节AI挑战赛全国第一</div>
+        </div>
+    </div>
+</div>
+
+<!-- 底部引用 -->
+<div class="bottom-quote">
+    <div class="bq-text">
+        不是教你手艺，<br>是教你「心法」。<br>
+        <span style="color:rgba(255,255,255,0.4);font-size:13px;">—— 找到方向，比跑得快更重要</span>
+    </div>
+</div>
+</div><!-- /content -->
+</div><!-- /page -->
+
+<script>
+(function(){
+const c=document.getElementById('heroStars');
+if(!c)return;
+for(let i=0;i<25;i++){
+const s=document.createElement('div');
+s.className='star';
+s.style.left=Math.random()*100+'%';
+s.style.top=Math.random()*100+'%';
+const size=Math.random()*2+1;
+s.style.width=size+'px';s.style.height=size+'px';
+s.style.animationDelay=Math.random()*3+'s';
+s.style.animationDuration=(Math.random()*3+2)+'s';
+c.appendChild(s);
+}
+})();
+document.querySelectorAll('.filter-tag').forEach(t=>{
+t.addEventListener('click',function(){
+document.querySelectorAll('.filter-tag').forEach(x=>x.classList.remove('active'));
+this.classList.add('active');
+});
+});
+</script>
+</body>
+</html>

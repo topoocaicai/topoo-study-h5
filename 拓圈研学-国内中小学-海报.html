@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拓圈研学 · 国内中小学生</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Noto+Sans+SC:wght@300;400;700&display=swap');
+  
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    width: 1080px;
+    height: 1440px;
+    overflow: hidden;
+    background: #F5F0E8;
+    font-family: 'Noto Serif SC', 'STSong', serif;
+    position: relative;
+  }
+  
+  .poster {
+    width: 1080px;
+    height: 1440px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* 宣纸纹理背景 */
+  .paper-texture {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse at 20% 80%, rgba(139,69,19,0.03) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(212,168,75,0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(46,92,58,0.02) 0%, transparent 70%);
+    z-index: 0;
+  }
+  
+  /* 顶部色块 - 赭石城墙感 */
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 320px;
+    background: linear-gradient(135deg, #8B4513 0%, #A0522D 40%, #CD853F 100%);
+    z-index: 1;
+  }
+  
+  /* 城墙纹理装饰线 */
+  .wall-texture {
+    position: absolute;
+    top: 300px; left: 0; right: 0;
+    height: 40px;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 106px,
+      rgba(245,240,232,0.3) 106px,
+      rgba(245,240,232,0.3) 108px
+    );
+    z-index: 2;
+  }
+  
+  /* 主标题区 */
+  .title-block {
+    position: absolute;
+    top: 60px; left: 60px; right: 60px;
+    z-index: 3;
+  }
+  
+  .brand {
+    font-size: 20px;
+    color: rgba(245,240,232,0.7);
+    letter-spacing: 6px;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+    margin-bottom: 20px;
+  }
+  
+  .main-title {
+    font-size: 88px;
+    color: #F5F0E8;
+    font-weight: 700;
+    letter-spacing: 8px;
+    line-height: 1.1;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+  
+  .sub-title {
+    font-size: 28px;
+    color: rgba(245,240,232,0.85);
+    letter-spacing: 4px;
+    margin-top: 16px;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+  }
+  
+  /* 南京天际线 - 用CSS绘制简笔线条 */
+  .skyline {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 120px;
+    z-index: 2;
+  }
+  
+  /* 核心信息区 */
+  .info-section {
+    position: absolute;
+    top: 380px; left: 60px; right: 60px;
+    z-index: 3;
+  }
+  
+  .section-label {
+    font-size: 14px;
+    color: #8B4513;
+    letter-spacing: 3px;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 400;
+    margin-bottom: 12px;
+    opacity: 0.6;
+  }
+  
+  .highlight-grid {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  
+  .highlight-card {
+    flex: 1;
+    background: white;
+    border-radius: 12px;
+    padding: 24px 20px;
+    box-shadow: 0 2px 16px rgba(139,69,19,0.08);
+    border: 1px solid rgba(139,69,19,0.06);
+    text-align: center;
+  }
+  
+  .highlight-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+    display: block;
+  }
+  
+  .highlight-text {
+    font-size: 16px;
+    color: #333;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+  
+  .highlight-text-en {
+    font-size: 11px;
+    color: #999;
+    font-family: 'Noto Sans SC', sans-serif;
+    margin-top: 4px;
+  }
+  
+  /* 价格展示 */
+  .pricing-section {
+    background: linear-gradient(135deg, #2E5C3A 0%, #3A7D4E 100%);
+    border-radius: 16px;
+    padding: 36px 40px;
+    margin-bottom: 32px;
+    box-shadow: 0 8px 32px rgba(46,92,58,0.2);
+  }
+  
+  .pricing-header {
+    font-size: 15px;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 2px;
+    font-family: 'Noto Sans SC', sans-serif;
+    margin-bottom: 20px;
+  }
+  
+  .price-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: baseline;
+  }
+  
+  .price-item {
+    text-align: center;
+  }
+  
+  .price-duration {
+    font-size: 14px;
+    color: rgba(255,255,255,0.65);
+    font-family: 'Noto Sans SC', sans-serif;
+    margin-bottom: 8px;
+  }
+  
+  .price-value {
+    font-size: 52px;
+    color: #F5F0E8;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  
+  .price-unit {
+    font-size: 16px;
+    color: rgba(255,255,255,0.65);
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+  }
+  
+  .price-note {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    margin-top: 6px;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  
+  /* 底部行动号召 */
+  .cta-section {
+    position: absolute;
+    bottom: 60px; left: 60px; right: 60px;
+    z-index: 3;
+    text-align: center;
+  }
+  
+  .cta-qr {
+    width: 120px;
+    height: 120px;
+    background: #eee;
+    border-radius: 8px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #999;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  
+  .cta-url {
+    font-size: 15px;
+    color: #8B4513;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 400;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  
+  .cta-tagline {
+    font-size: 13px;
+    color: #999;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+    letter-spacing: 2px;
+  }
+  
+  /* 装饰元素 */
+  .deco-dot {
+    position: absolute;
+    border-radius: 50%;
+    z-index: 1;
+  }
+  
+  .deco-line {
+    position: absolute;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139,69,19,0.15), transparent);
+    z-index: 1;
+  }
+  
+  /* 书法感手写线 */
+  .brush-stroke {
+    position: absolute;
+    z-index: 2;
+  }
+</style>
+</head>
+<body>
+<div class="poster">
+  <div class="paper-texture"></div>
+  
+  <!-- 顶部色块 -->
+  <div class="top-bar"></div>
+  <div class="wall-texture"></div>
+  
+  <!-- 主标题 -->
+  <div class="title-block">
+    <div class="brand">TOPOO &nbsp;STUDY &nbsp;TOUR</div>
+    <div class="main-title">拓圈研学</div>
+    <div class="sub-title">国内中小学生 · 南京古都文脉探索营</div>
+  </div>
+  
+  <!-- 核心信息 -->
+  <div class="info-section">
+    <div class="section-label">— &nbsp;CORE &nbsp;HIGHLIGHTS &nbsp;—</div>
+    
+    <div class="highlight-grid">
+      <div class="highlight-card">
+        <span class="highlight-icon">🏯</span>
+        <div class="highlight-text">明城墙徒步</div>
+        <div class="highlight-text-en">City Wall Hike</div>
+      </div>
+      <div class="highlight-card">
+        <span class="highlight-icon">✍️</span>
+        <div class="highlight-text">书法工坊体验</div>
+        <div class="highlight-text-en">Calligraphy Workshop</div>
+      </div>
+      <div class="highlight-card">
+        <span class="highlight-icon">🏛️</span>
+        <div class="highlight-text">科举博物馆</div>
+        <div class="highlight-text-en">Imperial Exam Museum</div>
+      </div>
+    </div>
+    
+    <div class="highlight-grid">
+      <div class="highlight-card">
+        <span class="highlight-icon">🎭</span>
+        <div class="highlight-text">非遗传承体验</div>
+        <div class="highlight-text-en">Intangible Cultural Heritage</div>
+      </div>
+      <div class="highlight-card">
+        <span class="highlight-icon">🌳</span>
+        <div class="highlight-text">中山陵·紫金山</div>
+        <div class="highlight-text-en">Purple Mountain</div>
+      </div>
+      <div class="highlight-card">
+        <span class="highlight-icon">📖</span>
+        <div class="highlight-text">南京大学参访</div>
+        <div class="highlight-text-en">NJU Campus Visit</div>
+      </div>
+    </div>
+    
+    <!-- 价格 -->
+    <div class="pricing-section">
+      <div class="pricing-header">— &nbsp;PROGRAM &nbsp;FEE &nbsp;—</div>
+      <div class="price-row">
+        <div class="price-item">
+          <div class="price-duration">4日3晚 / 4Days3Nights</div>
+          <div class="price-value">¥5,980</div>
+          <div class="price-unit">/人 · per person</div>
+        </div>
+        <div class="price-item">
+          <div class="price-duration">5日4晚 / 5Days4Nights</div>
+          <div class="price-value">¥7,980</div>
+          <div class="price-unit">/人 · per person</div>
+        </div>
+      </div>
+      <div class="price-note" style="text-align:center; margin-top:16px;">费用透明 · 一价全包 · 无额外收费</div>
+    </div>
+  </div>
+  
+  <!-- 底部 -->
+  <div class="cta-section">
+    <div class="cta-url">topoocaicai.github.io/topoo-study-h5/study-domestic-k12-entry.html</div>
+    <div class="cta-tagline">让小而美被世界看见 &nbsp;· &nbsp;TOPOO</div>
+  </div>
+  
+  <!-- 装饰点 -->
+  <div class="deco-dot" style="width:80px;height:80px;background:radial-gradient(circle,rgba(212,168,75,0.12),transparent);top:360px;right:40px;"></div>
+  <div class="deco-dot" style="width:120px;height:120px;background:radial-gradient(circle,rgba(46,92,58,0.08),transparent);bottom:200px;left:30px;"></div>
+  <div class="deco-line" style="bottom:180px;left:60px;right:60px;"></div>
+  
+</div>
+</body>
+</html>

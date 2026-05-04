@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TopSpace · 链接者公告栏（浅色版）</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #F5F0E8;
+            color: #2C2824;
+            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+            overflow-x: hidden; min-height: 100vh;
+            -webkit-user-select: none; user-select: none;
+        }
+        .phone-shell {
+            position: relative; width: 375px; height: 812px;
+            margin: 20px auto; border-radius: 44px;
+            background: #F5F0E8;
+            box-shadow: 0 0 0 2px #C8C0B4, 0 0 0 6px #1a1816, 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        .phone-notch {
+            position: absolute; top:0; left:50%; transform: translateX(-50%);
+            width:150px; height:30px; background: #2C2824;
+            border-radius: 0 0 18px 18px; z-index:200;
+        }
+        .phone-notch::before {
+            content:''; position:absolute; top:10px; left:50%; transform:translateX(-50%);
+            width:60px; height:6px; background:#3C3834; border-radius:3px;
+        }
+        .top-bar {
+            position: fixed; top:0; left:50%; transform: translateX(-50%);
+            width:375px; z-index:100;
+            display:flex; align-items:center; justify-content: space-between;
+            padding: 44px 20px 12px;
+            background: linear-gradient(180deg, rgba(245,240,232,0.95) 60%, rgba(245,240,232,0) 100%);
+        }
+        .top-left { display:flex; align-items:center; gap:8px; cursor:pointer; }
+        .back-arrow { font-size:18px; color:#2C2824; }
+        .page-title { font-size:15px; font-weight:600; letter-spacing:1px; color:#2C2824; }
+        .page-subtitle { font-size:11px; color:#A8A098; margin-top:2px; }
+        .top-right { display:flex; align-items:center; gap:10px; }
+        .icon-btn {
+            width:32px; height:32px; border-radius:50%;
+            background: rgba(0,0,0,0.04); border:1px solid rgba(0,0,0,0.06);
+            display:flex; align-items:center; justify-content:center;
+            font-size:15px; color:#2C2824; cursor:pointer;
+        }
+        .main-scroll {
+            position:absolute; top:0; left:0; right:0; bottom:0;
+            overflow-y:auto; padding-top:90px; padding-bottom:40px;
+        }
+        .main-scroll::-webkit-scrollbar { width:0; }
+
+        /* 纸张质感背景 */
+        .wall-bg {
+            position:absolute; top:0; left:0; right:0; bottom:0;
+            background: #F5F0E8;
+            background-image:
+                radial-gradient(ellipse at 70% 30%, rgba(232,180,76,0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 30% 70%, rgba(74,158,184,0.03) 0%, transparent 50%);
+            pointer-events:none;
+        }
+
+        /* 头部 */
+        .board-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            margin-bottom:20px;
+        }
+        .board-profile { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+        .board-avatar {
+            width:56px; height:56px; border-radius:16px;
+            background: linear-gradient(135deg, rgba(232,180,76,0.12), rgba(232,180,76,0.03));
+            display:flex; align-items:center; justify-content:center;
+            font-size:24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .board-name { font-size:18px; font-weight:700; color:#2C2824; margin-bottom:4px; }
+        .board-role { font-size:11px; color:#D4962C; letter-spacing:0.5px; }
+        .board-id { font-size:10px; color:#A8A098; margin-top:2px; }
+        .board-bio { font-size:13px; color:#8B8680; line-height:1.6; }
+
+        /* 数据 */
+        .stats-bar { display:flex; padding:0 20px; gap:10px; margin-bottom:28px; }
+        .stat-item {
+            flex:1; background:#fff; border:1px solid rgba(0,0,0,0.04);
+            border-radius:12px; padding:14px 10px; text-align:center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .stat-value { font-size:20px; font-weight:700; color:#2C2824; }
+        .stat-label { font-size:10px; color:#A8A098; margin-top:4px; }
+
+        /* 标题 */
+        .section-header {
+            padding:0 20px; display:flex; align-items:center; justify-content:space-between;
+            margin-bottom:14px;
+        }
+        .section-title { font-size:15px; font-weight:600; color:#2C2824; display:flex; align-items:center; gap:6px; }
+        .section-more { font-size:12px; color:#A8A098; cursor:pointer; }
+
+        /* 公告列表 */
+        .notice-list { padding:0 20px; margin-bottom:28px; }
+        .notice-card {
+            background:#fff; border:1px solid rgba(0,0,0,0.04);
+            border-radius:14px; padding:16px; margin-bottom:10px;
+            cursor:pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .notice-card:active { transform:scale(0.98); }
+        .notice-tag {
+            display:inline-block; padding:2px 8px; border-radius:6px;
+            font-size:10px; font-weight:500; margin-bottom:8px;
+        }
+        .notice-tag.seeking { background:rgba(74,158,184,0.1); color:#4A9EB8; }
+        .notice-tag.offer { background:rgba(160,184,122,0.1); color:#7A9E50; }
+        .notice-tag.urgent { background:rgba(217,107,107,0.1); color:#D96B6B; }
+        .notice-title { font-size:14px; font-weight:600; color:#2C2824; margin-bottom:6px; }
+        .notice-body { font-size:12px; color:#8B8680; line-height:1.5; margin-bottom:10px; }
+        .notice-meta { display:flex; align-items:center; justify-content:space-between; }
+        .notice-time { font-size:10px; color:#C8C0B4; }
+        .notice-status { font-size:10px; padding:2px 6px; border-radius:4px; }
+        .notice-status.open { background:rgba(160,184,122,0.08); color:#7A9E50; }
+
+        /* 撮合案例 */
+        .cases-list { padding:0 20px; margin-bottom:28px; }
+        .case-card {
+            display:flex; align-items:center; gap:12px;
+            padding:12px; background:#fff;
+            border:1px solid rgba(0,0,0,0.04);
+            border-radius:12px; margin-bottom:8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+        }
+        .case-icon { font-size:20px; }
+        .case-info { flex:1; }
+        .case-title { font-size:13px; font-weight:500; color:#2C2824; margin-bottom:2px; }
+        .case-desc { font-size:11px; color:#A8A098; }
+        .case-result { font-size:10px; color:#7A9E50; white-space:nowrap; }
+
+        /* 按钮 */
+        .action-bar { padding:0 20px; display:flex; gap:10px; margin-bottom:40px; }
+        .btn-primary {
+            flex:1; padding:14px; border-radius:14px; border:none;
+            background: linear-gradient(135deg, #E8B44C, #D4962C);
+            color:#fff; font-size:14px; font-weight:600; cursor:pointer;
+        }
+        .btn-secondary {
+            flex:1; padding:14px; border-radius:14px;
+            border:1px solid rgba(0,0,0,0.08); background:#fff;
+            color:#2C2824; font-size:14px; font-weight:500; cursor:pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-shell">
+        <div class="phone-notch"></div>
+        <div class="wall-bg"></div>
+
+        <div class="top-bar">
+            <div class="top-left" onclick="history.back()">
+                <span class="back-arrow">←</span>
+            </div>
+            <div class="top-center">
+                <div class="page-title">链接者公告栏</div>
+                <div class="page-subtitle">Notice Board · Linker</div>
+            </div>
+            <div class="top-right">
+                <div class="icon-btn">⤴</div>
+            </div>
+        </div>
+
+        <div class="main-scroll">
+            <div class="board-header">
+                <div class="board-profile">
+                    <div class="board-avatar">🔗</div>
+                    <div>
+                        <div class="board-name">小雅的链接站</div>
+                        <div class="board-role">🔗 链接者 · Linker</div>
+                        <div class="board-id">TOPOO · 0314</div>
+                    </div>
+                </div>
+                <div class="board-bio">
+                    专注连接南京本地的手工创作者和线下空间。手里有国创园、熙南里十几个场地的合作资源。
+                </div>
+            </div>
+
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-value">47</div>
+                    <div class="stat-label">撮合成功</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">128</div>
+                    <div class="stat-label">发布公告</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">89%</div>
+                    <div class="stat-label">响应率</div>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <div class="section-title">📋 最新公告</div>
+                <div class="section-more">全部 →</div>
+            </div>
+            <div class="notice-list">
+                <div class="notice-card">
+                    <div class="notice-tag seeking">寻求中</div>
+                    <div class="notice-title">寻：南京本地手作陶瓷作者</div>
+                    <div class="notice-body">熙南里周末市集需要一个陶瓷摊位，6月每周末，分润模式合作，不需要摊位费。</div>
+                    <div class="notice-meta">
+                        <span class="notice-time">3小时前</span>
+                        <span class="notice-status open">进行中</span>
+                    </div>
+                </div>
+                <div class="notice-card">
+                    <div class="notice-tag offer">提供</div>
+                    <div class="notice-title">国创园 · 7月展演空间可合作</div>
+                    <div class="notice-body">有一个80㎡的临街空间，7月档期开放。适合小型展览、手工体验课、新品发布。</div>
+                    <div class="notice-meta">
+                        <span class="notice-time">1天前</span>
+                        <span class="notice-status open">进行中</span>
+                    </div>
+                </div>
+                <div class="notice-card">
+                    <div class="notice-tag urgent">紧急</div>
+                    <div class="notice-title">五一假期 · 国创园快闪摊位招募</div>
+                    <div class="notice-body">5月1-3日，国创园中央广场，需要3个美食类+3个手作类摊位，分成模式。</div>
+                    <div class="notice-meta">
+                        <span class="notice-time">2天前</span>
+                        <span class="notice-status open">进行中</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <div class="section-title">✅ 近期撮合成功</div>
+            </div>
+            <div class="cases-list">
+                <div class="case-card">
+                    <div class="case-icon">☕</div>
+                    <div class="case-info">
+                        <div class="case-title">老杨的手作咖啡 × 熙南里周末市集</div>
+                        <div class="case-desc">4月撮合，已连续出摊3周</div>
+                    </div>
+                    <div class="case-result">✅ 进行中</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-icon">🎨</div>
+                    <div class="case-info">
+                        <div class="case-title">插画师小米 × 国创园墙面涂鸦</div>
+                        <div class="case-desc">3月撮合，作品已落地</div>
+                    </div>
+                    <div class="case-result">✅ 已完成</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-icon">📿</div>
+                    <div class="case-info">
+                        <div class="case-title">皮具匠人阿德 × 1000人挑战市集</div>
+                        <div class="case-desc">5月撮合，活动中</div>
+                    </div>
+                    <div class="case-result">✅ 进行中</div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button class="btn-primary">💬 发起合作</button>
+                <button class="btn-secondary">🔔 订阅公告</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

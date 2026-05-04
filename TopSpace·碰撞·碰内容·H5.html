@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TopSpace · 碰内容</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#F5F0E8;--bg2:#EDE7DB;--bg3:#E5DFD3;
+--dark:#0B0F1E;--dark2:#1A1E2E;--dark3:#2A2E3E;
+--fire:#D96B6B;--water:#4A9EB8;--wood:#A0B87A;--gold:#E8B44C;--earth:#9B7BBF;
+--text:#2C2824;--text2:#5C5752;--text3:#8A8580;
+--radius:12px;--radius-lg:16px;--radius-xl:24px;
+}
+body{
+font-family:'Noto Sans SC',sans-serif;
+background:var(--bg);color:var(--text);
+line-height:1.8;font-size:15px;
+-webkit-font-smoothing:antialiased;
+}
+.page{
+max-width:420px;margin:0 auto;min-height:100vh;
+background:var(--bg);overflow-x:hidden;position:relative;
+}
+
+/* 导航 */
+.nav-bar{
+position:sticky;top:0;z-index:50;
+display:flex;align-items:center;
+padding:16px 24px 12px;
+background:rgba(245,240,232,0.92);
+backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.nav-back{font-size:18px;color:var(--text);cursor:pointer;padding:4px 8px 4px 0;text-decoration:none;}
+.nav-title-area{flex:1;text-align:center}
+.nav-title{font-size:16px;font-weight:700;letter-spacing:2px;color:var(--text)}
+.nav-subtitle{font-size:11px;color:var(--text3);margin-top:2px;letter-spacing:1px}
+.nav-right{width:40px}
+
+/* Hero */
+.hero{
+position:relative;
+padding:0 28px 40px;
+background:linear-gradient(165deg,#1A2E1A 0%,#2A4A2A 50%,#1A3A2A 100%);
+color:#fff;overflow:hidden;
+}
+.hero::before{
+content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;
+background:radial-gradient(circle,rgba(160,184,122,0.18) 0%,transparent 70%);
+border-radius:50%;
+}
+.hero::after{
+content:'';position:absolute;bottom:-30px;left:-30px;width:160px;height:160px;
+background:radial-gradient(circle,rgba(232,180,76,0.1) 0%,transparent 70%);
+border-radius:50%;
+}
+.hero-tag{
+display:inline-block;padding:4px 14px;
+background:rgba(160,184,122,0.2);border:1px solid rgba(160,184,122,0.3);
+border-radius:20px;font-size:12px;color:#C8E8A8;
+letter-spacing:1px;margin-bottom:16px;
+}
+.hero h1{
+font-family:'Noto Serif SC',serif;
+font-size:26px;font-weight:700;line-height:1.4;
+margin-bottom:10px;letter-spacing:2px;
+}
+.hero h1 span{color:var(--wood)}
+.hero-sub{
+font-size:13px;color:rgba(255,255,255,0.5);
+line-height:1.8;font-weight:300;
+}
+.hero-stars{
+position:absolute;top:10px;left:0;right:0;height:100%;
+pointer-events:none;
+}
+.hero-stars .star{
+position:absolute;background:#fff;border-radius:50%;
+animation:twinkle 3s ease-in-out infinite alternate;
+}
+@keyframes twinkle{0%{opacity:0.15}100%{opacity:0.7}}
+
+.content{padding:0 24px 60px;}
+
+/* 筛选 */
+.filter-bar{
+margin-top:-20px;position:relative;z-index:10;
+display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;
+}
+.filter-tag{
+flex-shrink:0;padding:7px 14px;border-radius:20px;
+font-size:12px;font-weight:500;cursor:pointer;
+transition:all 0.2s;background:#fff;color:var(--text3);
+box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.filter-tag.active{
+background:var(--wood);color:#fff;
+box-shadow:0 2px 10px rgba(160,184,122,0.3);
+}
+
+/* 内容流 */
+.content-flow{display:flex;flex-direction:column;gap:16px;}
+.cf-card{
+background:#fff;border-radius:var(--radius-lg);
+overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.04);
+cursor:pointer;transition:transform 0.2s;
+}
+.cf-card:active{transform:scale(0.98)}
+.cf-cover{
+height:130px;position:relative;overflow:hidden;
+}
+.cf-cover-text{
+position:absolute;bottom:0;left:0;right:0;
+padding:10px 16px;
+background:linear-gradient(transparent,rgba(0,0,0,0.45));
+color:#fff;font-size:15px;font-weight:600;line-height:1.4;
+}
+.cf-type{
+position:absolute;top:10px;left:10px;
+font-size:10px;font-weight:600;padding:3px 10px;border-radius:6px;
+background:rgba(255,255,255,0.2);color:#fff;backdrop-filter:blur(4px);
+}
+.cf-ignite{
+position:absolute;top:10px;right:10px;
+background:rgba(217,107,107,0.9);color:#fff;
+font-size:10px;font-weight:600;padding:3px 10px;border-radius:10px;
+display:flex;align-items:center;gap:3px;
+}
+.cf-body{padding:14px 16px}
+.cf-creator{
+display:flex;align-items:center;gap:8px;margin-bottom:8px;
+}
+.cf-avatar{
+width:26px;height:26px;border-radius:8px;
+display:flex;align-items:center;justify-content:center;
+font-size:13px;
+}
+.cf-creator-name{font-size:11px;color:var(--text3)}
+.cf-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.4}
+.cf-summary{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px}
+.cf-footer{display:flex;align-items:center;justify-content:space-between}
+.cf-stats{display:flex;gap:10px;font-size:10px;color:var(--text3)}
+.cf-stat{display:flex;align-items:center;gap:3px}
+.cf-btn{
+font-size:11px;font-weight:600;color:var(--wood);
+padding:5px 12px;border-radius:8px;
+background:rgba(160,184,122,0.1);cursor:pointer;
+transition:all 0.2s;
+}
+.cf-btn:active{background:var(--wood);color:#fff}
+
+/* 底部引用 */
+.bottom-quote{
+margin-top:40px;
+background:linear-gradient(135deg,#1A2E1A,#2A4A2A);
+color:#fff;border-radius:var(--radius-xl);
+padding:28px 24px;position:relative;overflow:hidden;
+}
+.bottom-quote::before{
+content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,var(--wood),var(--gold));
+}
+.bq-text{
+font-family:'Noto Serif SC',serif;
+font-size:16px;line-height:2;
+color:rgba(255,255,255,0.85);
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+<!-- 导航 -->
+<div class="nav-bar">
+    <a class="nav-back" href="TopSpace·碰撞·主入口·H5.html">&#8249;</a>
+    <div class="nav-title-area">
+        <div class="nav-title">碰内容</div>
+        <div class="nav-subtitle">COLLISION · CONTENT</div>
+    </div>
+    <div class="nav-right"></div>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+    <div class="hero-stars" id="heroStars"></div>
+    <div class="hero-tag">&#127793; 木 · 生长力</div>
+    <h1>碰撞别人的<br><span>作品与故事</span></h1>
+    <div class="hero-sub">每一条内容都是一个人花时间种出来的<br>碰撞，就是看见这份生长</div>
+</div>
+
+<div class="content">
+<!-- 筛选 -->
+<div class="filter-bar">
+    <div class="filter-tag active">全部</div>
+    <div class="filter-tag">&#127916; 短视频</div>
+    <div class="filter-tag">&#128221; 图文</div>
+    <div class="filter-tag">&#127908; 音频</div>
+    <div class="filter-tag">&#128308; 直播</div>
+</div>
+
+<!-- 内容流 -->
+<div class="content-flow">
+    <!-- 内容1 -->
+    <div class="cf-card">
+        <div class="cf-cover" style="background:linear-gradient(135deg,#C9B896 0%,#A89878 100%);">
+            <div class="cf-type">&#127916; 短视频</div>
+            <div class="cf-ignite">&#128293; 3人点亮</div>
+            <div class="cf-cover-text">手烘耶加雪菲的春天 · 全过程记录</div>
+        </div>
+        <div class="cf-body">
+            <div class="cf-creator">
+                <div class="cf-avatar" style="background:rgba(160,184,122,0.1);">&#9749;</div>
+                <div class="cf-creator-name">老杨 &#183; &#127793;木型创造者</div>
+            </div>
+            <div class="cf-title">从生豆到一杯好咖啡，需要经历什么？</div>
+            <div class="cf-summary">记录了整整三周的手烘过程。每一颗豆子都有自己的性格，你要做的不是控制它，是听懂它。</div>
+            <div class="cf-footer">
+                <div class="cf-stats">
+                    <div class="cf-stat">&#128065; 328</div>
+                    <div class="cf-stat">&#9889; 12碰撞</div>
+                    <div class="cf-stat">&#128293; 3点亮</div>
+                </div>
+                <div class="cf-btn">碰一下</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 内容2 -->
+    <div class="cf-card">
+        <div class="cf-cover" style="background:linear-gradient(135deg,#B8C9E8 0%,#8BA5D0 100%);">
+            <div class="cf-type">&#128221; 图文</div>
+            <div class="cf-ignite">&#128293; 7人点亮</div>
+            <div class="cf-cover-text">一个手作品牌是怎么长出来的</div>
+        </div>
+        <div class="cf-body">
+            <div class="cf-creator">
+                <div class="cf-avatar" style="background:rgba(160,184,122,0.1);">&#129712;</div>
+                <div class="cf-creator-name">阿木 &#183; &#127793;木型创造者</div>
+            </div>
+            <div class="cf-title">不包装、不造神，一个小而美品牌的生长记录</div>
+            <div class="cf-summary">从第一张草图到第一个买家，到第十个、第一百个。没有奇迹，只有每一天都在做。</div>
+            <div class="cf-footer">
+                <div class="cf-stats">
+                    <div class="cf-stat">&#128065; 1.2k</div>
+                    <div class="cf-stat">&#9889; 48碰撞</div>
+                    <div class="cf-stat">&#128293; 7点亮</div>
+                </div>
+                <div class="cf-btn">碰一下</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 内容3 -->
+    <div class="cf-card">
+        <div class="cf-cover" style="background:linear-gradient(135deg,#C9E8B8 0%,#96C480 100%);">
+            <div class="cf-type">&#127908; 音频</div>
+            <div class="cf-cover-text">&#127908; 慢下来，听见自己的声音 &#183; EP01</div>
+        </div>
+        <div class="cf-body">
+            <div class="cf-creator">
+                <div class="cf-avatar" style="background:rgba(74,158,184,0.1);">&#127911;</div>
+                <div class="cf-creator-name">小雅 &#183; &#128167;水型创造者</div>
+            </div>
+            <div class="cf-title">为什么我们越来越难慢下来了？</div>
+            <div class="cf-summary">一期关于「慢」的播客。不是教你时间管理，是和你一起问：你上一次什么都不做是什么时候？</div>
+            <div class="cf-footer">
+                <div class="cf-stats">
+                    <div class="cf-stat">&#128065; 560</div>
+                    <div class="cf-stat">&#9889; 23碰撞</div>
+                </div>
+                <div class="cf-btn">碰一下</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 内容4 -->
+    <div class="cf-card">
+        <div class="cf-cover" style="background:linear-gradient(135deg,#E8D5B5 0%,#C9B896 100%);">
+            <div class="cf-type">&#128308; 直播回放</div>
+            <div class="cf-cover-text">旧物修复工作坊 · 直播回放</div>
+        </div>
+        <div class="cf-body">
+            <div class="cf-creator">
+                <div class="cf-avatar" style="background:rgba(232,180,76,0.1);">&#128295;</div>
+                <div class="cf-creator-name">阿明 &#183; &#9876;&#65039;金型创造者</div>
+            </div>
+            <div class="cf-title">一把断了腿的木椅，怎么让它重新站稳？</div>
+            <div class="cf-summary">直播了整整4小时，从拆解、评估、到重新拼接。旧物不是垃圾，是还有故事没说完。</div>
+            <div class="cf-footer">
+                <div class="cf-stats">
+                    <div class="cf-stat">&#128065; 89</div>
+                    <div class="cf-stat">&#9889; 8碰撞</div>
+                </div>
+                <div class="cf-btn">碰一下</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 底部引用 -->
+<div class="bottom-quote">
+    <div class="bq-text">
+        每一条内容都是一个人花时间种出来的。<br>碰撞，就是看见这份生长。<br>
+        <span style="color:rgba(255,255,255,0.4);font-size:13px;">—— 痕迹即灵魂</span>
+    </div>
+</div>
+</div><!-- /content -->
+</div><!-- /page -->
+
+<script>
+(function(){
+const c=document.getElementById('heroStars');
+if(!c)return;
+for(let i=0;i<25;i++){
+const s=document.createElement('div');
+s.className='star';
+s.style.left=Math.random()*100+'%';
+s.style.top=Math.random()*100+'%';
+const size=Math.random()*2+1;
+s.style.width=size+'px';s.style.height=size+'px';
+s.style.animationDelay=Math.random()*3+'s';
+s.style.animationDuration=(Math.random()*3+2)+'s';
+c.appendChild(s);
+}
+})();
+document.querySelectorAll('.filter-tag').forEach(t=>{
+t.addEventListener('click',function(){
+document.querySelectorAll('.filter-tag').forEach(x=>x.classList.remove('active'));
+this.classList.add('active');
+});
+});
+</script>
+</body>
+</html>

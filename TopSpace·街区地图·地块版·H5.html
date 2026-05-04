@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>TopSpace · 街区地图</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#F5F0E8;
+  font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;
+  overflow:hidden;
+  height:100vh;
+  width:100vw;
+  touch-action:none;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+canvas{
+  display:block;
+  width:100%;
+  height:100%;
+}
+
+/* ===== 底部信息面板 ===== */
+.info-panel{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  z-index:100;
+  background:rgba(245,240,232,0.97);
+  border-top:1px solid rgba(42,42,62,0.10);
+  border-radius:20px 20px 0 0;
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));
+  transform:translateY(100%);
+  transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.info-panel.show{transform:translateY(0)}
+
+.info-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.info-avatar{
+  width:48px;height:48px;
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;
+  flex-shrink:0;
+}
+.info-name{font-size:17px;font-weight:700;color:#1A1A1A;line-height:1.3}
+.info-type{font-size:12px;margin-top:2px;letter-spacing:0.5px}
+
+.info-desc{
+  font-size:13px;
+  color:rgba(26,26,26,0.55);
+  line-height:1.6;
+  margin-top:8px;
+}
+
+/* ===== 顶部提示 ===== */
+.hint{
+  position:fixed;top:0;left:0;right:0;
+  z-index:90;
+  text-align:center;
+  padding:12px;
+  font-size:12px;
+  color:rgba(26,26,26,0.35);
+  letter-spacing:1px;
+  pointer-events:none;
+  transition:opacity 0.5s;
+}
+</style>
+</head>
+<body>
+
+<div class="hint" id="hint">单指拖动 · 双指缩放 · 点击门牌查看</div>
+<canvas id="mapCanvas"></canvas>
+
+<div class="info-panel" id="infoPanel">
+  <div class="info-header">
+    <div class="info-avatar" id="infoAvatar"></div>
+    <div>
+      <div class="info-name" id="infoName">—</div>
+      <div class="info-type" id="infoType">—</div>
+    </div>
+  </div>
+  <div class="info-desc" id="infoDesc">点击地图其他位置关闭</div>
+</div>
+
+<script>
+// ============================================================
+//  TopSpace 街区地图 —— 地块版
+//  设计：街道围出地块，节点在地块内，真正的街区感
+//  VI 遵循：纸张底 #F5F0E8，文字 #1A1A1A，边框 #E8E6E3
+//  五色：火 #D96B6B · 水 #4A9EB8 · 木 #A0B87A · 金 #E8B44C · 土 #9B7BBF
+// ============================================================
+
+// ===== 五色配置（VI手册标准值）=====
+var ELEM = {
+  fire:  {c:'#D96B6B', light:'#F5E0E0', label:'🔥 火·门店型', desc:'烟火气聚集地，线下体验空间'},
+  water: {c:'#4A9EB8', light:'#DAEEF5', label:'💧 水·内容型', desc:'无形流淌，触达每个角落'},
+  wood:  {c:'#A0B87A', light:'#EBF2E0', label:'🌱 木·产品型', desc:'从种子到果实的生长'},
+  metal: {c:'#E8B44C', light:'#F7EFD5', label:'⚙️ 金·服务型', desc:'高价值硬通货，专业交付'},
+  earth: {c:'#9B7BBF', light:'#F0E8F5', label:'🌍 土·活动型', desc:'承载万物的地基，连接你我'}
+};
+
+var ELEM_KEYS = ['fire','water','wood','metal','earth'];
+
+// ===== 网格参数 =====
+// 设计：先定义"地块"（blocks），街道是地块之间的空隙
+var BLOCK_COLS = 6;   // 横向地块数
+var BLOCK_ROWS = 5;   // 纵向地块数
+var BLOCK_W = 140;    // 每个地块宽度
+var BLOCK_H = 120;    // 每个地块高度
+var STREET = 28;      // 街道宽度（地块之间的间距）
+
+// 计算实际像素尺寸
+var WORLD_W = BLOCK_COLS * BLOCK_W + (BLOCK_COLS + 1) * STREET;
+var WORLD_H = BLOCK_ROWS * BLOCK_H + (BLOCK_ROWS + 1) * STREET;
+
+// ===== 生成地块（blocks）=====
+// 每个地块：x, y 是左上角（世界坐标），type 是五行属性，nodeX/nodeY 是门牌位置
+var blocks = [];
+
+for (var row = 0; row < BLOCK_ROWS; row++) {
+  for (var col = 0; col < BLOCK_COLS; col++) {
+    var bx = STREET + col * (BLOCK_W + STREET);
+    var by = STREET + row * (BLOCK_H + STREET);
+    var ek = ELEM_KEYS[(row * BLOCK_COLS + col) % 5];
+
+    // 门牌位置：在地块内稍微偏移（手绘感）
+    var padX = BLOCK_W * 0.25;
+    var padY = BLOCK_H * 0.25;
+    var nx = bx + padX + Math.random() * (BLOCK_W - padX * 2);
+    var ny = by + padY + Math.random() * (BLOCK_H - padY * 2);
+
+    blocks.push({
+      col: col,
+      row: row,
+      x: bx,
+      y: by,
+      w: BLOCK_W,
+      h: BLOCK_H,
+      elem: ek,
+      // 门牌（节点）位置
+      nx: nx,
+      ny: ny,
+      // 手绘感：地块边框微微歪斜
+      skew: (Math.random() - 0.5) * 3,
+      // 是否已探索
+      visited: Math.random() < 0.6,
+      // 名称/emoji 后面分配
+      name: '',
+      emoji: ''
+    });
+  }
+}
+
+// ===== 分配名称和Emoji =====
+var NAMES = [
+  '星尘','流光','青木','金石','厚土','晨露','焱焰','碧藤','银铃','琥珀',
+  '极光','赤松','云归','霜降','岚烟','墨染','月蚀','星轨','潮汐','萤火',
+  '破晓','暮色','归鸿','逝川','空镜','浮岛','晚祷','迷迭','霜天','半夏'
+];
+var EMOJIS = [
+  '🌙','✨','🌿','💎','🏔️','💧','🔥','🌱','⚙️','🌍',
+  '🌈','🎋','⛰️','🌊','🍂','🗿','🌾','🔮','🎐','💫',
+  '🦊','🐉','🦉','🐚','🌺','🌸','🍁','🌻','🌷','🌹'
+];
+
+for (var i = 0; i < blocks.length; i++) {
+  blocks[i].name  = NAMES[i % NAMES.length];
+  blocks[i].emoji = EMOJIS[i % EMOJIS.length];
+}
+
+// ===== 街道连接关系 =====
+// 水平相邻地块：如果中间没有"建筑物"遮挡，可以连通
+// 简化处理：同一行相邻地块都有连接（街道是连续的）
+var edges = [];
+for (var row = 0; row < BLOCK_ROWS; row++) {
+  for (var col = 0; col < BLOCK_COLS - 1; col++) {
+    var curr = row * BLOCK_COLS + col;
+    var next = row * BLOCK_COLS + col + 1;
+    edges.push([curr, next, 'h']);  // h = 水平连接
+  }
+}
+for (var col = 0; col < BLOCK_COLS; col++) {
+  for (var row = 0; row < BLOCK_ROWS - 1; row++) {
+    var curr = row * BLOCK_COLS + col;
+    var next = (row + 1) * BLOCK_COLS + col;
+    edges.push([curr, next, 'v']);  // v = 垂直连接
+  }
+}
+
+// ===== Canvas 初始化 =====
+var canvas = document.getElementById('mapCanvas');
+var ctx;
+var W, H, dpr;
+var viewX = WORLD_W / 2;
+var viewY = WORLD_H / 2;
+var zoom = 1;
+var rafId = null;
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function init() {
+  resize();
+  // 初始视角居中
+  viewX = WORLD_W / 2;
+  viewY = WORLD_H / 2;
+  loop();
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+window.addEventListener('load', function(){ resize(); });
+window.addEventListener('resize', resize);
+
+// ===== 坐标转换 =====
+function toScreen(wx, wy) {
+  return {
+    x: W/2 + (wx - viewX) * zoom,
+    y: H/2 + (wy - viewY) * zoom
+  };
+}
+
+// ===== 触摸/鼠标控制 =====
+var touching = false, pinching = false;
+var tx0=0, ty0=0, vx0=0, vy0=0;
+var pinchDist0=0, pinchZoom0=1;
+
+canvas.addEventListener('touchstart', function(e) {
+  e.preventDefault();
+  if (e.touches.length === 1) {
+    touching = true; pinching = false;
+    tx0 = e.touches[0].clientX;
+    ty0 = e.touches[0].clientY;
+    vx0 = viewX; vy0 = viewY;
+  } else if (e.touches.length === 2) {
+    pinching = true; touching = false;
+    var dx = e.touches[1].clientX - e.touches[0].clientX;
+    var dy = e.touches[1].clientY - e.touches[0].clientY;
+    pinchDist0 = Math.sqrt(dx*dx + dy*dy);
+    pinchZoom0 = zoom;
+  }
+}, {passive:false});
+
+canvas.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+  if (pinching && e.touches.length === 2) {
+    var dx = e.touches[1].clientX - e.touches[0].clientX;
+    var dy = e.touches[1].clientY - e.touches[0].clientY;
+    var dist = Math.sqrt(dx*dx + dy*dy);
+    zoom = Math.max(0.25, Math.min(3, pinchZoom0 * dist / pinchDist0));
+  } else if (touching && e.touches.length === 1) {
+    viewX = vx0 - (e.touches[0].clientX - tx0) / zoom;
+    viewY = vy0 - (e.touches[0].clientY - ty0) / zoom;
+  }
+}, {passive:false});
+
+canvas.addEventListener('touchend', function(){ touching=false; pinching=false; });
+
+// 鼠标
+var mDown=false, mx0=0, my0=0, mvx0=0, mvy0=0;
+canvas.addEventListener('mousedown', function(e){
+  mDown=true; mx0=e.clientX; my0=e.clientY; mvx0=viewX; mvy0=viewY;
+});
+canvas.addEventListener('mousemove', function(e){
+  if(!mDown)return;
+  viewX = mvx0 - (e.clientX-mx0)/zoom;
+  viewY = mvy0 - (e.clientY-my0)/zoom;
+});
+canvas.addEventListener('mouseup', function(){ mDown=false; });
+canvas.addEventListener('mouseleave', function(){ mDown=false; });
+canvas.addEventListener('wheel', function(e){
+  e.preventDefault();
+  zoom = Math.max(0.25, Math.min(3, zoom * (e.deltaY>0 ? 0.92 : 1.08)));
+}, {passive:false});
+
+// ===== 点击检测 =====
+canvas.addEventListener('click', function(e) {
+  // 隐藏提示
+  document.getElementById('hint').style.opacity = '0';
+
+  var closest = -1, best = 35;
+  for (var i = 0; i < blocks.length; i++) {
+    var p = toScreen(blocks[i].nx, blocks[i].ny);
+    var dx = e.clientX - p.x;
+    var dy = e.clientY - p.y;
+    var d  = Math.sqrt(dx*dx + dy*dy);
+    if (d < best) { closest = i; best = d; }
+  }
+  if (closest >= 0) {
+    showInfo(closest);
+  } else {
+    document.getElementById('infoPanel').classList.remove('show');
+  }
+});
+
+function showInfo(idx) {
+  var b = blocks[idx];
+  var ec = ELEM[b.elem];
+  var panel = document.getElementById('infoPanel');
+  document.getElementById('infoAvatar').style.background = ec.light;
+  document.getElementById('infoAvatar').textContent = b.emoji;
+  document.getElementById('infoName').textContent = b.name;
+  document.getElementById('infoType').textContent = ec.label;
+  document.getElementById('infoType').style.color = ec.c;
+  document.getElementById('infoDesc').textContent = ec.desc;
+  panel.classList.add('show');
+}
+
+// 点击面板外关闭
+document.addEventListener('click', function(e) {
+  var p = document.getElementById('infoPanel');
+  if (!p.contains(e.target) && e.target !== canvas) {
+    p.classList.remove('show');
+  }
+});
+
+// ===== 渲染 =====
+function loop() {
+  render();
+  rafId = requestAnimationFrame(loop);
+}
+
+function render() {
+  if (!ctx || !W || !H) return;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // —— 底色 ——
+  ctx.fillStyle = '#F5F0E8';
+  ctx.fillRect(0, 0, W, H);
+
+  var r0 = Math.max(6, 11 * zoom);
+
+  // —— 1. 画地块（blocks）——
+  // 把手绘感做出来：地块边框微微不规则
+  for (var i = 0; i < blocks.length; i++) {
+    var b = blocks[i];
+    var sk = b.skew;
+
+    // 四个角的屏幕坐标（带手绘偏移）
+    var corners = [
+      toScreen(b.x + sk,           b.y + sk),           // 左上
+      toScreen(b.x + b.w + sk*0.5, b.y - sk*0.3),     // 右上
+      toScreen(b.x + b.w - sk*0.3, b.y + b.h + sk*0.5), // 右下
+      toScreen(b.x - sk*0.5,       b.y + b.h - sk*0.3)   // 左下
+    ];
+
+    // 裁剪：完全在屏幕外的跳过
+    var allOut = true;
+    for (var c = 0; c < 4; c++) {
+      if (corners[c].x > -50 && corners[c].x < W+50 && corners[c].y > -50 && corners[c].y < H+50) {
+        allOut = false; break;
+      }
+    }
+    if (allOut) continue;
+
+    var ec = ELEM[b.elem];
+
+    // 地块填充（非常淡的底色）
+    ctx.beginPath();
+    ctx.moveTo(corners[0].x, corners[0].y);
+    for (var c = 1; c < 4; c++) {
+      ctx.lineTo(corners[c].x, corners[c].y);
+    }
+    ctx.closePath();
+
+    if (b.visited) {
+      ctx.fillStyle = ec.c + '0B';  // 非常淡，~4% 透明度
+    } else {
+      ctx.fillStyle = 'rgba(42,42,62,0.02)';
+    }
+    ctx.fill();
+
+    // 地块边框（街道边缘）—— 用虚线模拟手绘感
+    ctx.strokeStyle = 'rgba(42,42,62,0.07)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4 + Math.abs(sk), 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // —— 2. 画街道（地块之间的道路）——
+  ctx.lineCap = 'round';
+  // 水平街道
+  for (var row = 0; row <= BLOCK_ROWS; row++) {
+    var sy = STREET + row * (BLOCK_H + STREET) - STREET/2;
+    var p1 = toScreen(0, sy);
+    var p2 = toScreen(WORLD_W, sy);
+    if (p1.y > -20 && p1.y < H+20) {
+      ctx.strokeStyle = 'rgba(42,42,62,0.06)';
+      ctx.lineWidth = Math.max(1, 1.5 * zoom);
+      ctx.beginPath();
+      ctx.moveTo(Math.max(-20,p1.x), p1.y);
+      ctx.lineTo(Math.min(W+20,p2.x), p2.y);
+      ctx.stroke();
+    }
+  }
+  // 垂直街道
+  for (var col = 0; col <= BLOCK_COLS; col++) {
+    var sx = STREET + col * (BLOCK_W + STREET) - STREET/2;
+    var p1 = toScreen(sx, 0);
+    var p2 = toScreen(sx, WORLD_H);
+    if (p1.x > -20 && p1.x < W+20) {
+      ctx.strokeStyle = 'rgba(42,42,62,0.06)';
+      ctx.lineWidth = Math.max(1, 1.5 * zoom);
+      ctx.beginPath();
+      ctx.moveTo(p1.x, Math.max(-20,p1.y));
+      ctx.lineTo(p2.x, Math.min(H+20,p2.y));
+      ctx.stroke();
+    }
+  }
+
+  // —— 3. 画连接线（门牌之间的细线）——
+  ctx.lineCap = 'round';
+  for (var ei = 0; ei < edges.length; ei++) {
+    var a = blocks[edges[ei][0]];
+    var b = blocks[edges[ei][1]];
+    var pa = toScreen(a.nx, a.ny);
+    var pb = toScreen(b.nx, b.ny);
+
+    // 跳过屏幕外
+    if (Math.max(pa.x,pb.x) < -60 && Math.min(pa.x,pb.x) > W+60) continue;
+    if (Math.max(pa.y,pb.y) < -60 && Math.min(pa.y,pb.y) > H+60) continue;
+
+    ctx.strokeStyle = 'rgba(42,42,62,0.07)';
+    ctx.lineWidth = Math.max(1, 1.2 * zoom);
+    ctx.beginPath();
+    ctx.moveTo(pa.x, pa.y);
+    ctx.lineTo(pb.x, pb.y);
+    ctx.stroke();
+  }
+
+  // —— 4. 画节点（门牌）——
+  for (var i = 0; i < blocks.length; i++) {
+    var b = blocks[i];
+    var p = toScreen(b.nx, b.ny);
+    if (p.x < -40 || p.x > W+40 || p.y < -40 || p.y > H+40) continue;
+
+    var r = r0;
+    var ec = ELEM[b.elem];
+
+    if (b.visited) {
+      // 外圈光晕
+      ctx.fillStyle = ec.c + '10';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r + 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 门牌底色
+      ctx.fillStyle = ec.c + '18';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 门牌边框
+      ctx.strokeStyle = ec.c + '55';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // emoji
+      ctx.font = (r * 1.25) + 'px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(b.emoji, p.x, p.y);
+    } else {
+      // 未探索：虚线圆圈
+      ctx.strokeStyle = 'rgba(42,42,62,0.13)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3,4]);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.globalAlpha = 0.13;
+      ctx.font = (r * 1.0) + 'px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(26,26,26,0.4)';
+      ctx.fillText(b.emoji, p.x, p.y);
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+</script>
+</body>
+</html>

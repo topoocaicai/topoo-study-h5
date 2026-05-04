@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TopSpace · 碰活动</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#F5F0E8;--bg2:#EDE7DB;--bg3:#E5DFD3;
+--dark:#0B0F1E;--dark2:#1A1E2E;--dark3:#2A2E3E;
+--fire:#D96B6B;--water:#4A9EB8;--wood:#A0B87A;--gold:#E8B44C;--earth:#9B7BBF;
+--text:#2C2824;--text2:#5C5752;--text3:#8A8580;
+--radius:12px;--radius-lg:16px;--radius-xl:24px;
+}
+body{
+font-family:'Noto Sans SC',sans-serif;
+background:var(--bg);
+color:var(--text);
+line-height:1.8;
+font-size:15px;
+-webkit-font-smoothing:antialiased;
+}
+.page{
+max-width:420px;
+margin:0 auto;
+min-height:100vh;
+background:var(--bg);
+overflow-x:hidden;
+position:relative;
+}
+
+/* 导航栏 */
+.nav-bar{
+position:sticky;top:0;z-index:50;
+display:flex;align-items:center;
+padding:16px 24px 12px;
+background:rgba(245,240,232,0.92);
+backdrop-filter:blur(12px);
+-webkit-backdrop-filter:blur(12px);
+}
+.nav-back{
+font-size:18px;color:var(--text);
+cursor:pointer;padding:4px 8px 4px 0;
+text-decoration:none;
+}
+.nav-title-area{flex:1;text-align:center}
+.nav-title{font-size:16px;font-weight:700;letter-spacing:2px;color:var(--text)}
+.nav-subtitle{font-size:11px;color:var(--text3);margin-top:2px;letter-spacing:1px}
+.nav-right{width:40px}
+
+/* Hero */
+.hero{
+position:relative;
+padding:0 28px 40px;
+background:linear-gradient(165deg,#1A1E2E 0%,#2A2E42 50%,#1E2838 100%);
+color:#fff;
+overflow:hidden;
+}
+.hero::before{
+content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;
+background:radial-gradient(circle,rgba(155,123,191,0.18) 0%,transparent 70%);
+border-radius:50%;
+}
+.hero::after{
+content:'';position:absolute;bottom:-30px;left:-30px;width:160px;height:160px;
+background:radial-gradient(circle,rgba(232,180,76,0.1) 0%,transparent 70%);
+border-radius:50%;
+}
+.hero-tag{
+display:inline-block;
+padding:4px 14px;
+background:rgba(155,123,191,0.2);
+border:1px solid rgba(155,123,191,0.3);
+border-radius:20px;
+font-size:12px;color:#C9A8E8;
+letter-spacing:1px;
+margin-bottom:16px;
+}
+.hero h1{
+font-family:'Noto Serif SC',serif;
+font-size:28px;font-weight:700;
+line-height:1.4;margin-bottom:10px;
+letter-spacing:2px;
+}
+.hero h1 span{color:var(--earth)}
+.hero-sub{
+font-size:13px;color:rgba(255,255,255,0.5);
+line-height:1.8;font-weight:300;
+}
+.hero-stars{
+position:absolute;top:10px;left:0;right:0;height:100%;
+pointer-events:none;
+}
+.hero-stars .star{
+position:absolute;background:#fff;border-radius:50%;
+animation:twinkle 3s ease-in-out infinite alternate;
+}
+@keyframes twinkle{0%{opacity:0.15}100%{opacity:0.7}}
+
+.content{padding:0 24px 60px;}
+
+/* 筛选 */
+.filter-bar{
+margin-top:-20px;
+position:relative;z-index:10;
+display:flex;gap:8px;flex-wrap:wrap;
+margin-bottom:24px;
+}
+.filter-tag{
+flex-shrink:0;
+padding:7px 14px;
+border-radius:20px;
+font-size:12px;
+font-weight:500;
+cursor:pointer;
+transition:all 0.2s;
+background:#fff;
+color:var(--text3);
+box-shadow:0 2px 8px rgba(0,0,0,0.05);
+border:1px solid transparent;
+}
+.filter-tag.active{
+background:var(--earth);
+color:#fff;
+box-shadow:0 2px 10px rgba(155,123,191,0.3);
+}
+
+/* 活动列表 */
+.activity-list{
+display:flex;flex-direction:column;gap:16px;
+}
+.activity-card{
+background:#fff;
+border-radius:var(--radius-lg);
+overflow:hidden;
+box-shadow:0 2px 16px rgba(0,0,0,0.04);
+cursor:pointer;
+transition:transform 0.2s;
+}
+.activity-card:active{transform:scale(0.98)}
+.activity-cover{
+height:110px;position:relative;overflow:hidden;
+}
+.activity-cover-overlay{
+position:absolute;bottom:0;left:0;right:0;
+padding:8px 14px;
+background:linear-gradient(transparent,rgba(0,0,0,0.45));
+}
+.ac-type-badge{
+display:inline-block;font-size:10px;font-weight:600;
+padding:3px 10px;border-radius:6px;
+background:rgba(255,255,255,0.2);color:#fff;
+backdrop-filter:blur(4px);
+}
+.ac-status{
+position:absolute;top:10px;right:10px;
+font-size:10px;font-weight:600;
+padding:3px 10px;border-radius:8px;
+}
+.st-open{background:rgba(160,184,122,0.9);color:#fff}
+.st-soon{background:rgba(232,180,76,0.9);color:#fff}
+.activity-body{padding:14px 16px}
+.ac-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.4}
+.ac-host{font-size:11px;color:var(--text3);margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.ac-meta{display:flex;gap:12px;font-size:11px;color:var(--text3);flex-wrap:wrap}
+.ac-meta-item{display:flex;align-items:center;gap:3px}
+.activity-footer{
+padding:0 16px 14px;
+display:flex;align-items:center;justify-content:space-between;
+}
+.ac-avatars{display:flex}
+.ac-avatar{
+width:26px;height:26px;border-radius:50%;
+border:2px solid #fff;margin-left:-6px;
+display:flex;align-items:center;justify-content:center;
+font-size:12px;background:#f0ebe3;
+}
+.ac-avatar:first-child{margin-left:0}
+.ac-join{font-size:11px;color:var(--earth);font-weight:600}
+
+/* 五行创造者类型 */
+.section-header{margin-top:40px;margin-bottom:16px}
+.section-title{
+font-family:'Noto Serif SC',serif;
+font-size:18px;font-weight:600;
+color:var(--dark);
+margin-bottom:4px;
+padding-left:14px;
+border-left:3px solid var(--earth);
+line-height:1.4;
+}
+.section-sub{font-size:12px;color:var(--text3)}
+.type-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+}
+.type-card{
+background:#fff;
+border-radius:var(--radius);
+padding:18px 14px;
+box-shadow:0 2px 12px rgba(0,0,0,0.03);
+cursor:pointer;transition:transform 0.2s;
+position:relative;
+}
+.type-card:active{transform:scale(0.97)}
+.type-card::before{
+content:'';position:absolute;top:0;left:0;
+width:3px;height:100%;
+border-radius:3px 0 0 3px;
+}
+.tc-icon{
+width:38px;height:38px;border-radius:10px;
+display:flex;align-items:center;justify-content:center;
+font-size:18px;margin-bottom:10px;
+}
+.tc-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+.tc-desc{font-size:11px;color:var(--text3);line-height:1.6}
+
+/* 底部引用 */
+.bottom-quote{
+margin-top:40px;
+background:linear-gradient(135deg,#1A2035,#243050);
+color:#fff;
+border-radius:var(--radius-xl);
+padding:28px 24px;
+position:relative;overflow:hidden;
+}
+.bottom-quote::before{
+content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,var(--earth),var(--gold));
+}
+.bq-text{
+font-family:'Noto Serif SC',serif;
+font-size:16px;line-height:2;
+color:rgba(255,255,255,0.85);
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+<!-- 导航 -->
+<div class="nav-bar">
+    <a class="nav-back" href="TopSpace·碰撞·主入口·H5.html">&#8249;</a>
+    <div class="nav-title-area">
+        <div class="nav-title">碰活动</div>
+        <div class="nav-subtitle">COLLISION · ACTIVITY</div>
+    </div>
+    <div class="nav-right"></div>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+    <div class="hero-stars" id="heroStars"></div>
+    <div class="hero-tag">&#127956; 土 · 承载力</div>
+    <h1>让所有人<br><span>有地方待</span></h1>
+    <div class="hero-sub">活动型创造者天生擅长把人聚在一起，制造归属感<br>每一场碰撞，都是一次真实的相遇</div>
+</div>
+
+<div class="content">
+<!-- 筛选 -->
+<div class="filter-bar">
+    <div class="filter-tag active">全部</div>
+    <div class="filter-tag">&#127914; 市集</div>
+    <div class="filter-tag">&#128172; 沙龙</div>
+    <div class="filter-tag">&#128295; 工作坊</div>
+    <div class="filter-tag">&#9889; 快闪</div>
+    <div class="filter-tag">&#127912; 展览</div>
+</div>
+
+<!-- 活动列表 -->
+<div class="activity-list">
+    <!-- 活动1 -->
+    <div class="activity-card">
+        <div class="activity-cover" style="background:linear-gradient(135deg,#E8D5B5 0%,#C9B896 50%,#A89878 100%);">
+            <div class="activity-cover-overlay">
+                <span class="ac-type-badge">&#127914; 市集</span>
+            </div>
+            <div class="ac-status st-open">报名中</div>
+        </div>
+        <div class="activity-body">
+            <div class="ac-title">星辰市集 · 夏日手作专场</div>
+            <div class="ac-host">&#127956; 星辰市集 · 土型创造者</div>
+            <div class="ac-meta">
+                <div class="ac-meta-item">&#128205; 国创园</div>
+                <div class="ac-meta-item">&#128197; 5月18日</div>
+                <div class="ac-meta-item">&#128336; 14:00</div>
+            </div>
+        </div>
+        <div class="activity-footer">
+            <div class="ac-avatars">
+                <div class="ac-avatar">&#9749;</div>
+                <div class="ac-avatar">&#127912;</div>
+                <div class="ac-avatar">&#127807;</div>
+            </div>
+            <div class="ac-join">32人报名 · 剩余8席</div>
+        </div>
+    </div>
+
+    <!-- 活动2 -->
+    <div class="activity-card">
+        <div class="activity-cover" style="background:linear-gradient(135deg,#B8C9E8 0%,#8BA5D0 50%,#6B89B8 100%);">
+            <div class="activity-cover-overlay">
+                <span class="ac-type-badge">&#128172; 沙龙</span>
+            </div>
+            <div class="ac-status st-soon">即将开始</div>
+        </div>
+        <div class="activity-body">
+            <div class="ac-title">短视频+AI · 主题沙龙</div>
+            <div class="ac-host">&#128172; 小雅说品牌 · 水型创造者</div>
+            <div class="ac-meta">
+                <div class="ac-meta-item">&#128205; 新街口</div>
+                <div class="ac-meta-item">&#128197; 5月15日</div>
+                <div class="ac-meta-item">&#128336; 19:30</div>
+            </div>
+        </div>
+        <div class="activity-footer">
+            <div class="ac-avatars">
+                <div class="ac-avatar">&#128247;</div>
+                <div class="ac-avatar">&#129302;</div>
+            </div>
+            <div class="ac-join">18人报名 · 剩余2席</div>
+        </div>
+    </div>
+
+    <!-- 活动3 -->
+    <div class="activity-card">
+        <div class="activity-cover" style="background:linear-gradient(135deg,#C9E8B8 0%,#96C480 50%,#78A860 100%);">
+            <div class="activity-cover-overlay">
+                <span class="ac-type-badge">&#128295; 工作坊</span>
+            </div>
+            <div class="ac-status st-open">报名中</div>
+        </div>
+        <div class="activity-body">
+            <div class="ac-title">旧物修复工作坊 · 第一期</div>
+            <div class="ac-host">&#127807; 阿木工坊 · 木型创造者</div>
+            <div class="ac-meta">
+                <div class="ac-meta-item">&#128205; 熙南里</div>
+                <div class="ac-meta-item">&#128197; 5月25日</div>
+                <div class="ac-meta-item">&#128336; 10:00</div>
+            </div>
+        </div>
+        <div class="activity-footer">
+            <div class="ac-avatars">
+                <div class="ac-avatar">&#128296;</div>
+                <div class="ac-avatar">&#129692;</div>
+            </div>
+            <div class="ac-join">8人报名 · 剩余12席</div>
+        </div>
+    </div>
+
+    <!-- 活动4 -->
+    <div class="activity-card">
+        <div class="activity-cover" style="background:linear-gradient(135deg,#E8C9D5 0%,#D096B8 50%,#B878A0 100%);">
+            <div class="activity-cover-overlay">
+                <span class="ac-type-badge">&#9889; 快闪</span>
+            </div>
+            <div class="ac-status st-open">报名中</div>
+        </div>
+        <div class="activity-body">
+            <div class="ac-title">24小时快闪店 · 独立香氛</div>
+            <div class="ac-host">&#128367; 气味实验室 · 木型创造者</div>
+            <div class="ac-meta">
+                <div class="ac-meta-item">&#128205; 1912街区</div>
+                <div class="ac-meta-item">&#128197; 5月20日</div>
+                <div class="ac-meta-item">&#128336; 全天</div>
+            </div>
+        </div>
+        <div class="activity-footer">
+            <div class="ac-avatars">
+                <div class="ac-avatar">&#128367;</div>
+            </div>
+            <div class="ac-join">5人感兴趣</div>
+        </div>
+    </div>
+</div>
+
+<!-- 五行创造者类型 -->
+<div class="section-header">
+    <div class="section-title">活动型创造者 · 承载力</div>
+    <div class="section-sub">天生擅长制造「在场感」和「归属感」的人</div>
+</div>
+<div class="type-grid">
+    <div class="type-card">
+        <div style="position:absolute;top:0;left:0;width:3px;height:100%;border-radius:3px 0 0 3px;background:var(--earth);opacity:.4;"></div>
+        <div class="tc-icon" style="background:rgba(155,123,191,0.1);">&#127914;</div>
+        <div class="tc-name">市集</div>
+        <div class="tc-desc">聚集创造者，让小而美被直接触摸和体验</div>
+    </div>
+    <div class="type-card">
+        <div style="position:absolute;top:0;left:0;width:3px;height:100%;border-radius:3px 0 0 3px;background:var(--water);opacity:.4;"></div>
+        <div class="tc-icon" style="background:rgba(74,158,184,0.1);">&#128172;</div>
+        <div class="tc-name">沙龙</div>
+        <div class="tc-desc">深度对话，让同频的灵魂碰撞出火花</div>
+    </div>
+    <div class="type-card">
+        <div style="position:absolute;top:0;left:0;width:3px;height:100%;border-radius:3px 0 0 3px;background:var(--wood);opacity:.4;"></div>
+        <div class="tc-icon" style="background:rgba(160,184,122,0.1);">&#128295;</div>
+        <div class="tc-name">工作坊</div>
+        <div class="tc-desc">动手实践，把想法变成真实的东西</div>
+    </div>
+    <div class="type-card">
+        <div style="position:absolute;top:0;left:0;width:3px;height:100%;border-radius:3px 0 0 3px;background:var(--gold);opacity:.4;"></div>
+        <div class="tc-icon" style="background:rgba(232,180,76,0.1);">&#9889;</div>
+        <div class="tc-name">快闪</div>
+        <div class="tc-desc">限时体验，制造稀缺的在场感</div>
+    </div>
+</div>
+
+<!-- 底部引用 -->
+<div class="bottom-quote">
+    <div class="bq-text">
+        不是把人圈进来，<br>是让人愿意留下来。<br>
+        <span style="color:rgba(255,255,255,0.4);font-size:13px;">—— 土 · 承载力</span>
+    </div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /page -->
+
+<script>
+// 星空
+(function(){
+const c=document.getElementById('heroStars');
+if(!c)return;
+for(let i=0;i<25;i++){
+const s=document.createElement('div');
+s.className='star';
+s.style.left=Math.random()*100+'%';
+s.style.top=Math.random()*100+'%';
+const size=Math.random()*2+1;
+s.style.width=size+'px';s.style.height=size+'px';
+s.style.animationDelay=Math.random()*3+'s';
+s.style.animationDuration=(Math.random()*3+2)+'s';
+c.appendChild(s);
+}
+})();
+// 筛选
+document.querySelectorAll('.filter-tag').forEach(t=>{
+t.addEventListener('click',function(){
+document.querySelectorAll('.filter-tag').forEach(x=>x.classList.remove('active'));
+this.classList.add('active');
+});
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拓圈·链接者手册</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#F5F0E8;--bg2:#EDE7DB;--bg3:#E5DFD3;
+--dark:#0B0F1E;--dark2:#1A1E2E;--dark3:#2A2E3E;
+--accent:#E8B44C;--accent2:#D4A03C;--accent-light:#F0DFA0;
+--fire:#D96B6B;--water:#4A9EB8;--wood:#A0B87A;--gold:#E8B44C;--earth:#9B7BBF;
+--text:#2C2824;--text2:#5C5752;--text3:#8A8580;
+--radius:12px;--radius-lg:16px;--radius-xl:24px;
+}
+body{
+font-family:'Noto Sans SC',sans-serif;
+background:var(--bg);
+color:var(--text);
+line-height:1.8;
+font-size:15px;
+-webkit-font-smoothing:antialiased;
+}
+.page{
+max-width:420px;
+margin:0 auto;
+min-height:100vh;
+background:var(--bg);
+overflow-x:hidden;
+}
+
+/* Hero */
+.hero{
+position:relative;
+padding:60px 28px 48px;
+background:linear-gradient(165deg,#1A1A0A 0%,#2A2A1A 50%,#1A1A0A 100%);
+color:#fff;
+overflow:hidden;
+}
+.hero::before{
+content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;
+background:radial-gradient(circle,rgba(232,180,76,0.15) 0%,transparent 70%);
+border-radius:50%;
+}
+.hero::after{
+content:'';position:absolute;bottom:-60px;left:-60px;width:250px;height:250px;
+background:radial-gradient(circle,rgba(232,180,76,0.1) 0%,transparent 70%);
+border-radius:50%;
+}
+.hero-badge{
+display:inline-block;
+padding:4px 14px;
+background:rgba(232,180,76,0.2);
+border:1px solid rgba(232,180,76,0.3);
+border-radius:20px;
+font-size:12px;color:var(--accent-light);
+letter-spacing:1px;
+margin-bottom:20px;
+}
+.hero h1{
+font-family:'Noto Serif SC',serif;
+font-size:32px;font-weight:700;
+line-height:1.3;margin-bottom:12px;
+letter-spacing:2px;
+}
+.hero h1 span{color:var(--accent)}
+.hero-sub{
+font-size:14px;color:rgba(255,255,255,0.6);
+line-height:1.7;
+font-weight:300;
+}
+.stars{
+position:absolute;top:20px;left:0;right:0;height:100%;
+pointer-events:none;
+}
+.star{
+position:absolute;
+background:#fff;
+border-radius:50%;
+animation:twinkle 3s ease-in-out infinite alternate;
+}
+@keyframes twinkle{0%{opacity:0.2}100%{opacity:0.8}}
+
+.content{padding:0 24px 40px;}
+
+/* Opening Quote */
+.opening-quote{
+background:linear-gradient(135deg,#1A1A0A,#2A2A1A);
+color:#fff;
+padding:28px 24px;
+border-radius:var(--radius-lg);
+margin-top:32px;
+position:relative;
+overflow:hidden;
+}
+.opening-quote::before{
+content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,var(--gold),var(--fire),var(--gold));
+}
+.opening-quote p{
+font-size:15px;line-height:2;
+color:rgba(255,255,255,0.85);
+}
+.opening-quote p em{
+font-style:normal;
+color:#fff;
+font-weight:500;
+}
+
+/* Section */
+.section{margin-top:40px;}
+.section-title{
+font-family:'Noto Serif SC',serif;
+font-size:22px;font-weight:600;
+color:var(--dark);
+margin-bottom:24px;
+padding-left:16px;
+border-left:3px solid var(--gold);
+line-height:1.4;
+}
+
+/* Detail blocks */
+.detail-block{
+margin-bottom:16px;
+background:#fff;
+border-radius:var(--radius-lg);
+border:1px solid rgba(0,0,0,0.04);
+overflow:hidden;
+}
+.detail-block summary{
+padding:16px 20px;
+font-size:16px;font-weight:600;
+color:var(--dark);
+cursor:pointer;
+list-style:none;
+position:relative;
+user-select:none;
+}
+.detail-block summary::-webkit-details-marker{display:none}
+.detail-block summary::before{
+content:'▶';
+display:inline-block;
+margin-right:10px;
+font-size:11px;
+transition:transform 0.2s;
+color:var(--gold);
+}
+.detail-block[open] summary::before{
+transform:rotate(90deg);
+}
+.detail-body{
+padding:4px 20px 20px;
+font-size:14px;color:var(--text2);
+line-height:2;
+}
+
+/* 通用文字样式 */
+.highlight{
+background:linear-gradient(to bottom,transparent 60%,rgba(232,180,76,0.15) 60%);
+padding:0 2px;
+}
+.quote-box{
+background:var(--dark);
+color:#fff;
+padding:24px;
+border-radius:var(--radius-lg);
+margin:20px 0;
+position:relative;
+overflow:hidden;
+}
+.quote-box::before{
+content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,var(--gold),var(--fire),var(--earth));
+}
+.quote-text{
+font-family:'Noto Serif SC',serif;
+font-size:16px;font-weight:600;
+line-height:1.8;
+text-align:center;
+letter-spacing:1px;
+}
+
+/* Card */
+.card{
+background:var(--bg);
+border-radius:var(--radius);
+padding:16px;
+margin-bottom:12px;
+}
+.card-title{
+font-size:15px;font-weight:600;
+color:var(--dark);
+margin-bottom:8px;
+}
+.card-desc{
+font-size:13.5px;color:var(--text2);
+line-height:2;
+}
+.card-desc b{color:var(--text);font-weight:500}
+
+/* 表格 */
+.table-wrap{
+overflow-x:auto;
+margin:12px 0;
+}
+.table-wrap table{
+width:100%;
+border-collapse:collapse;
+font-size:13px;
+}
+.table-wrap th{
+background:var(--dark);
+color:#fff;
+padding:8px 12px;
+text-align:left;
+font-weight:500;
+font-size:12px;
+}
+.table-wrap th:first-child{border-radius:8px 0 0 0}
+.table-wrap th:last-child{border-radius:0 8px 0 0}
+.table-wrap td{
+padding:8px 12px;
+border-bottom:1px solid var(--bg3);
+vertical-align:top;
+}
+.table-wrap tr:last-child td{border-bottom:none}
+.table-wrap tr:last-child td:first-child{border-radius:0 0 0 8px}
+.table-wrap tr:last-child td:last-child{border-radius:0 0 8px 0}
+
+/* Tags */
+.tag{
+display:inline-block;
+padding:2px 10px;
+border-radius:10px;
+font-size:11px;font-weight:500;
+margin-right:6px;margin-bottom:4px;
+}
+.tag.gold{background:rgba(232,180,76,0.1);color:var(--gold)}
+
+/* 分割线 */
+.divider{
+height:1px;
+background:linear-gradient(90deg,transparent,var(--bg3),transparent);
+margin:32px 0;
+}
+.section-sep{
+height:6px;
+background:var(--dark);
+margin:40px -24px;
+}
+
+/* 收益分成表格特殊样式 */
+.revenue-table{
+width:100%;
+border-collapse:collapse;
+margin:12px 0;
+font-size:13px;
+}
+.revenue-table th{
+background:linear-gradient(135deg,#1A1A0A,#2A2A1A);
+color:var(--accent-light);
+padding:10px 12px;
+text-align:center;
+font-weight:600;
+font-size:12px;
+}
+.revenue-table th:first-child{border-radius:8px 0 0 0}
+.revenue-table th:last-child{border-radius:0 8px 0 0}
+.revenue-table td{
+padding:10px 12px;
+border-bottom:1px solid var(--bg3);
+text-align:center;
+}
+.revenue-table tr:last-child td{border-bottom:none}
+.revenue-table tr:last-child td:first-child{border-radius:0 0 0 8px}
+.revenue-table tr:last-child td:last-child{border-radius:0 0 8px 0}
+.revenue-highlight{
+color:var(--gold);
+font-weight:600;
+}
+
+/* 保证金 / 种子期 */
+.seed-box{
+background:linear-gradient(135deg,#1A1A0A 0%,#2A2A1A 100%);
+color:#fff;
+border-radius:var(--radius-lg);
+padding:20px;
+margin:16px 0;
+position:relative;
+overflow:hidden;
+}
+.seed-box::before{
+content:'LINKER';
+position:absolute;top:-1px;right:16px;
+background:var(--gold);
+color:#1A1A0A;
+font-size:10px;
+padding:2px 10px;
+border-radius:0 0 8px 8px;
+font-weight:700;
+}
+.seed-box .label{font-size:12px;opacity:0.7;margin-bottom:6px}
+.seed-box .amount{font-size:30px;font-weight:700;margin-bottom:4px}
+.seed-box .period{font-size:12px;opacity:0.6;margin-bottom:12px}
+.seed-features{font-size:12.5px;line-height:2;opacity:0.85}
+
+/* 五行属性块 */
+.wx-block{
+display:flex;gap:12px;
+padding:14px 16px;
+background:#fff;
+border-radius:var(--radius);
+margin-bottom:10px;
+border-left:3px solid var(--gold);
+}
+.wx-icon{
+width:40px;height:40px;
+border-radius:var(--radius);
+display:flex;align-items:center;justify-content:center;
+font-size:20px;flex-shrink:0;
+}
+.wx-icon.fire{background:rgba(217,107,107,0.12)}
+.wx-icon.water{background:rgba(74,158,184,0.12)}
+.wx-icon.wood{background:rgba(160,184,122,0.12)}
+.wx-icon.gold{background:rgba(232,180,76,0.12)}
+.wx-icon.earth{background:rgba(155,123,191,0.12)}
+.wx-body{font-size:13px;color:var(--text2);line-height:1.9}
+.wx-body strong{color:var(--text);font-weight:500}
+
+/* 进度条示意 */
+.level-bar-wrap{
+margin:16px 0;
+}
+.level-bar-row{
+display:flex;align-items:center;gap:10px;margin-bottom:8px;
+}
+.level-bar-label{
+font-size:12px;color:var(--text2);width:60px;flex-shrink:0;
+}
+.level-bar-track{
+flex:1;height:10px;background:var(--bg2);border-radius:5px;overflow:hidden;
+}
+.level-bar-fill{
+height:100%;border-radius:5px;
+}
+
+/* FAQ */
+.faq-list{display:flex;flex-direction:column;gap:8px}
+.faq-item{
+background:#fff;
+border-radius:var(--radius);
+border:1px solid rgba(0,0,0,0.04);
+overflow:hidden;
+padding:14px 16px;
+}
+.faq-q{
+font-size:13.5px;
+font-weight:500;
+color:var(--dark);
+line-height:1.5;
+margin-bottom:6px;
+}
+.faq-a{
+font-size:13px;
+color:var(--text2);
+line-height:1.9;
+}
+
+/* Closing */
+.closing{
+text-align:center;
+padding:40px 0 20px;
+}
+.closing-text{
+font-family:'Noto Serif SC',serif;
+font-size:16px;
+color:var(--text2);
+line-height:2;
+}
+
+/* 提示框 */
+.note-box{
+display:flex;gap:10px;
+padding:14px 16px;
+background:rgba(232,180,76,0.08);
+border-left:3px solid var(--gold);
+border-radius:0 var(--radius) var(--radius) 0;
+margin-top:16px;
+font-size:13px;
+color:var(--text2);
+line-height:1.7;
+}
+
+/* 动画 */
+@keyframes fadeInUp{
+from{opacity:0;transform:translateY(12px)}
+to{opacity:1;transform:translateY(0)}
+}
+.fade-in{animation:fadeInUp 0.5s ease forwards}
+
+/* 响应式 */
+@media(max-width:420px){
+.hero h1{font-size:26px}
+.section-title{font-size:19px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- Hero -->
+<div class="hero">
+<div class="stars">
+<div class="star" style="top:30px;left:15%;width:2px;height:2px;animation-delay:0s"></div>
+<div class="star" style="top:60px;left:45%;width:1.5px;height:1.5px;animation-delay:0.8s"></div>
+<div class="star" style="top:25px;left:70%;width:2px;height:2px;animation-delay:1.5s"></div>
+<div class="star" style="top:80px;left:25%;width:1px;height:1px;animation-delay:2s"></div>
+<div class="star" style="top:50px;left:85%;width:1.5px;height:1.5px;animation-delay:0.5s"></div>
+<div class="star" style="top:100px;left:55%;width:1px;height:1px;animation-delay:1.2s"></div>
+<div class="star" style="top:40px;left:90%;width:2px;height:2px;animation-delay:2.5s"></div>
+<div class="star" style="top:90px;left:10%;width:1px;height:1px;animation-delay:1.8s"></div>
+</div>
+<div class="hero-badge">LINKER</div>
+<h1>链接者<span>手册</span></h1>
+<p class="hero-sub">让对的人遇到对的机会</p>
+</div>
+
+<!-- 开场文案 -->
+<div class="content">
+
+<div class="opening-quote">
+<p>
+<em>你身边有很好的人，但你不知道怎么把他们链接起来。</em><br>
+<em>或者你看到了一个机会，但不知道该推荐给谁。</em><br><br>
+你不是不会社交，是没有一个地方让你的链接被认真看待。<br><br>
+拓圈就是这个地方。<br><br>
+<strong style="color:var(--gold);font-size:17px">让对的人，遇到对的机会。</strong>
+</p>
+</div>
+
+<div class="divider"></div>
+
+<!-- 第一章：为什么要成为链接者 -->
+<details class="detail-block" open>
+<summary><strong>一、为什么要成为链接者？</strong></summary>
+<div class="detail-body">
+
+<div style="font-size:14px;color:var(--text);line-height:2;">
+你认识很多人——有做产品的 creator，有在找方向的 seeker，有想办活动的 organizer。<br><br>
+你知道 A 需要什么，B 能提供什么，C 和 D 放在一起会擦出火花。<br><br>
+但你的这些"链接"，通常只是<strong>存在你的脑子里</strong>。你介绍两个人认识，然后呢？没有记录，没有反馈，没有沉淀。<br><br>
+<strong>你的链接能力，没有被看见，更没有被回报。</strong>
+</div>
+
+<div class="quote-box">
+<div class="quote-text">链接者的价值，<br>不是"认识多少人"，<br>是"让多少人因为你的链接而发生变化"。</div>
+</div>
+
+<div style="font-size:14px;color:var(--text2);line-height:2;margin-top:16px;">
+拓圈给链接者设计了一套机制——<br><br>
+<strong>你链接过来的人，他们在拓圈里产生的收益，你永远享受提成。</strong><br><br>
+不是一次性奖励，是<strong>持续性的</strong>。只要你链接的人一直在拓圈里活跃、一直在产生价值，你就一直有分成。<br><br>
+这才是"链接"的真正回报——不是红包，不是感谢，是<strong>你曾经播种的地方，持续开花结果</strong>。
+</div>
+
+<div class="table-wrap" style="margin-top:16px;">
+<table>
+<tr><th></th><th>普通"中间人"</th><th>拓圈链接者</th></tr>
+<tr><td><strong>链接记录</strong></td><td>靠记忆，无记录</td><td>系统自动记录每一次链接</td></tr>
+<tr><td><strong>收益方式</strong></td><td>一次性红包/感谢</td><td>持续性分成，长期有效</td></tr>
+<tr><td><strong>链接深度</strong></td><td>介绍完就结束</td><td>可追踪后续合作全貌</td></tr>
+<tr><td><strong>成长路径</strong></td><td>无</td><td>五行成长体系，等级越高分成越多</td></tr>
+</table>
+</div>
+
+</div>
+</details>
+
+<div class="divider"></div>
+
+<!-- 第二章：链接者能做什么 -->
+<details class="detail-block">
+<summary><strong>二、链接者能做什么？</strong></summary>
+<div class="detail-body">
+
+<!-- 链接创造价值 -->
+<div class="card" style="background:#fff;border:1px solid rgba(0,0,0,0.04)">
+<div class="card-title" style="color:var(--gold)">&#x1F517; 链接创造价值</div>
+<div class="card-desc">
+<strong>你链接过来的探索者——</strong><br>
+他们加入拓圈后，持续活跃、参加活动、升级成长。你作为链接者，<strong>永久享受他们收益的分润</strong>。<br><br>
+<strong>你链接过来的创造者——</strong><br>
+他们在拓圈里卖产品、接委托、产生交易。拓圈向他们收取佣金，你作为链接者，<strong>按等级从这笔佣金中拿分润</strong>。<br><br>
+<strong>你促成的合作——</strong><br>
+A创造者和B探索者达成交易，或者两个创造者因为你的介绍产生了相生合作。系统检测到这笔合作，你获得<strong>一次性链接奖励</strong>。<br><br>
+<span style="color:var(--text3);font-size:12.5px;">关键点：你不需要"管理"他们，不需要"维护关系"。你只是把他们链接进拓圈，系统自动追踪后续的一切。</span>
+</div>
+</div>
+
+<!-- 如何链接 -->
+<div class="card" style="background:#fff;border:1px solid rgba(0,0,0,0.04)">
+<div class="card-title" style="color:var(--water)">&#x1F4E1; 如何链接？</div>
+<div class="card-desc">
+<strong>① 直接邀请</strong><br>
+把拓圈的入场链接发给你的朋友/合作伙伴，他们通过你的专属链接注册，系统自动绑定"由你链接"关系。<br><br>
+<strong>② 主动推荐</strong><br>
+在拓圈里看到某人需要某类服务，你认识正好做这个的创造者——介绍他们认识，系统记录这次链接。<br><br>
+<strong>③ 活动链接</strong><br>
+你组织了一场活动（线下沙龙/线上分享），参加者通过你的活动链接注册拓圈，你获得这批人的链接关系。<br><br>
+<strong>④ 内容链接</strong><br>
+你写了一篇内容，里面提到了某个创造者/某款产品，有人因为你的内容进来并注册，系统追踪来源。
+</div>
+</div>
+
+<!-- 链接者的特权 -->
+<div class="card" style="background:#fff;border:1px solid rgba(0,0,0,0.04)">
+<div class="card-title" style="color:var(--fire)">&#x2728; 链接者特权</div>
+<div class="card-desc">
+<span class="tag gold">专属编号</span> 链接者有独立号段体系，不等同于探索者/创造者编号<br>
+<span class="tag gold">链接图谱</span> 系统自动生成你的链接网络图，可视化你创造的连接<br>
+<span class="tag gold">优先推荐</span> 高等级链接者推荐的人/产品，在拓圈里获得初始权重加成<br>
+<span class="tag gold">专属活动</span> 链接者可以发起"链接专场"活动，拓圈提供场地和流量支持
+</div>
+</div>
+
+</div>
+</details>
+
+<div class="divider"></div>
+
+<!-- 第三章：如何成为链接者 -->
+<details class="detail-block">
+<summary><strong>三、如何成为链接者？</strong></summary>
+<div class="detail-body">
+
+<div style="font-size:14px;color:var(--text);line-height:2;margin-bottom:12px;">
+链接者不需要"申请"，但需要一个<strong>保证金</strong>来建立信任门槛。<br><br>
+原因和创造者类似——链接者在拓圈里扮演"信任中介"的角色，如果随便什么人都能当链接者，拓圈的信任基础就没了。
+</div>
+
+<!-- 保证金制度 -->
+<div class="seed-box">
+<div class="label">保证金制度</div>
+<div class="amount">¥0<span style="font-size:14px;font-weight:400;opacity:0.7"> 种子期（培训免费）</span></div>
+<div class="period">正式期：保证金另行公布</div>
+<div class="seed-features">
+&#x2713; 种子期免保证金，但需完成免费培训<br>
+&#x2713; 培训通过后正式获得链接者身份<br>
+&#x2713; 如有违规行为，取消链接者资格<br>
+&#x2713; 未来正式期保证金从分润中扣除，无需预付
+</div>
+</div>
+
+<div style="background:rgba(232,180,76,0.08);border-left:3px solid var(--gold);border-radius:0 var(--radius) var(--radius) 0;padding:14px 16px;margin:16px 0;font-size:13px;color:var(--text2);line-height:2;">
+<strong style="color:var(--dark)">为什么种子期免保证金？</strong><br>
+我们希望最早进来的链接者，是真正认可拓圈理念、愿意一起把这件事做起来的人。不是靠保证金筛人，是靠<strong>你是否认真完成了培训、是否理解链接者的角色定位</strong>。
+</div>
+
+<!-- 申请流程 -->
+<div style="background:var(--bg);border-radius:var(--radius);padding:14px 16px;margin-top:16px;">
+<div style="font-size:13px;font-weight:600;color:var(--dark);margin-bottom:8px;">成为链接者流程</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;font-family:monospace;">
+表达意向（填写申请表）<br>
+↓ 完成链接者培训（免费，线上）<br>
+↓ 通过小测试（确保你理解了规则）<br>
+↓ 开通链接者权限<br>
+↓ 获得专属链接/二维码
+</div>
+</div>
+
+<!-- 培训内容 -->
+<div style="margin-top:16px;">
+<div style="font-size:13px;font-weight:600;color:var(--dark);margin-bottom:8px;">培训内容（免费，约2小时）</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;">
+1. 拓圈的理念：探索 vs 喂养（为什么链接比"拉群"更有价值）<br>
+2. 链接者的分润规则：怎么算、怎么拿、能拿多少<br>
+3. 什么算"有效链接"：系统怎么判断一个人是不是你链接来的<br>
+4. 链接者的行为边界：不能做什么（禁止诱导注册、禁止虚假宣传）<br>
+5. 怎么用拓圈的工具：专属链接、链接图谱、分润查询
+</div>
+</div>
+
+</div>
+</details>
+
+<div class="divider"></div>
+
+<!-- 第四章：分润机制 -->
+<details class="detail-block">
+<summary><strong>四、分润机制（链接者怎么赚钱）</strong></summary>
+<div class="detail-body">
+
+<div style="font-size:13px;color:var(--text3);margin-bottom:12px;">分润比例按链接者等级分档，等级越高，分润比例越高。升级靠链接有效人数和链接质量。</div>
+
+<!-- 分润比例表 -->
+<div style="margin-bottom:16px;">
+<div style="font-size:14px;font-weight:600;color:var(--dark);margin-bottom:8px;">&#x1F4B0; 分润比例（按链接者等级）</div>
+<table class="revenue-table">
+<tr><th>链接者等级</th><th>分润比例</th><th>说明</th></tr>
+<tr><td>LINKER Lv.1 - Lv.10</td><td class="revenue-highlight">5%</td><td>入门级，刚完成培训的新链接者</td></tr>
+<tr><td>LINKER Lv.11 - Lv.30</td><td class="revenue-highlight">10%</td><td>中级，已成功链接多个人</td></tr>
+<tr><td>LINKER Lv.31 - Lv.60</td><td class="revenue-highlight">15%</td><td>高级，链接网络已具备规模</td></tr>
+</table>
+<div style="font-size:11.5px;color:var(--text3);margin-top:8px;line-height:1.6;">
+注1：分润来源 = 拓圈向创造者收取的佣金，按链接者等级比例分配<br>
+注2：拓圈向创造者收取佣金的具体比例参照行业通行标准，不对外公布详细数字<br>
+注3：分润按<strong>月</strong>结算，当月产生的佣金，次月发放
+</div>
+</div>
+
+<!-- 创造者交易分润 -->
+<div style="margin-bottom:16px;">
+<div style="font-size:14px;font-weight:600;color:var(--dark);margin-bottom:8px;">&#x1F4B0; 创造者交易分润（按笔数累积）</div>
+<div style="font-size:13.5px;color:var(--text2);line-height:2;">
+你链接的创造者每完成一笔交易，你获得该笔交易佣金（拓圈向创造者收取的）的对应比例分润。<br><br>
+随着你链接的创造者交易笔数增加，你的分润比例可以<strong>逐级提升</strong>：<br><br>
+<span style="display:inline-block;background:var(--bg);padding:12px 16px;border-radius:var(--radius);margin:8px 0;font-size:13px;line-height:1.8;">
+<strong>第1-5笔/月</strong> → 分润比例 <strong style="color:var(--gold)">1%</strong><br>
+<strong>第6-20笔/月</strong> → 分润比例 <strong style="color:var(--gold)">2%</strong><br>
+<strong>21笔以上/月</strong> → 分润比例 <strong style="color:var(--gold)">3%</strong>
+</span>
+<br>
+<span style="font-size:12px;color:var(--text3);">注：此比例为额外加成，与你链接者等级的基础分润叠加计算。</span>
+</div>
+</div>
+
+<!-- 活动赞助分润 -->
+<div style="margin-bottom:16px;">
+<div style="font-size:14px;font-weight:600;color:var(--dark);margin-bottom:8px;">&#x1F3C6; 活动赞助分润</div>
+<div style="font-size:13.5px;color:var(--text2);line-height:2;">
+你作为链接者，帮拓圈牵线了一个活动赞助（比如某品牌赞助了拓圈的一场线下活动）——<br><br>
+你获得该笔赞助金额的 <strong style="color:var(--gold)">10% - 30%</strong> 作为分润。<br><br>
+具体比例<strong>一事一议</strong>，取决于：<br>
+- 赞助金额大小<br>
+- 你在其中扮演的角色（牵线人 / 谈判主导 / 仅介绍）<br>
+- 赞助的后续持续价值<br><br>
+<span style="font-size:12px;color:var(--text3);">活动赞助分润是链接者高收入潜力最大的来源，一笔大额赞助的分润可能超过数月的交易分润总和。</span>
+</div>
+</div>
+
+<!-- 分润示例 -->
+<div style="background:var(--bg);border-radius:var(--radius);padding:16px;margin-top:16px;">
+<div style="font-size:13px;font-weight:600;color:var(--dark);margin-bottom:10px;">&#x1F4D0; 分润计算示例</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;">
+<strong>场景：</strong>你是 Lv.15 链接者（分润比例10%），你链接的一个创造者本月完成了20笔交易，拓圈向该创造者收取了合计¥2000佣金。<br><br>
+<strong>你的分润 = ¥2000 × 10% = ¥200</strong><br><br>
+加上交易笔数加成（第6-20笔，+2%）：<br>
+<strong>你的分润 = ¥2000 × (10% + 2%) = ¥240</strong><br><br>
+<span style="font-size:12px;color:var(--text3);">以上为简化示例，实际分润以系统结算为准。拓圈会提供完整的分润明细，可随时查询。</span>
+</div>
+</div>
+
+</div>
+</details>
+
+<div class="divider"></div>
+
+<!-- 第五章：五行成长体系 -->
+<details class="detail-block">
+<summary><strong>五、五行成长体系（链接者的"天赋树"）</strong></summary>
+<div class="detail-body">
+
+<div style="font-size:13px;color:var(--text3);margin-bottom:16px;font-style:italic;">链接者的五行力量，决定你擅长链接什么类型的人和机会。不是装饰，是实实在在的成长技能点。</div>
+
+<!-- 核心概念 -->
+<div style="margin-bottom:16px;">
+<div style="font-size:14px;font-weight:600;color:var(--dark);margin-bottom:8px;">核心概念：你的五行，是你<strong>链接行为</strong>长出来的</div>
+<div style="font-size:13.5px;color:var(--text2);line-height:2;">
+你注册时不用勾选"我是火型还是水型"。系统观察你链接了什么人、促成了什么合作，自动判断你的主导力量。<br><br>
+<table class="table-wrap table">
+<tr><th>五行</th><th>名字</th><th>链接特长</th><th>适合链接的对象</th></tr>
+<tr><td style="font-size:16px">&#x1F525;</td><td><strong>聚集力</strong></td><td>擅长让对的人聚到一起</td><td>门店型创造者、活动型创造者</td></tr>
+<tr><td style="font-size:16px">&#x1F4A7;</td><td><strong>渗透力</strong></td><td>擅长把内容/信息传到远处</td><td>内容型创造者、有传播需求的探索者</td></tr>
+<tr><td style="font-size:16px">&#x1F331;</td><td><strong>生长力</strong></td><td>擅长从0到1促成新项目</td><td>产品型创造者、初创探索者</td></tr>
+<tr><td style="font-size:16px">&#x2699;</td><td><strong>打磨力</strong></td><td>擅长解决具体问题</td><td>服务型创造者、需要专业支持的探索者</td></tr>
+<tr><td style="font-size:16px">&#x1F5D5;</td><td><strong>承载力</strong></td><td>擅长组织和承载多人活动</td><td>活动型创造者、部落开拓者</td></tr>
+</table>
+</div>
+</div>
+
+<!-- 五行成长技能点 -->
+<div style="margin-bottom:16px;">
+<div style="font-size:14px;font-weight:600;color:var(--dark);margin-bottom:12px;">五行成长技能点（链接者专属加成）</div>
+
+<div class="wx-block"><div class="wx-icon fire">&#x1F525;</div><div class="wx-body"><strong>火（聚集力）成长加成</strong><br>1. 你链接的门店/活动型创造者，被碰撞到的概率+10%<br>2. 你发起的线下链接活动，初始报名人数+5人<br>3. 火属性达到"熟练"后，可解锁"聚集力专场"活动权限</div></div>
+<div class="wx-block"><div class="wx-icon water">&#x1F4A7;</div><div class="wx-body"><strong>水（渗透力）成长加成</strong><br>1. 你链接的内容型创造者，内容传播范围+15%<br>2. 你推荐的内容，出现在"碰撞推荐"的权重更高<br>3. 水属性达到"熟练"后，可解锁"内容分发网络"工具</div></div>
+<div class="wx-block"><div class="wx-icon wood">&#x1F331;</div><div class="wx-body"><strong>木（生长力）成长加成</strong><br>1. 你链接的产品型创造者，产品被点亮速度+10%<br>2. 你促成的"产品-探索者"链接，转化率+5%<br>3. 木属性达到"熟练"后，可解锁"新品内测推荐"权限</div></div>
+<div class="wx-block"><div class="wx-icon gold">&#x2699;</div><div class="wx-body"><strong>金（打磨力）成长加成</strong><br>1. 你链接的服务型创造者，被委托的概率+10%<br>2. 你促成的服务合作，完成质量评分+5%（影响后续推荐）<br>3. 金属性达到"熟练"后，可解锁"专业档案优先推荐"权限</div></div>
+<div class="wx-block"><div class="wx-icon earth">&#x1F5D5;</div><div class="wx-body"><strong>土（承载力）成长加成</strong><br>1. 你链接的活动型创造者，活动报名人数+10%<br>2. 你发起的部落活动，初始曝光权重×1.5<br>3. 土属性达到"熟练"后，可解锁"跨部落联动"权限</div></div>
+</div>
+
+<!-- 五行怎么长出来 -->
+<div>
+<div style="font-size:14px;font-weight:600;color:var(--dark);margin-bottom:8px;">链接者的五行怎么"长出来"？</div>
+<div style="font-size:13.5px;color:var(--text2);line-height:2;margin-bottom:16px;">
+系统通过三个维度判断你的主导力量——<br>
+1. <strong>你链接最多的是什么类型的人</strong>（创造者类型/探索者需求）<br>
+2. <strong>你促成的合作主要集中在哪个方向</strong>（产品交易/内容传播/服务委托/活动组织）<br>
+3. <strong>你的链接网络的扩展方式</strong>（聚集人群/内容渗透/项目孵化/专业匹配/活动承载）<br><br>
+三个月后，你的灵魂画像里会有一朵<strong>五瓣花</strong>，每片花瓣的大小代表你和那种力量的共振强度。<br><br>
+<strong>你不是"火型链接者"，你是"与火共振的链接者"。</strong>
+</div>
+</div>
+
+</div>
+</details>
+
+<div class="divider"></div>
+
+<!-- 第六章：如何成为开拓者 -->
+<details class="detail-block">
+<summary><strong>六、如何成为开拓者？</strong></summary>
+<div class="detail-body">
+
+<div style="font-size:14px;color:var(--text);line-height:2;margin-bottom:16px;">
+链接者达到一定等级、积累了足够的链接网络和五行成长记录后，可以申请成为<strong>开拓者</strong>。<br><br>
+开拓者不是"管理员"，是<strong>认领了一块责任田的链接者</strong>——你负责拓圈里某个街区/部落的链接生态建设。
+</div>
+
+<!-- 申请条件 -->
+<div style="background:var(--bg);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;">
+<div style="font-size:13px;font-weight:600;color:var(--dark);margin-bottom:8px;">如何申请成为开拓者？</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;">
+1. 你的链接者等级达到 <strong>Lv.10 以上</strong><br>
+2. 成功链接了至少 <strong>30 个有效用户</strong>（探索者或创造者）<br>
+3. 你的灵魂画像五瓣花里，至少有一瓣达到 <strong>"熟练"级别</strong><br>
+4. 向拓圈提交"开拓者申请"——写一段你想建设哪个街区/部落的链接生态<br>
+5. <strong>开荒者（菜菜）审批通过</strong>
+</div>
+</div>
+
+<!-- 可以做什么 -->
+<div style="background:rgba(232,180,76,0.08);border:1px solid rgba(232,180,76,0.2);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;">
+<div style="font-size:13px;font-weight:600;color:var(--dark);margin-bottom:8px;">&#x1F3C6; 开拓者可以做什么？</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;">
+<strong>1. 建设街区/部落的链接生态</strong><br>
+你负责的区域里，新人的链接关系优先算在你的名下（直到他们被分配给具体链接者）。<br><br>
+<strong>2. 发起"链接专场"活动</strong><br>
+你可以发起拓圈官方认证的链接专场——比如"产品型创造者 × 内容型创造者对接会"，拓圈提供场地和流量。<br><br>
+<strong>3. 参与平台链接规则共建</strong><br>
+拓圈的链接规则、分润规则、五行成长体系，开拓者可以参与优化迭代。<br><br>
+<strong>4. 收益分配加成</strong><br>
+开拓者的分润比例比同等级链接者 <strong>+5%</strong>。
+</div>
+</div>
+
+<!-- 责任 -->
+<div style="font-size:13.5px;color:var(--text2);line-height:2;">
+<strong>开拓者的责任</strong><br>
+开拓者不是"官职"，是<strong>一种选择</strong>。<br><br>
+你选择了为这个空间的链接生态多付出一些，相应地，你也获得更多的机会和回报。<br><br>
+如果你不想做了，可以随时退出开拓者身份——<strong>不影响你的链接者身份，不影响你的分润资格</strong>。<br><br>
+<span style="color:var(--text3);font-size:12.5px;">拓圈不是"平台雇佣你"，是"你愿意的话，一起把链接生态做得更好"。</span>
+</div>
+
+</div>
+</details>
+
+<div class="divider"></div>
+
+<!-- 第七章：FAQ -->
+<details class="detail-block">
+<summary><strong>七、你可能想问的（FAQ）</strong></summary>
+<div class="detail-body">
+
+<div class="faq-list">
+<div class="faq-item"><div class="faq-q">Q1：链接者和探索者/创造者的区别是什么？</div><div class="faq-a">探索者在拓圈里找方向，创造者在拓圈里做产品/内容/服务，链接者在拓圈里把前两者链接起来。链接者是"连接器"——你不需要自己做产品，但你的链接让产品找到了对的人。</div></div>
+<div class="faq-item"><div class="faq-q">Q2：分润比例是怎么定的？会改吗？</div><div class="faq-a">分润比例按链接者等级固定分档（5%/10%/15%），种子期确定，正式期可能调整但会提前通知。调整原则是"有利于链接者"，不会突然降低。</div></div>
+<div class="faq-item"><div class="faq-q">Q3：我链接的人退出了/注销了，分润还有吗？</div><div class="faq-a">分润是基于"实际产生的收益"计算的。如果你链接的人退出了，后续不再产生收益，分润自然停止。但已经产生的分润，该给你的还是会给你。</div></div>
+<div class="faq-item"><div class="faq-q">Q4：我可以同时是创造者+链接者吗？</div><div class="faq-a">可以。很多人既是创造者（自己做产品），又是链接者（帮其他创造者和探索者牵线）。两笔身份的收益分开计算，互不影响。</div></div>
+<div class="faq-item"><div class="faq-q">Q5：链接者的等级怎么升？</div><div class="faq-a">三个维度：①成功链接的有效人数（越多越快）；②链接质量（你链接的人是否在拓圈里持续活跃/产生交易）；③五行成长（你链接行为的深度和广度）。没有固定时间要求，看你的实际链接成果。</div></div>
+<div class="faq-item"><div class="faq-q">Q6：活动赞助分润的"一事一议"怎么操作？</div><div class="faq-a">你牵线了一个赞助机会后，向拓圈报备。拓圈和赞助方确认金额和条款后，和你确认分润比例（在10%-30%范围内），签简单的分润协议，赞助到账后7个工作日内打给你。</div></div>
+<div class="faq-item"><div class="faq-q">Q7：种子期免保证金，正式期为什么要收？</div><div class="faq-a">正式期收取保证金（从你的分润里扣，不需要预付），是为了确保链接者认真履行职责——不虚假链接、不诱导注册、不损害拓圈的信任基础。只要你不违规，保证金随时可以退。</div></div>
+<div class="faq-item"><div class="faq-q">Q8：我怎么知道某个人是不是我链接来的？</div><div class="faq-a">系统自动追踪。通过你的专属链接/二维码注册的人，系统自动绑定"由你链接"关系。如果是线下场景（比如你口头介绍拓圈，对方直接搜索注册），需要在对方注册时填写"推荐人编号"，系统才会绑定。</div></div>
+<div class="faq-item"><div class="faq-q">Q9：链接者有没有"过度链接"的风险？比如我乱发链接？</div><div class="faq-a">有管控。如果系统检测到你的链接转化率极低（比如你链接了100人，0人产生任何收益），会降低你的链接权重，甚至暂停链接者权限。拓圈要的是"有效链接"，不是"刷人数"。</div></div>
+<div class="faq-item"><div class="faq-q">Q10：分润要交税吗？</div><div class="faq-a">分润属于个人劳务报酬，按规定需要交税。拓圈会在发放分润时代扣代缴，你拿到的是税后金额。具体税率以当年税法为准。</div></div>
+</div>
+
+</div>
+</details>
+
+<!-- Closing -->
+<div class="closing">
+<div style="width:40px;height:1px;background:var(--bg3);margin:0 auto 24px"></div>
+<div class="closing-text">
+你身边一定有这样的人——<br>
+有能力，有产品，有想法，<br>
+但就是没有被对的人看到。<br><br>
+你牵个线，也许就改变了两个人的轨迹。<br><br>
+<strong style="color:var(--gold)">拓圈让这种"牵线"，变成一件有回报的事。</strong>
+</div>
+</div>
+
+</div><!-- end content -->
+
+</div><!-- end page -->
+</body>
+</html>

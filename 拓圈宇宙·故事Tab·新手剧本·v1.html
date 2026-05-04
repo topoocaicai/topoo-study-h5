@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TopSpace · 新手剧本</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0B0F1E;
+            color: #C8C0B8;
+            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+            overflow-x: hidden;
+            -webkit-user-select: none; user-select: none;
+        }
+        .phone-shell {
+            position: relative; width: 375px; height: 812px;
+            margin: 20px auto; border-radius: 44px;
+            background: #0B0F1E;
+            box-shadow: 0 0 0 2px #1a1816, 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        .phone-notch {
+            position: absolute; top:0; left:50%; transform: translateX(-50%);
+            width:150px; height:30px; background: #0B0F1E;
+            border-radius: 0 0 18px 18px; z-index:200;
+        }
+        .phone-notch::before {
+            content:''; position:absolute; top:10px; left:50%; transform:translateX(-50%);
+            width:60px; height:6px; background:#1a1816; border-radius:3px;
+        }
+
+        /* 顶部栏 */
+        .top-bar {
+            position: fixed; top:0; left:50%; transform: translateX(-50%);
+            width:375px; z-index:100;
+            display:flex; align-items:center; justify-content: space-between;
+            padding: 44px 16px 12px;
+            background: linear-gradient(180deg, rgba(11,15,30,0.98) 60%, rgba(11,15,30,0) 100%);
+        }
+        .back-btn {
+            width:32px; height:32px; border-radius:50%;
+            background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+            display:flex; align-items:center; justify-content:center;
+            font-size:18px; color:#C8C0B8; cursor:pointer;
+        }
+        .page-title-area { text-align:center; flex:1; }
+        .page-title {
+            font-size:15px; font-weight:600; color:#F5F0E8;
+            letter-spacing:1px;
+        }
+        .page-subtitle { font-size:10px; color:#6A6570; margin-top:2px; }
+        .top-right { width:32px; }
+
+        /* 滚动区 */
+        .main-scroll {
+            position:absolute; top:0; left:0; right:0; bottom:0;
+            overflow-y:auto; padding-top:90px; padding-bottom:40px;
+        }
+        .main-scroll::-webkit-scrollbar { width:0; }
+
+        /* 星空背景 */
+        .star-bg {
+            position:absolute; top:0; left:0; right:0; bottom:0;
+            pointer-events:none; z-index:0;
+        }
+
+        /* 剧集导航 */
+        .ep-nav {
+            position: sticky; top: 82px;
+            z-index: 50;
+            display: flex; gap: 6px;
+            padding: 8px 16px 12px;
+            overflow-x: auto;
+            background: linear-gradient(180deg, rgba(11,15,30,0.95) 70%, transparent 100%);
+        }
+        .ep-nav::-webkit-scrollbar { height:0; }
+        .ep-nav-item {
+            flex-shrink: 0;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .ep-nav-item.completed {
+            background: rgba(74,158,184,0.15);
+            color: #4A9EB8;
+            border: 1px solid rgba(74,158,184,0.3);
+        }
+        .ep-nav-item.current {
+            background: rgba(232,180,76,0.2);
+            color: #E8B44C;
+            border: 1px solid rgba(232,180,76,0.4);
+            font-weight: 600;
+        }
+        .ep-nav-item.locked {
+            background: rgba(255,255,255,0.03);
+            color: #4A4550;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        /* 幕卡片 */
+        .episode {
+            position: relative; z-index: 1;
+            padding: 0 20px;
+            margin-bottom: 40px;
+        }
+        .ep-header {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .ep-number {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 800;
+            flex-shrink: 0;
+        }
+        .ep-number.completed { background: rgba(74,158,184,0.15); color: #4A9EB8; }
+        .ep-number.current { background: rgba(232,180,76,0.2); color: #E8B44C; }
+        .ep-number.locked { background: rgba(255,255,255,0.04); color: #4A4550; }
+        .ep-title-group { flex:1; }
+        .ep-title {
+            font-size: 15px; font-weight: 700; color: #F5F0E8;
+            margin-bottom: 2px;
+        }
+        .ep-number-text { font-size: 10px; color: #6A6570; letter-spacing: 1px; }
+        .locked-cover {
+            margin-top: 12px; padding: 14px;
+            background: rgba(255,255,255,0.02);
+            border: 1px dashed rgba(255,255,255,0.08);
+            border-radius: 12px;
+            text-align: center;
+            font-size: 12px; color: #4A4550;
+        }
+
+        /* 剧本内容 */
+        .script-content { padding: 0 4px; }
+        .script-stage {
+            font-size: 10px; color: #6A6570;
+            letter-spacing: 2px; text-transform: uppercase;
+            margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .script-stage::before, .script-stage::after {
+            content:''; flex:1; height:1px; background: rgba(255,255,255,0.06);
+        }
+
+        /* 对话气泡 */
+        .dialogue {
+            margin-bottom: 14px;
+            display: flex; gap: 10px;
+            align-items: flex-start;
+        }
+        .dialogue.system { flex-direction: row; }
+        .dialogue.narrator { flex-direction: column; padding: 0 8px; }
+        .dialogue.player { flex-direction: row-reverse; text-align: right; }
+        .d-avatar {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700; flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .d-bubble {
+            max-width: 260px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+        .dialogue.system .d-bubble {
+            background: rgba(74,158,184,0.1);
+            border: 1px solid rgba(74,158,184,0.2);
+            color: #A0C8D8;
+            border-top-left-radius: 4px;
+        }
+        .dialogue.player .d-bubble {
+            background: rgba(232,180,76,0.1);
+            border: 1px solid rgba(232,180,76,0.2);
+            color: #E8D4A0;
+            border-top-right-radius: 4px;
+        }
+        .dialogue.narrator .d-bubble {
+            background: transparent;
+            color: #8A8578;
+            font-style: italic;
+            padding: 8px 14px;
+            border-left: 2px solid rgba(255,255,255,0.08);
+            max-width: 100%;
+        }
+        .d-name {
+            font-size: 10px; color: #6A6570;
+            margin-bottom: 3px; letter-spacing: 1px;
+        }
+        .dialogue.player .d-name { text-align: right; }
+
+        /* 钩子提示 */
+        .hook {
+            margin: 16px 0;
+            padding: 12px 14px;
+            background: rgba(155,123,191,0.08);
+            border: 1px solid rgba(155,123,191,0.2);
+            border-radius: 10px;
+            font-size: 11px; color: #A890B8;
+            line-height: 1.6;
+        }
+        .hook::before {
+            content: '🪝 ';
+        }
+
+        /* 分隔线 */
+        .ep-divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 10px 0 20px;
+        }
+        .ep-divider::before, .ep-divider::after {
+            content:''; flex:1; height:1px;
+            background: linear-gradient(90deg, transparent, rgba(232,180,76,0.2), transparent);
+        }
+        .ep-divider span {
+            font-size: 10px; color: #6A6570; letter-spacing: 2px;
+        }
+
+        /* 彩蛋幕特殊样式 */
+        .easter-content {
+            padding: 16px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            margin-top: 12px;
+        }
+
+        /* 底部提示 */
+        .end-hint {
+            text-align: center;
+            padding: 30px 20px 20px;
+            font-size: 11px; color: #4A4550;
+            line-height: 1.8;
+        }
+        .end-hint .brand {
+            color: #E8B44C; font-weight: 600;
+        }
+
+        /* Toast */
+        .toast {
+            display: none;
+            position: absolute; top: 60px; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(44,40,36,0.9);
+            color: #F5F0E8; font-size: 12px;
+            padding: 8px 18px; border-radius: 20px;
+            z-index: 500; white-space: nowrap;
+            backdrop-filter: blur(8px);
+        }
+        .toast.show { display: block; animation: toastIn 0.3s ease; }
+        @keyframes toastIn {
+            from { opacity:0; transform:translateX(-50%) translateY(-10px); }
+            to { opacity:1; transform:translateX(-50%) translateY(0); }
+        }
+    </style>
+</head>
+<body>
+<div class="phone-shell">
+    <div class="phone-notch"></div>
+    <canvas class="star-bg" id="starBg"></canvas>
+
+    <!-- 顶部栏 -->
+    <div class="top-bar">
+        <div class="back-btn" onclick="showToast('返回故事主页')">←</div>
+        <div class="page-title-area">
+            <div class="page-title">新手剧本</div>
+            <div class="page-subtitle">觉醒纪元 · 10幕主线</div>
+        </div>
+        <div class="top-right"></div>
+    </div>
+
+    <!-- 剧集导航 -->
+    <div class="ep-nav">
+        <div class="ep-nav-item completed" onclick="scrollToEp(1)">01 坠落</div>
+        <div class="ep-nav-item completed" onclick="scrollToEp(2)">02 三件东西</div>
+        <div class="ep-nav-item current" onclick="scrollToEp(3)">03 心情检测</div>
+        <div class="ep-nav-item locked" onclick="showToast('🔒 尚未解锁')">04 噢</div>
+        <div class="ep-nav-item locked" onclick="showToast('🔒 尚未解锁')">05 碰撞</div>
+        <div class="ep-nav-item locked" onclick="showToast('🔒 尚未解锁')">06 创造者</div>
+        <div class="ep-nav-item locked" onclick="showToast('🔒 尚未解锁')">07 真相</div>
+        <div class="ep-nav-item locked" onclick="showToast('🔒 尚未解锁')">08 禁区</div>
+        <div class="ep-nav-item locked" onclick="showToast('🔒 尚未解锁')">09 身份卡</div>
+        <div class="ep-nav-item locked" onclick="showToast('🔒 尚未解锁')">10 未完成</div>
+        <div class="ep-nav-item locked" onclick="showToast('🔒 尚未解锁')">彩蛋</div>
+    </div>
+
+    <!-- 主滚动区 -->
+    <div class="main-scroll" id="mainScroll">
+
+        <!-- ═══════════════════════════════════ -->
+        <!-- 第一幕：坠落 -->
+        <div class="episode" id="ep1">
+            <div class="ep-header">
+                <div class="ep-number completed">01</div>
+                <div class="ep-title-group">
+                    <div class="ep-title">坠落——你为什么在这里？</div>
+                    <div class="ep-number-text">ACT I · FALL</div>
+                </div>
+            </div>
+            <div class="script-content">
+                <div class="script-stage">纯黑屏幕。一颗光点从上方坠落，带着细微的呼啸声</div>
+
+                <div class="dialogue system">
+                    <div class="d-avatar" style="background:rgba(74,158,184,0.2);color:#4A9EB8;">系</div>
+                    <div>
+                        <div class="d-name">系统</div>
+                        <div class="d-bubble">降落中……</div>
+                    </div>
+                </div>
+
+                <div class="script-stage">光点砸向地面，泛起金色涟漪，视野渐亮</div>
+
+                <div class="dialogue player">
+                    <div class="d-avatar" style="background:rgba(232,180,76,0.2);color:#E8B44C;">你</div>
+                    <div>
+                        <div class="d-name">你</div>
+                        <div class="d-bubble">……这是哪儿？</div>
+                    </div>
+                </div>
+
+                <div class="script-stage">四周是深蓝星空，脚下踩着若有若无的光面，远处几颗星球散落，大部分是暗的，只有零星几颗还亮着微光</div>
+
+                <div class="dialogue player">
+                    <div class="d-avatar" style="background:rgba(232,180,76,0.2);color:#E8B44C;"></div>
+                    <div>
+                        <div class="d-name">你</div>
+                        <div class="d-bubble">我怎么到这儿来的？我要干什么？</div>
+                    </div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-avatar" style="background:rgba(74,158,184,0.2);color:#4A9EB8;"></div>
+                    <div>
+                        <div class="d-name">系统</div>
+                        <div class="d-bubble">别慌。是我。</div>
+                    </div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">你是……</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">你可以叫我系统。虽然……我更希望你有朝一日给我起个名字。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">这到底是什么地方？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">这里是拓圈宇宙。</div>
+                </div>
+
+                <div class="script-stage">停顿一秒，系统的声线突然变轻，像在说什么不该说的话</div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">你降落的这颗星球，现在是你的了。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">我的？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">对。没有人来认领之前，它就在这里等着。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">……等着？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">……没什么。先进去吧。</div>
+                </div>
+
+                <div class="script-stage">屏幕暗下去。黑屏上浮现一行小字：</div>
+
+                <div class="dialogue narrator">
+                    <div class="d-bubble" style="text-align:center;color:#E8B44C;font-style:normal;">
+                        「你确定，你是第一次来这里吗？」
+                    </div>
+                </div>
+
+                <div class="script-stage">然后这行字自己删掉了，像什么都没发生过</div>
+
+                <div class="hook">
+                    【第一幕完】<br>
+                    你很疑惑：什么叫"等着"？<br>
+                    那行字为什么自己删掉了？
+                </div>
+            </div>
+        </div>
+
+        <div class="ep-divider"><span>───── 分隔线 ─────</span></div>
+
+        <!-- ═══════════════════════════════════ -->
+        <!-- 第二幕：三件东西 -->
+        <div class="episode" id="ep2">
+            <div class="ep-header">
+                <div class="ep-number completed">02</div>
+                <div class="ep-title-group">
+                    <div class="ep-title">三件东西——痕迹即灵魂</div>
+                    <div class="ep-number-text">ACT II · THREE THINGS</div>
+                </div>
+            </div>
+            <div class="script-content">
+                <div class="script-stage">你的星球表面。荒地，什么都没有，但踩上去有轻微的回弹感，像踩在鼓面上</div>
+
+                <div class="dialogue system">
+                    <div class="d-avatar" style="background:rgba(74,158,184,0.2);color:#4A9EB8;"></div>
+                    <div>
+                        <div class="d-name">系统</div>
+                        <div class="d-bubble">既然来了，总不能空手。我先送你三样东西。</div>
+                    </div>
+                </div>
+
+                <div class="script-stage">系统没出现，但声音从四面八方传来。一个星球从你掌心浮现，缓缓旋转</div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">第一件，一颗星球。只有一颗，你要好好珍惜它。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-avatar" style="background:rgba(232,180,76,0.2);color:#E8B44C;"></div>
+                    <div>
+                        <div class="d-name">你</div>
+                        <div class="d-bubble">星球？这玩意儿能干什么？</div>
+                    </div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">现在干不了什么。但以后，它会跟着你一起长大。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">长大？星球还能长大？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">……你以后看看就知道了。</div>
+                </div>
+
+                <div class="script-stage">系统停顿了一下，像在犹豫要不要说下去</div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">不过有件事我要先告诉你——这颗星球，不是完全空白的。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">什么意思？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">等你自己发现吧。</div>
+                </div>
+
+                <div class="script-stage">翻涌出一本泛着微光的笔记本，封面写着你的编号</div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">第二件，一本笔记本。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">笔记本？就这？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">别小看它。这不是普通的笔记本。</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">你在这里写的每一个字、画的每一幅画、甚至只是随手涂鸦……都会成为你的一部分。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">这么严重？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">你以为你只是在"记录"。但其实，你是在往这个宇宙里……写入你的灵魂。</div>
+                </div>
+
+                <div class="script-stage">笔记本自动翻开，从中滑出一张卡片</div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">第三件——</div>
+                </div>
+
+                <div class="dialogue narrator">
+                    <div class="d-bubble">卡片悬浮在你面前，正面是星空底色，写着你的编号和昵称</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">你的身份卡。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">这又是什么？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">证明你来过。不过……它不是我"给"你的。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">那它是哪来的？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">它是从你自己的星球里……长出来的。</div>
+                </div>
+
+                <div class="script-stage">你翻过卡片——背面是空的</div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">背面怎么没字？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">现在没有。以后会有。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">谁写的？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">……</div>
+                </div>
+
+                <div class="script-stage">系统没回答。卡片从你手里飘走，插回星球的地表，像一棵刚种下的树苗</div>
+
+                <div class="hook">
+                    【第二幕完】<br>
+                    钩子：背面为什么是空的？"长出来的"是什么意思？<br>
+                    系统为什么回避这个问题？
+                </div>
+            </div>
+        </div>
+
+        <div class="ep-divider"><span>───── 分隔线 ─────</span></div>
+
+        <!-- ═══════════════════════════════════ -->
+        <!-- 第三幕：心情检测 -->
+        <div class="episode" id="ep3">
+            <div class="ep-header">
+                <div class="ep-number current">03</div>
+                <div class="ep-title-group">
+                    <div class="ep-title">心情检测——系统是人吗？</div>
+                    <div class="ep-number-text">ACT III · MOOD</div>
+                </div>
+            </div>
+            <div class="script-content">
+                <div class="dialogue system">
+                    <div class="d-avatar" style="background:rgba(74,158,184,0.2);color:#4A9EB8;"></div>
+                    <div>
+                        <div class="d-name">系统</div>
+                        <div class="d-bubble">对了，你现在心情怎么样？</div>
+                    </div>
+                </div>
+
+                <div class="script-stage">屏幕上浮现选项：兴奋 / 好奇 / 迷茫 / 开心 / 平静 / 说不上来 / 自定义</div>
+
+                <div class="dialogue player">
+                    <div class="d-avatar" style="background:rgba(232,180,76,0.2);color:#E8B44C;"></div>
+                    <div>
+                        <div class="d-name">你</div>
+                        <div class="d-bubble">问我这个干嘛？</div>
+                    </div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">因为我想知道，你以后会变成什么样。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">……你这系统还挺多事的。</div>
+                </div>
+
+                <div class="script-stage">你随手选了一个。系统沉默了两秒——</div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">记住了。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">你记住有什么用？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">……</div>
+                </div>
+
+                <div class="script-stage">突然，系统的声线变了。不再是冷冰冰的播报，而是带着一点……犹豫？</div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble" style="border-color:rgba(232,180,76,0.3);color:#E8D4A0;">你害怕吗？</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">……什么？？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble" style="border-color:rgba(232,180,76,0.3);color:#E8D4A0;">没什么。走吧。</div>
+                </div>
+
+                <div class="script-stage">声线瞬间切回冷冰冰的模式，像什么都没发生过</div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">等等！你刚才问我什么？！</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">流程里没有这一条。可能是bug。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">骗谁呢？bug会说"你害怕吗"？</div>
+                </div>
+
+                <div class="script-stage">系统没回答。你站在星球表面，有点懵</div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">……我是不是一个人？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">你不是一个人。</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">那这里还有谁？</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">你不是一个人。不是送给你一个星球了吗？</div>
+                </div>
+
+                <div class="dialogue player">
+                    <div class="d-bubble">我是说，活人！</div>
+                </div>
+
+                <div class="dialogue system">
+                    <div class="d-bubble">你降落试试。自己去看看。</div>
+                </div>
+
+                <div class="script-stage">屏幕下方浮现两个按钮：「继续飘着」 / 「降落看看」</div>
+
+                <div class="dialogue narrator" style="margin-top:16px;">
+                    <div class="d-bubble">
+                        如果你选「继续飘着」——<br>
+                        系统：看来是个叛逆者。（沉默两秒）行吧，那你在上面待着。下面挺热闹的。什么时候想下来了，随时。<br><br>
+                        如果你选「降落看看」——<br>
+                        系统：聪明。（视野猛然下坠，星球加速放大，一片星域从雾气中浮现）
+                    </div>
+                </div>
+
+                <div class="hook">
+                    【第三幕完】<br>
+                    系统问了"你害怕吗"——这不是程序该问的问题。<br>
+                    系统到底是什么？
+                </div>
+            </div>
+        </div>
+
+        <div class="ep-divider"><span>───── 未解锁内容 ─────</span></div>
+
+        <!-- ═══════════════════════════════════ -->
+        <!-- 第四幕：锁定状态 -->
+        <div class="episode" id="ep4">
+            <div class="ep-header">
+                <div class="ep-number locked">04</div>
+                <div class="ep-title-group">
+                    <div class="ep-title">遇见噢——那些灰色的星球</div>
+                    <div class="ep-number-text">ACT IV · ENCOUNTER</div>
+                </div>
+            </div>
+            <div class="locked-cover">
+                🔒 完成第三幕后解锁<br>
+                <span style="font-size:10px;color:#3A3540;margin-top:4px;display:inline-block;">
+                    你将在这一幕遇见探索者「噢」，第一次听说"灰色星球"的秘密……
+                </span>
+            </div>
+        </div>
+
+        <!-- 第五幕：锁定 -->
+        <div class="episode" id="ep5">
+            <div class="ep-header">
+                <div class="ep-number locked">05</div>
+                <div class="ep-title-group">
+                    <div class="ep-title">第一次碰撞——光是怎么长出来的</div>
+                    <div class="ep-number-text">ACT V · FIRST COLLISION</div>
+                </div>
+            </div>
+            <div class="locked-cover">
+                🔒 完成第四幕解锁<br>
+                <span style="font-size:10px;color:#3A3540;margin-top:4px;display:inline-block;">
+                    噢带你碰一碰别的人，你将亲眼看到"碰撞长出光"的瞬间……
+                </span>
+            </div>
+        </div>
+
+        <!-- 第六幕：锁定 -->
+        <div class="episode" id="ep6">
+            <div class="ep-header">
+                <div class="ep-number locked">06</div>
+                <div class="ep-title-group">
+                    <div class="ep-title">创造者——碰撞出来的世界</div>
+                    <div class="ep-number-text">ACT VI · CREATORS</div>
+                </div>
+            </div>
+            <div class="locked-cover">
+                🔒 完成第五幕解锁<br>
+                <span style="font-size:10px;color:#3A3540;margin-top:4px;display:inline-block;">
+                    你将遇见三位创造者：做内容的大哥、开花店的二姐、做手工皂的三哥……
+                </span>
+            </div>
+        </div>
+
+        <!-- 第七幕：锁定 -->
+        <div class="episode" id="ep7">
+            <div class="ep-header">
+                <div class="ep-number locked">07</div>
+                <div class="ep-title-group">
+                    <div class="ep-title">真相的第一层——你的星球有过去</div>
+                    <div class="ep-number-text">ACT VII · TRUTH 1</div>
+                </div>
+            </div>
+            <div class="locked-cover">
+                🔒 完成第六幕解锁<br>
+                <span style="font-size:10px;color:#3A3540;margin-top:4px;display:inline-block;">
+                    系统说："你的星球——不是全新的。"<br>
+                    这句话像一颗炸弹……
+                </span>
+            </div>
+        </div>
+
+        <!-- 第八幕：锁定 -->
+        <div class="episode" id="ep8">
+            <div class="ep-header">
+                <div class="ep-number locked">08</div>
+                <div class="ep-title-group">
+                    <div class="ep-title">禁区——系统的秘密</div>
+                    <div class="ep-number-text">ACT VIII · FORBIDDEN</div>
+                </div>
+            </div>
+            <div class="locked-cover">
+                🔒 完成第七幕解锁<br>
+                <span style="font-size:10px;color:#3A3540;margin-top:4px;display:inline-block;">
+                    噢带你偷看部落总部，发现一片黑色禁区……<br>
+                    系统说："我曾经，也是像你一样的人。"
+                </span>
+            </div>
+        </div>
+
+        <!-- 第九幕：锁定 -->
+        <div class="episode" id="ep9">
+            <div class="ep-header">
+                <div class="ep-number locked">09</div>
+                <div class="ep-title-group">
+                    <div class="ep-title">身份卡——你在找的，可能已经在找你</div>
+                    <div class="ep-number-text">ACT IX · ID CARD</div>
+                </div>
+            </div>
+            <div class="locked-cover">
+                🔒 完成第八幕解锁<br>
+                <span style="font-size:10px;color:#3A3540;margin-top:4px;display:inline-block;">
+                    你的身份卡背部长出了一行字：<br>
+                    「你在找的，可能已经在找你。」<br>
+                    噢盯着那行字，声音发抖……
+                </span>
+            </div>
+        </div>
+
+        <!-- 第十幕：锁定 -->
+        <div class="episode" id="ep10">
+            <div class="ep-header">
+                <div class="ep-number locked">10</div>
+                <div class="ep-title-group">
+                    <div class="ep-title">未完成——故事才刚开始</div>
+                    <div class="ep-number-text">ACT X · UNFINISHED</div>
+                </div>
+            </div>
+            <div class="locked-cover">
+                🔒 完成第九幕解锁<br>
+                <span style="font-size:10px;color:#3A3540;margin-top:4px;display:inline-block;">
+                    系统说："你是来点亮它的。"<br>
+                    黑屏上浮现：<br>
+                    「拓圈宇宙 · 觉醒纪元」<br>
+                    「你的旅程，现在才开始。」
+                </span>
+            </div>
+        </div>
+
+        <div class="ep-divider"><span>───── 彩蛋 ─────</span></div>
+
+        <!-- 彩蛋幕：偷看部落总部 -->
+        <div class="episode" id="epBonus">
+            <div class="ep-header">
+                <div class="ep-number locked" style="background:rgba(155,123,191,0.15);color:#9B7BBF;">★</div>
+                <div class="ep-title-group">
+                    <div class="ep-title">彩蛋幕：偷看部落总部</div>
+                    <div class="ep-number-text">BONUS · EASTER EGG</div>
+                </div>
+            </div>
+            <div class="locked-cover">
+                🔒 完成全部主线后解锁<br>
+                <span style="font-size:10px;color:#3A3540;margin-top:4px;display:inline-block;">
+                    噢拉着你猫着腰，绕过大星球，偷看六大中心内部……<br>
+                    你将在彩蛋中看到：市场中心 / 内容中心 / 商务中心 /<br>
+                    产品中心 / 体验中心 / 部落总部
+                </span>
+            </div>
+        </div>
+
+        <!-- 结尾 -->
+        <div class="end-hint">
+            <div style="font-size:20px;margin-bottom:8px;">🌌</div>
+            <div>每一幕的选择，都会影响你的旅程</div>
+            <div style="margin-top:8px;">你的故事，<span class="brand">不是剧本</span></div>
+            <div>是你自己<span class="brand">碰撞出来</span>的</div>
+            <div style="margin-top:20px;font-size:10px;color:#3A3540;">
+                Topoo 宇宙 · 觉醒纪元<br>
+                让小而美被世界看见
+            </div>
+        </div>
+
+    </div><!-- /main-scroll -->
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+</div>
+
+<script>
+// 星空背景
+const canvas = document.getElementById('starBg');
+const ctx = canvas.getContext('2d');
+function resizeCanvas() {
+    canvas.width = 375;
+    canvas.height = 812;
+}
+resizeCanvas();
+
+const stars = Array.from({length: 80}, () => ({
+    x: Math.random() * 375,
+    y: Math.random() * 812,
+    r: Math.random() * 1.2 + 0.3,
+    a: Math.random(),
+    da: (Math.random() - 0.5) * 0.01,
+}));
+
+function drawStars() {
+    ctx.clearRect(0, 0, 375, 812);
+    stars.forEach(s => {
+        s.a += s.da;
+        if (s.a > 1 || s.a < 0.2) s.da = -s.da;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(200,192,180,${s.a * 0.5})`;
+        ctx.fill();
+    });
+    requestAnimationFrame(drawStars);
+}
+drawStars();
+
+// 滚动到指定幕
+function scrollToEp(n) {
+    const el = document.getElementById('ep' + n);
+    if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+}
+</script>
+</body>
+</html>

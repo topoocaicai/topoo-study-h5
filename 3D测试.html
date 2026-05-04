@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>3D测试</title>
+<style>body{margin:0;overflow:hidden;background:#121828}</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script>
+window.onerror = function(e){ document.body.innerHTML = '<div style="color:#E89090;padding:40px;font-size:16px">JS错误:<br>' + e + '</div>'; };
+if(typeof THREE==='undefined'){
+  document.body.innerHTML = '<div style="color:#E89090;padding:40px;font-size:16px">Three.js 未加载<br>请检查网络</div>';
+} else {
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x121828);
+  var camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 8, 15);
+  var renderer = new THREE.WebGLRenderer({canvas:document.getElementById('c'), antialias:true});
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+  var light = new THREE.DirectionalLight(0xffffff, 0.8);
+  light.position.set(5,10,7);
+  scene.add(light);
+  // 彩色立方体测试
+  var colors = [0xE87878,0xB8D088,0x58B8D8,0xE8C040,0xB888D8,0x88A0B8];
+  colors.forEach(function(c,i){
+    var m = new THREE.Mesh(
+      new THREE.BoxGeometry(2,2,2),
+      new THREE.MeshLambertMaterial({color:c})
+    );
+    m.position.set(Math.cos(i*1.05)*5, 1, Math.sin(i*1.05)*5);
+    scene.add(m);
+  });
+  // 地面
+  var gnd = new THREE.Mesh(new THREE.BoxGeometry(40,0.5,40), new THREE.MeshLambertMaterial({color:0x2A4A38}));
+  gnd.position.y = -0.25; scene.add(gnd);
+  function animate(){
+    requestAnimationFrame(animate);
+    // 缓慢旋转相机
+    var t = Date.now()*0.0003;
+    camera.position.set(Math.sin(t)*15, 8, Math.cos(t)*15);
+    camera.lookAt(0,0,0);
+    renderer.render(scene, camera);
+  }
+  animate();
+  console.log('3D测试初始化成功');
+}
+</script>
+</body>
+</html>

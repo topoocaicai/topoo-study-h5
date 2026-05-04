@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>诞生壹号街区 · 拓圈星图</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0B0F1E;
+            color: #F5F0E8;
+            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* ===== 顶部栏 ===== */
+        .header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 20px;
+            background: linear-gradient(180deg, rgba(11,15,30,0.95) 0%, rgba(11,15,30,0) 100%);
+            pointer-events: none;
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: #F5F0E8;
+        }
+        .header-sub {
+            font-size: 11px;
+            color: #4A9EB8;
+            margin-top: 2px;
+            letter-spacing: 1px;
+        }
+        .header-right {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: auto;
+        }
+        .btn-toggle {
+            background: rgba(74,158,184,0.15);
+            border: 1px solid rgba(74,158,184,0.4);
+            color: #4A9EB8;
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+        .btn-toggle:hover { background: rgba(74,158,184,0.3); }
+        .btn-toggle.active {
+            background: rgba(74,158,184,0.3);
+            border-color: #4A9EB8;
+        }
+
+        /* ===== 球体容器 ===== */
+        .sphere-container {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 320px; height: 320px;
+            transition: opacity 0.4s;
+        }
+        .sphere-container.hidden { opacity: 0; pointer-events: none; }
+
+        #sphere-svg {
+            width: 100%; height: 100%;
+            overflow: visible;
+            transition: transform 0.01s;
+        }
+
+        /* 展开动画层 */
+        .unfold-transition {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 150;
+            pointer-events: none;
+            display: none;
+        }
+        .unfold-transition.active {
+            display: block;
+        }
+        #unfold-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 球体轮廓光晕 */
+        .sphere-glow {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 260px; height: 260px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(74,158,184,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* ===== 信息卡 ===== */
+        .info-card-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .info-card-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .info-card {
+            width: 300px;
+            background: linear-gradient(135deg, #0B0F1E 0%, #1a1f35 100%);
+            border: 1px solid rgba(74,158,184,0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        .info-card-overlay.show .info-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .info-card-bg {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(74,158,184,0.05) 0%, rgba(155,123,191,0.05) 100%);
+            z-index: 0;
+        }
+
+        .info-card-content {
+            position: relative;
+            z-index: 1;
+            padding: 24px 20px;
+        }
+
+        .info-card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .info-card-avatar {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4A9EB8, #9B7BBF);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+            border: 2px solid rgba(74,158,184,0.5);
+        }
+
+        .info-card-name {
+            font-size: 17px;
+            font-weight: 600;
+            color: #F5F0E8;
+        }
+        .info-card-type {
+            font-size: 12px;
+            color: #4A9EB8;
+            margin-top: 2px;
+        }
+
+        /* 五行技能点 */
+        .five-elements {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        .element-item {
+            flex: 1;
+            text-align: center;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px;
+            padding: 8px 2px;
+        }
+        .element-icon { font-size: 14px; }
+        .element-value {
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+        .element-label {
+            font-size: 9px;
+            color: rgba(245,240,232,0.4);
+            margin-top: 1px;
+        }
+        .element-fire .element-value { color: #D96B6B; }
+        .element-water .element-value { color: #4A9EB8; }
+        .element-wood .element-value { color: #A0B87A; }
+        .element-metal .element-value { color: #E8B44C; }
+        .element-earth .element-value { color: #9B7BBF; }
+
+        /* 数据行 */
+        .info-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 18px;
+            padding: 12px 0;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .info-stat {
+            text-align: center;
+        }
+        .info-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #4A9EB8;
+        }
+        .info-stat-label {
+            font-size: 10px;
+            color: rgba(245,240,232,0.4);
+            margin-top: 2px;
+        }
+
+        .btn-enter-space {
+            width: 100%;
+            padding: 11px;
+            background: linear-gradient(135deg, rgba(74,158,184,0.2), rgba(155,123,191,0.2));
+            border: 1px solid rgba(74,158,184,0.4);
+            color: #4A9EB8;
+            font-size: 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+        .btn-enter-space:hover {
+            background: linear-gradient(135deg, rgba(74,158,184,0.35), rgba(155,123,191,0.35));
+        }
+
+        .info-card-close {
+            position: absolute;
+            top: 12px; right: 12px;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            border: none;
+            color: rgba(245,240,232,0.5);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        /* ===== 平面地图容器 ===== */
+        .map-container {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s;
+        }
+        .map-container.show { opacity: 1; pointer-events: auto; }
+
+        #map-svg {
+            width: 100%; height: 100%;
+        }
+
+        /* 地图背景网格 */
+        .map-grid {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                linear-gradient(rgba(74,158,184,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(74,158,184,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        /* ===== 提示文字 ===== */
+        .hint-text {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: rgba(245,240,232,0.25);
+            letter-spacing: 1px;
+            z-index: 50;
+            transition: opacity 0.3s;
+        }
+
+        /* ===== 加载动画 ===== */
+        .loading-screen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #0B0F1E;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: opacity 0.8s;
+        }
+        .loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loading-text {
+            font-size: 20px;
+            letter-spacing: 4px;
+            color: #4A9EB8;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .loading-sub {
+            font-size: 12px;
+            color: rgba(245,240,232,0.3);
+            margin-top: 8px;
+            letter-spacing: 2px;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 加载画面 -->
+<div class="loading-screen" id="loading">
+    <div class="loading-text">诞 生 壹 号 街 区</div>
+    <div class="loading-sub">TOPSPACE · 金陵大陆</div>
+</div>
+
+<!-- 顶部栏 -->
+<div class="header">
+    <div style="text-align:center;">
+        <div class="header-title">诞生壹号街区</div>
+        <div class="header-sub">金陵大陆 · 拓圈星图</div>
+    </div>
+    <div class="header-right">
+        <button class="btn-toggle" id="btnToggle" onclick="toggleView()">
+            展开地图
+        </button>
+    </div>
+</div>
+
+<!-- 球体视图 -->
+<div class="sphere-container" id="sphereContainer">
+    <div class="sphere-glow"></div>
+    <svg id="sphere-svg" viewBox="-160 -160 320 320"></svg>
+</div>
+
+<!-- 展开过渡动画层 -->
+<div class="unfold-transition" id="unfoldLayer">
+    <svg id="unfold-svg"></svg>
+</div>
+
+<!-- 平面地图视图 -->
+<div class="map-container" id="mapContainer">
+    <div class="map-grid"></div>
+    <svg id="map-svg"></svg>
+</div>
+
+<!-- 信息卡 -->
+<div class="info-card-overlay" id="infoCardOverlay" onclick="closeInfoCard(event)">
+    <div class="info-card" onclick="event.stopPropagation()">
+        <button class="info-card-close" onclick="closeInfoCard()">✕</button>
+        <div class="info-card-bg"></div>
+        <div class="info-card-content">
+            <div class="info-card-header">
+                <div class="info-card-avatar" id="cardAvatar">🌙</div>
+                <div>
+                    <div class="info-card-name" id="cardName">—</div>
+                    <div class="info-card-type" id="cardType">—</div>
+                </div>
+            </div>
+            <div class="five-elements" id="cardElements">
+                <!-- 动态生成 -->
+            </div>
+            <div class="info-stats">
+                <div class="info-stat">
+                    <div class="info-stat-value" id="cardCollisions">0</div>
+                    <div class="info-stat-label">碰撞</div>
+                </div>
+                <div class="info-stat">
+                    <div class="info-stat-value" id="cardIgnitions">0</div>
+                    <div class="info-stat-label">点亮</div>
+                </div>
+            </div>
+            <button class="btn-enter-space" onclick="enterSpace()">进 入 空 间</button>
+        </div>
+    </div>
+</div>
+
+<!-- 底部提示 -->
+<div class="hint-text" id="hintText">拨拉旋转星球 · 点击光点查看</div>
+
+<script>
+// ========== 数据 ==========
+const mockNodes = [
+    { id: 1,  name: '星尘',     emoji: '🌙', type: '🔥 火·门店型',  fire: 82, water: 45, wood: 67, metal: 38, earth: 55, collisions: 128, ignitions: 23 },
+    { id: 2,  name: '流光',     emoji: '✨', type: '💧 水·内容型',  fire: 33, water: 91, wood: 42, metal: 58, earth: 47, collisions: 256, ignitions: 41 },
+    { id: 3,  name: '青木',     emoji: '🌿', type: '🌱 木·产品型',  fire: 55, water: 38, wood: 88, metal: 42, earth: 61, collisions: 97,  ignitions: 15 },
+    { id: 4,  name: '金石',     emoji: '💎', type: '⚙️ 金·服务型', fire: 40, water: 52, wood: 35, metal: 95, earth: 48, collisions: 203, ignitions: 32 },
+    { id: 5,  name: '厚土',     emoji: '🏔️', type: '🌍 土·活动型', fire: 48, water: 41, wood: 56, metal: 44, earth: 89, collisions: 174, ignitions: 28 },
+    { id: 6,  name: '晨露',     emoji: '💧', type: '💧 水·内容型',  fire: 29, water: 85, wood: 51, metal: 62, earth: 38, collisions: 311, ignitions: 52 },
+    { id: 7,  name: '焱焰',     emoji: '🔥', type: '🔥 火·门店型',  fire: 90, water: 32, wood: 58, metal: 35, earth: 42, collisions: 89,  ignitions: 12 },
+    { id: 8,  name: '碧藤',     emoji: '🌱', type: '🌱 木·产品型',  fire: 44, water: 55, wood: 92, metal: 38, earth: 65, collisions: 142, ignitions: 21 },
+    { id: 9,  name: '银铃',     emoji: '🔔', type: '⚙️ 金·服务型', fire: 35, water: 61, wood: 44, metal: 88, earth: 52, collisions: 228, ignitions: 37 },
+    { id: 10, name: '琥珀',     emoji: '🟤', type: '🌍 土·活动型', fire: 52, water: 46, wood: 63, metal: 41, earth: 87, collisions: 165, ignitions: 25 },
+    { id: 11, name: '极光',     emoji: '🌈', type: '💧 水·内容型',  fire: 38, water: 94, wood: 47, metal: 55, earth: 42, collisions: 277, ignitions: 45 },
+    { id: 12, name: '赤松',     emoji: '🎋', type: '🌱 木·产品型',  fire: 50, water: 42, wood: 86, metal: 45, earth: 58, collisions: 113, ignitions: 18 },
+];
+
+// ========== 球体参数 ==========
+const SPHERE_R = 140;
+const NUM_DOTS = 180;
+let dots = [];           // {x, y, z, sx, sy, size, opacity}
+let rotX = -20;          // 水平旋转角（φ）
+let rotY = -15;          // 垂直旋转角（θ）
+let isDragging = false;
+let lastMouse = { x: 0, y: 0 };
+let velocity = { x: 0, y: 0 };
+let animFrameId = null;
+let isSphereView = true;
+
+// ========== 初始化 ==========
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        document.getElementById('loading').classList.add('fade-out');
+        setTimeout(() => {
+            document.getElementById('loading').style.display = 'none';
+            initSphere();
+            initMap();
+        }, 800);
+    }, 1200);
+});
+
+// ========== 球体生成 ==========
+function initSphere() {
+    generateDots();
+    renderSphere();
+    startInertia();
+    addDragListeners();
+}
+
+function generateDots() {
+    dots = [];
+    // 黄金螺旋均匀分布在球面上
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < NUM_DOTS; i++) {
+        const y = 1 - (i / (NUM_DOTS - 1)) * 2;
+        const radiusAtY = Math.sqrt(1 - y * y);
+        const theta = goldenAngle * i;
+        const x = Math.cos(theta) * radiusAtY;
+        const z = Math.sin(theta) * radiusAtY;
+        dots.push({ x: x * SPHERE_R, y: y * SPHERE_R, z: z * SPHERE_R, node: null });
+    }
+
+    // 在正面亮区放置mock节点
+    const frontDots = dots.filter(d => d.z > SPHERE_R * 0.2)
+        .sort((a, b) => (a.x*a.x + a.y*a.y) - (b.x*b.x + b.y*b.y))
+        .slice(0, mockNodes.length);
+
+    frontDots.forEach((dot, i) => {
+        dot.node = mockNodes[i];
+        dot.isNode = true;
+    });
+}
+
+function rotatePoint(p, rx, ry) {
+    let { x, y, z } = p;
+    // 绕Y轴旋转（水平）
+    let cosRy = Math.cos(ry * Math.PI / 180);
+    let sinRy = Math.sin(ry * Math.PI / 180);
+    let x2 = x * cosRy - z * sinRy;
+    let z2 = x * sinRy + z * cosRy;
+    // 绕X轴旋转（垂直）
+    let cosRx = Math.cos(rx * Math.PI / 180);
+    let sinRx = Math.sin(rx * Math.PI / 180);
+    let y2 = y * cosRx - z2 * sinRx;
+    let z3 = y * sinRx + z2 * cosRx;
+    return { x: x2, y: y2, z: z3 };
+}
+
+function renderSphere() {
+    const svg = document.getElementById('sphere-svg');
+    svg.innerHTML = '';
+
+    // 排序：z小的先画（在后面）
+    const projected = dots.map(d => {
+        const rp = rotatePoint(d, rotX, rotY);
+        // perspective projection
+        const scale = 300 / (300 + rp.z);
+        return {
+            ...d,
+            sx: rp.x * scale,
+            sy: rp.y * scale,
+            z: rp.z,
+            scale: scale,
+            isFront: rp.z > 0
+        };
+    }).sort((a, b) => a.z - b.z);
+
+    // 画连接线（仅前面可见的节点之间）
+    const frontNodes = projected.filter(d => d.isNode && d.isFront);
+    for (let i = 0; i < frontNodes.length; i++) {
+        for (let j = i + 1; j < frontNodes.length; j++) {
+            const dx = frontNodes[i].sx - frontNodes[j].sx;
+            const dy = frontNodes[i].sy - frontNodes[j].sy;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < 80) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', frontNodes[i].sx);
+                line.setAttribute('y1', frontNodes[i].sy);
+                line.setAttribute('x2', frontNodes[j].sx);
+                line.setAttribute('y2', frontNodes[j].sy);
+                line.setAttribute('stroke', '#4A9EB8');
+                line.setAttribute('stroke-width', '0.3');
+                line.setAttribute('opacity', '0.12');
+                svg.appendChild(line);
+            }
+        }
+    }
+
+    // 画点
+    projected.forEach(d => {
+        const r = d.isNode ? (4 + d.scale * 3) : (0.8 + d.scale * 1.5);
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', d.sx);
+        circle.setAttribute('cy', d.sy);
+        circle.setAttribute('r', Math.max(0.3, r));
+
+        if (d.isNode && d.isFront) {
+            // 节点光点 - 更亮
+            circle.setAttribute('fill', '#F5F0E8');
+            circle.setAttribute('opacity', Math.min(1, 0.6 + d.scale * 0.5).toString());
+            circle.style.cursor = 'pointer';
+            circle.dataset.nodeId = d.node.id;
+            circle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showInfoCard(d.node);
+            });
+            // 光晕
+            const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            glow.setAttribute('cx', d.sx);
+            glow.setAttribute('cy', d.sy);
+            glow.setAttribute('r', r * 3);
+            glow.setAttribute('fill', '#4A9EB8');
+            glow.setAttribute('opacity', (0.08 + d.scale * 0.06).toString());
+            glow.style.pointerEvents = 'none';
+            svg.appendChild(glow);
+        } else {
+            // 普通点阵
+            const brightness = (d.z + SPHERE_R) / (2 * SPHERE_R);
+            circle.setAttribute('fill', '#4A9EB8');
+            circle.setAttribute('opacity', (0.08 + brightness * 0.35).toString());
+            circle.style.pointerEvents = 'none';
+        }
+
+        svg.appendChild(circle);
+    });
+
+    // 画球体轮廓（椭圆）
+    const ellipse = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+    const rpTest = rotatePoint({x: SPHERE_R, y: 0, z: 0}, rotX, rotY);
+    const rx = Math.abs(rpTest.x) / SPHERE_R * SPHERE_R * (300/(300+Math.abs(rpTest.z)));
+    ellipse.setAttribute('cx', 0);
+    ellipse.setAttribute('cy', 0);
+    ellipse.setAttribute('rx', Math.max(10, Math.abs(rx)));
+    ellipse.setAttribute('ry', SPHERE_R * 0.92);
+    ellipse.setAttribute('fill', 'none');
+    ellipse.setAttribute('stroke', '#4A9EB8');
+    ellipse.setAttribute('stroke-width', '0.4');
+    ellipse.setAttribute('opacity', '0.15');
+    ellipse.style.pointerEvents = 'none';
+    svg.insertBefore(ellipse, svg.firstChild);
+}
+
+// ========== 拖拽旋转 ==========
+function addDragListeners() {
+    const container = document.getElementById('sphereContainer');
+
+    container.addEventListener('mousedown', startDrag);
+    container.addEventListener('touchstart', startDrag, { passive: false });
+    window.addEventListener('mousemove', onDrag);
+    window.addEventListener('touchmove', onDrag, { passive: false });
+    window.addEventListener('mouseup', endDrag);
+    window.addEventListener('touchend', endDrag);
+}
+
+function startDrag(e) {
+    if (!isSphereView) return;
+    isDragging = true;
+    const pos = e.touches ? e.touches[0] : e;
+    lastMouse.x = pos.clientX;
+    lastMouse.y = pos.clientY;
+    velocity.x = 0;
+    velocity.y = 0;
+}
+
+function onDrag(e) {
+    if (!isDragging || !isSphereView) return;
+    e.preventDefault();
+    const pos = e.touches ? e.touches[0] : e;
+    const dx = pos.clientX - lastMouse.x;
+    const dy = pos.clientY - lastMouse.y;
+
+    rotY += dx * 0.4;
+    rotX += dy * 0.4;
+    // 限制垂直旋转角度
+    rotX = Math.max(-89, Math.min(89, rotX));
+
+    velocity.x = dx * 0.4;
+    velocity.y = dy * 0.4;
+
+    lastMouse.x = pos.clientX;
+    lastMouse.y = pos.clientY;
+
+    renderSphere();
+}
+
+function endDrag() {
+    isDragging = false;
+}
+
+function startInertia() {
+    function animate() {
+        if (!isDragging && (Math.abs(velocity.x) > 0.01 || Math.abs(velocity.y) > 0.01)) {
+            rotY += velocity.x;
+            rotX += velocity.y;
+            rotX = Math.max(-89, Math.min(89, rotX));
+            velocity.x *= 0.95;
+            velocity.y *= 0.95;
+            if (isSphereView) renderSphere();
+        }
+        animFrameId = requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+// ========== 信息卡 ==========
+function showInfoCard(node) {
+    document.getElementById('cardAvatar').textContent = node.emoji;
+    document.getElementById('cardName').textContent = node.name;
+    document.getElementById('cardType').textContent = node.type;
+    document.getElementById('cardCollisions').textContent = node.collisions;
+    document.getElementById('cardIgnitions').textContent = node.ignitions;
+
+    const elementsDiv = document.getElementById('cardElements');
+    elementsDiv.innerHTML = `
+        <div class="element-item element-fire">
+            <div class="element-icon">🔥</div>
+            <div class="element-value">${node.fire}</div>
+            <div class="element-label">火</div>
+        </div>
+        <div class="element-item element-water">
+            <div class="element-icon">💧</div>
+            <div class="element-value">${node.water}</div>
+            <div class="element-label">水</div>
+        </div>
+        <div class="element-item element-wood">
+            <div class="element-icon">🌱</div>
+            <div class="element-value">${node.wood}</div>
+            <div class="element-label">木</div>
+        </div>
+        <div class="element-item element-metal">
+            <div class="element-icon">⚙️</div>
+            <div class="element-value">${node.metal}</div>
+            <div class="element-label">金</div>
+        </div>
+        <div class="element-item element-earth">
+            <div class="element-icon">🌍</div>
+            <div class="element-value">${node.earth}</div>
+            <div class="element-label">土</div>
+        </div>
+    `;
+
+    document.getElementById('infoCardOverlay').classList.add('show');
+}
+
+function closeInfoCard(e) {
+    if (e && e.target !== document.getElementById('infoCardOverlay')) return;
+    document.getElementById('infoCardOverlay').classList.remove('show');
+}
+
+function enterSpace() {
+    alert('进入空间功能开发中...');
+    closeInfoCard();
+}
+
+// ========== 视图切换（球体 ↔ 地图）==========
+let isTransitioning = false;
+
+function toggleView() {
+    if (isTransitioning) return;
+    if (isSphereView) {
+        unfoldToMap();
+    } else {
+        foldToSphere();
+    }
+}
+
+function unfoldToMap() {
+    isTransitioning = true;
+    const sphereContainer = document.getElementById('sphereContainer');
+    const mapContainer = document.getElementById('mapContainer');
+    const btn = document.getElementById('btnToggle');
+    const hint = document.getElementById('hintText');
+    const unfoldLayer = document.getElementById('unfoldLayer');
+
+    // 确保地图容器尺寸已知
+    mapContainer.classList.add('show');
+
+    // 计算球体在屏幕中心的位置
+    const sphereRect = sphereContainer.getBoundingClientRect();
+    const sphereCenterX = sphereRect.left + sphereRect.width / 2;
+    const sphereCenterY = sphereRect.top + sphereRect.height / 2;
+
+    // 计算每个节点的球体屏幕坐标和目标地图坐标
+    const transitions = mockNodes.map((node, i) => {
+        // 球体上节点的屏幕坐标
+        const sphereDot = dots.find(d => d.node && d.node.id === node.id);
+        let startX = sphereCenterX, startY = sphereCenterY;
+        if (sphereDot) {
+            const rp = rotatePoint(sphereDot, rotX, rotY);
+            const scale = 300 / (300 + rp.z);
+            startX = sphereCenterX + rp.x * scale;
+            startY = sphereCenterY + rp.y * scale;
+        }
+        return {
+            node,
+            startX, startY,
+            endX: node.mapX,
+            endY: node.mapY,
+            startSize: 4,
+            endSize: 22,
+            startOpacity: 1,
+        };
+    });
+
+    // 隐藏原始球体
+    sphereContainer.classList.add('hidden');
+
+    // 绘制过渡动画
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const svg = document.getElementById('unfold-svg');
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.innerHTML = '';
+    unfoldLayer.classList.add('active');
+
+    // 创建过渡用的SVG元素
+    const circles = [];
+    const texts = [];
+    const names = [];
+    transitions.forEach((t, i) => {
+        const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        c.setAttribute('r', t.startSize.toString());
+        c.setAttribute('fill', 'rgba(74,158,184,0.2)');
+        c.setAttribute('stroke', '#4A9EB8');
+        c.setAttribute('stroke-width', '1');
+        svg.appendChild(c);
+        circles.push(c);
+
+        const emoji = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        emoji.setAttribute('text-anchor', 'middle');
+        emoji.setAttribute('dominant-baseline', 'middle');
+        emoji.setAttribute('font-size', '16');
+        emoji.style.pointerEvents = 'none';
+        emoji.textContent = t.node.emoji;
+        svg.appendChild(emoji);
+        texts.push(emoji);
+
+        const name = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        name.setAttribute('text-anchor', 'middle');
+        name.setAttribute('fill', '#F5F0E8');
+        name.setAttribute('font-size', '11');
+        name.setAttribute('opacity', '0');
+        name.style.pointerEvents = 'none';
+        name.textContent = t.node.name;
+        svg.appendChild(name);
+        names.push(name);
+    });
+
+    // 绘制连接线（目标位置）
+    const lines = [];
+    transitions.forEach((t, i) => {
+        if (i > 0) {
+            const prev = transitions[i - 1];
+            const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            l.setAttribute('stroke', '#4A9EB8');
+            l.setAttribute('stroke-width', '0.5');
+            l.setAttribute('opacity', '0');
+            svg.insertBefore(l, svg.firstChild);
+            lines.push({ el: l, from: prev, to: t });
+        }
+    });
+
+    // 缓动函数
+    function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+    function easeInOutQuart(t) { return t < 0.5 ? 8*t*t*t*t : 1-Math.pow(-2*t+2,4)/2; }
+
+    const duration = 900;
+    const startTime = performance.now();
+
+    function animateUnfold(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        const eased = easeInOutQuart(progress);
+
+        transitions.forEach((t, i) => {
+            const cx = t.startX + (t.endX - t.startX) * eased;
+            const cy = t.startY + (t.endY - t.startY) * eased;
+            const r = t.startSize + (t.endSize - t.startSize) * eased;
+
+            circles[i].setAttribute('cx', cx.toString());
+            circles[i].setAttribute('cy', cy.toString());
+            circles[i].setAttribute('r', r.toString());
+            circles[i].setAttribute('opacity', (0.2 + 0.6 * eased).toString());
+
+            texts[i].setAttribute('x', cx.toString());
+            texts[i].setAttribute('y', cy.toString());
+            texts[i].setAttribute('opacity', Math.min(1, eased * 2).toString());
+
+            names[i].setAttribute('x', cx.toString());
+            names[i].setAttribute('y', (cy + 38).toString());
+            names[i].setAttribute('opacity', (Math.max(0, eased - 0.4) * 1.67).toString());
+        });
+
+        // 连接线渐现
+        lines.forEach(l => {
+            const fx = l.from.startX + (l.from.endX - l.from.startX) * eased;
+            const fy = l.from.startY + (l.from.endY - l.from.startY) * eased;
+            const tx = l.to.startX + (l.to.endX - l.to.startX) * eased;
+            const ty = l.to.startY + (l.to.endY - l.to.startY) * eased;
+            l.el.setAttribute('x1', fx.toString());
+            l.el.setAttribute('y1', fy.toString());
+            l.el.setAttribute('x2', tx.toString());
+            l.el.setAttribute('y2', ty.toString());
+            l.el.setAttribute('opacity', (Math.max(0, eased - 0.3) * 0.21).toString());
+        });
+
+        if (progress < 1) {
+            requestAnimationFrame(animateUnfold);
+        } else {
+            // 动画完成
+            unfoldLayer.classList.remove('active');
+            isSphereView = false;
+            btn.textContent = '收起地图';
+            btn.classList.add('active');
+            hint.textContent = '点击节点查看详情 · 点击空白处关闭';
+            isTransitioning = false;
+        }
+    }
+    requestAnimationFrame(animateUnfold);
+}
+
+function foldToSphere() {
+    isTransitioning = true;
+    const sphereContainer = document.getElementById('sphereContainer');
+    const mapContainer = document.getElementById('mapContainer');
+    const btn = document.getElementById('btnToggle');
+    const hint = document.getElementById('hintText');
+    const unfoldLayer = document.getElementById('unfoldLayer');
+
+    // 重新渲染球体
+    sphereContainer.classList.remove('hidden');
+
+    const sphereRect = sphereContainer.getBoundingClientRect();
+    const sphereCenterX = sphereRect.left + sphereRect.width / 2;
+    const sphereCenterY = sphereRect.top + sphereRect.height / 2;
+
+    // 计算反向过渡
+    const transitions = mockNodes.map(node => {
+        const sphereDot = dots.find(d => d.node && d.node.id === node.id);
+        let endX = sphereCenterX, endY = sphereCenterY;
+        if (sphereDot) {
+            const rp = rotatePoint(sphereDot, rotX, rotY);
+            const scale = 300 / (300 + rp.z);
+            endX = sphereCenterX + rp.x * scale;
+            endY = sphereCenterY + rp.y * scale;
+        }
+        return {
+            node,
+            startX: node.mapX,
+            startY: node.mapY,
+            endX, endY,
+            startSize: 22,
+            endSize: 4,
+        };
+    });
+
+    mapContainer.classList.remove('show');
+
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const svg = document.getElementById('unfold-svg');
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.innerHTML = '';
+    unfoldLayer.classList.add('active');
+
+    const circles = [];
+    const texts = [];
+    transitions.forEach(t => {
+        const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        c.setAttribute('r', t.startSize.toString());
+        c.setAttribute('fill', 'rgba(74,158,184,0.8)');
+        c.setAttribute('stroke', '#4A9EB8');
+        c.setAttribute('stroke-width', '1');
+        svg.appendChild(c);
+        circles.push(c);
+
+        const emoji = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        emoji.setAttribute('text-anchor', 'middle');
+        emoji.setAttribute('dominant-baseline', 'middle');
+        emoji.setAttribute('font-size', '16');
+        emoji.textContent = t.node.emoji;
+        svg.appendChild(emoji);
+        texts.push(emoji);
+    });
+
+    function easeInOutQuart(t) { return t < 0.5 ? 8*t*t*t*t : 1-Math.pow(-2*t+2,4)/2; }
+
+    const duration = 700;
+    const startTime = performance.now();
+
+    function animateFold(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        const eased = easeInOutQuart(progress);
+
+        transitions.forEach((t, i) => {
+            const cx = t.startX + (t.endX - t.startX) * eased;
+            const cy = t.startY + (t.endY - t.startY) * eased;
+            const r = t.startSize + (t.endSize - t.startSize) * eased;
+
+            circles[i].setAttribute('cx', cx.toString());
+            circles[i].setAttribute('cy', cy.toString());
+            circles[i].setAttribute('r', r.toString());
+            circles[i].setAttribute('opacity', (0.8 - 0.4 * eased).toString());
+
+            texts[i].setAttribute('x', cx.toString());
+            texts[i].setAttribute('y', cy.toString());
+            texts[i].setAttribute('opacity', Math.max(0.3, 1 - eased * 0.7).toString());
+        });
+
+        if (progress < 1) {
+            requestAnimationFrame(animateFold);
+        } else {
+            unfoldLayer.classList.remove('active');
+            isSphereView = true;
+            btn.textContent = '展开地图';
+            btn.classList.remove('active');
+            hint.textContent = '拨拉旋转星球 · 点击光点查看';
+            renderSphere();
+            isTransitioning = false;
+        }
+    }
+    requestAnimationFrame(animateFold);
+}
+
+// ========== 平面地图 ==========
+function initMap() {
+    renderMap();
+    addMapListeners();
+}
+
+function renderMap() {
+    const svg = document.getElementById('map-svg');
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.innerHTML = '';
+
+    // 计算节点在地图上的位置（蜂窝布局）
+    const cols = 4;
+    const cellW = w / cols;
+    const cellH = (h - 100) / Math.ceil(mockNodes.length / cols);
+    const offsetY = 70;
+
+    mockNodes.forEach((node, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const cx = col * cellW + cellW / 2;
+        const cy = row * cellH + cellH / 2 + offsetY;
+        node.mapX = cx;
+        node.mapY = cy;
+
+        // 连接线（和相邻节点）
+        if (i > 0) {
+            const prev = mockNodes[i - 1];
+            if (Math.abs(row - Math.floor((i-1)/cols)) <= 1) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', prev.mapX);
+                line.setAttribute('y1', prev.mapY);
+                line.setAttribute('x2', cx);
+                line.setAttribute('y2', cy);
+                line.setAttribute('stroke', '#4A9EB8');
+                line.setAttribute('stroke-width', '0.5');
+                line.setAttribute('opacity', '0.15');
+                svg.appendChild(line);
+            }
+        }
+
+        // 节点圆圈
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', cx);
+        circle.setAttribute('cy', cy);
+        circle.setAttribute('r', '22');
+        circle.setAttribute('fill', 'rgba(74,158,184,0.1)');
+        circle.setAttribute('stroke', '#4A9EB8');
+        circle.setAttribute('stroke-width', '1');
+        circle.setAttribute('opacity', '0.8');
+        circle.style.cursor = 'pointer';
+        circle.addEventListener('click', () => showInfoCard(node));
+        svg.appendChild(circle);
+
+        // emoji
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', cx);
+        text.setAttribute('y', cy + 1);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'middle');
+        text.setAttribute('font-size', '16');
+        text.style.pointerEvents = 'none';
+        text.textContent = node.emoji;
+        svg.appendChild(text);
+
+        // 名字
+        const nameText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        nameText.setAttribute('x', cx);
+        nameText.setAttribute('y', cy + 38);
+        nameText.setAttribute('text-anchor', 'middle');
+        nameText.setAttribute('fill', '#F5F0E8');
+        nameText.setAttribute('font-size', '11');
+        nameText.setAttribute('opacity', '0.7');
+        nameText.style.pointerEvents = 'none';
+        nameText.textContent = node.name;
+        svg.appendChild(nameText);
+    });
+}
+
+function addMapListeners() {
+    document.getElementById('map-svg').addEventListener('click', (e) => {
+        // 点击空白处关闭信息卡
+        if (e.target.tagName === 'svg' || e.target.classList.contains('map-grid')) {
+            closeInfoCard();
+        }
+    });
+}
+
+// ========== 窗口resize ==========
+window.addEventListener('resize', () => {
+    if (!isSphereView) renderMap();
+});
+
+// 点击球体容器空白处关闭信息卡
+document.getElementById('sphereContainer').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('sphereContainer') || 
+        e.target.classList.contains('sphere-glow')) {
+        closeInfoCard();
+    }
+});
+</script>
+</body>
+</html>

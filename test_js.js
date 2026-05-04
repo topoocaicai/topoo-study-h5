@@ -1,94 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>拓圈·蛋生壹号街区·3D</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#0A1020;overflow:hidden;font-family:-apple-system,"PingFang SC",sans-serif}
-#c{display:block;width:100%;height:100%}
-.hdr{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;flex-direction:column;align-items:center;padding:10px 20px;background:linear-gradient(180deg,rgba(10,16,32,.95) 0%,transparent 100%);pointer-events:none}
-.ht{font-size:14px;font-weight:600;letter-spacing:3px;color:#F5F0E8}
-.hs{font-size:10px;color:#4A9EB8;margin-top:2px;letter-spacing:1px}
-.ctrl{position:fixed;right:12px;bottom:85px;z-index:90;display:flex;flex-direction:column;gap:7px}
-.cb{width:38px;height:38px;background:rgba(74,158,184,.15);border:1px solid rgba(74,158,184,.35);border-radius:50%;color:#4A9EB8;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;pointer-events:auto}
-.ctrl-l{position:fixed;left:12px;bottom:85px;z-index:90;}
-.ctrl-l .cb{width:auto;height:auto;padding:14px 22px;flex-direction:column;gap:5px;font-size:14px;letter-spacing:2px;border-radius:22px;border:2.5px solid #4A9EB8;box-shadow:0 0 20px rgba(74,158,184,.5),inset 0 0 12px rgba(74,158,184,.15);background:linear-gradient(135deg,#1A3A4A 0%,#0D2030 100%);color:#7DD4E8;font-weight:600;text-shadow:0 0 8px rgba(74,158,184,.6);}
-.btn-back{position:fixed;top:12px;left:12px;z-index:200;display:none;padding:6px 16px;background:rgba(10,16,32,.85);border:1px solid rgba(74,158,184,.5);border-radius:20px;color:#4A9EB8;font-size:13px;cursor:pointer;letter-spacing:1px;}
-.hint{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:10px;color:rgba(245,240,232,.25);letter-spacing:1px;pointer-events:none}
-#err{position:fixed;inset:0;background:#0B0F1E;color:#E89090;display:none;align-items:center;justify-content:center;padding:40px;font-size:14px;text-align:center;z-index:999;white-space:pre-wrap}
-.enter-overlay{position:fixed;inset:0;background:rgba(10,16,32,.7);display:none;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(4px)}
-.enter-dialog{background:linear-gradient(135deg,#1A2A3A,#0D1A2A);border:2px solid #4A9EB8;border-radius:16px;padding:30px 40px;text-align:center;box-shadow:0 0 40px rgba(74,158,184,.3)}
-.enter-dialog h3{color:#D4A040;font-size:18px;font-weight:600;margin-bottom:8px;letter-spacing:2px}
-.enter-dialog p{color:#8A9AAA;font-size:13px;margin-bottom:20px}
-.enter-dialog .enter-btn{display:inline-block;padding:10px 30px;background:linear-gradient(135deg,#4A9EB8,#3A7E98);border:none;border-radius:20px;color:#F5F0E8;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:2px;transition:transform .15s,box-shadow .15s}
-.enter-dialog .enter-btn:hover{transform:scale(1.05);box-shadow:0 0 20px rgba(74,158,184,.5)}
-.enter-dialog .enter-cancel{display:inline-block;padding:8px 20px;background:transparent;border:1px solid #556;border-radius:20px;color:#8A9AAA;font-size:12px;cursor:pointer;margin-left:12px}
-.enter-dialog .enter-cancel:hover{border-color:#889;color:#BBC}
-</style>
-</head>
-<body>
-<div id="err"></div>
-<canvas id="c"></canvas>
-<div class="hdr"><div class="ht">蛋生壹号街区</div><div class="hs">TOPSPACE · 3D BLOCK #001</div></div>
-<div class="ctrl"><div class="cb" id="btnTop">&#x2B06;</div><div class="cb" id="btn45">&#x27F3;</div><div class="cb" id="btnRst">&#x27F2;</div></div>
-<div class="ctrl-l"><div class="cb" id="btnCafe" style="font-size:12px;flex-direction:column;line-height:1.2;">&#x2615;<span style="font-size:10px;">咖啡店</span></div></div>
-<button class="btn-back" id="btnBack">&#x2190; 返回街区</button>
-<div class="hint">左键旋转 · 右键平移 · 滚轮缩放 · 双击复位</div>
-<div class="enter-overlay" id="exitOverlay">
-  <div class="enter-dialog">
-    <h3>拜 拜 ~</h3>
-    <p style="color:#8A9AAA;font-size:13px;margin-bottom:16px">慢半拍随时等你回来</p>
-    <button class="enter-btn" id="exitBtn">离开咖啡店</button>
-    <button class="enter-cancel" id="exitCancel">再坐会儿</button>
-  </div>
-</div>
-<div class="enter-overlay" id="enterOverlay">
-  <div class="enter-dialog">
-    <h3>慢 半 拍</h3>
-    <p>SLOW BEAT CAFÉ</p>
-    <p style="color:#6A7A8A;font-size:12px;margin-bottom:16px">一扇门，推开就是另一个世界</p>
-    <button class="enter-btn" id="enterBtn">进 入</button>
-    <button class="enter-cancel" id="enterCancel">再看看</button>
-  </div>
-</div>
 
-<!-- NPC对话框 -->
-<div class="npc-dialog-overlay" id="npcDialog" style="position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;z-index:400;pointer-events:none;">
-  <div class="npc-dialog-box" style="pointer-events:auto;width:92%;max-width:420px;max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch;background:linear-gradient(135deg,#1A2A3A 0%,#0D1A2A 100%);border:2px solid #4A9EB8;border-radius:16px 16px 4px 4px;padding:20px 24px;margin-bottom:24px;box-shadow:0 0 30px rgba(74,158,184,.4);">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#00704A,#005C3A);display:flex;align-items:center;justify-content:center;font-size:18px;color:#FFD700;">&#x2615;</div>
-      <div>
-        <div style="color:#F5F0E8;font-size:15px;font-weight:600;">小拍 · 咖啡师</div>
-        <div style="color:#4A9EB8;font-size:11px;">SLOW BEAT BARISTA</div>
-      </div>
-    </div>
-    <div id="npcText" style="color:#C8D8E8;font-size:14px;line-height:1.7;min-height:48px;margin-bottom:12px;"></div>
-    <div id="npcOptions" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-      <div id="npcAttentionBox" style="padding:8px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;text-align:center;min-width:90px;">
-        <div style="color:rgba(255,255,255,.4);font-size:10px;margin-bottom:2px;">注意力</div>
-        <div id="npcAttentionVal" style="color:#D4A040;font-size:22px;font-weight:700;line-height:1;">100</div>
-      </div>
-      <button id="npcIgnite" style="flex:1;padding:12px 16px;background:linear-gradient(135deg,rgba(212,160,64,.15),rgba(232,93,48,.15));border:1.5px solid rgba(212,160,64,.5);border-radius:12px;color:#D4A040;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:1px;">
-        ✨ 点亮
-      </button>
-    </div>
-    <div id="npcIgniteAnim" style="position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);pointer-events:none;font-size:28px;font-weight:700;color:#D4A040;opacity:0;transition:all .6s ease-out;text-shadow:0 0 20px rgba(212,160,64,.6);"></div>
-  </div>
-</div>
-
-<!-- 海报/笔记本弹框 -->
-<div class="enter-overlay" id="itemPopup">
-  <div class="enter-dialog" style="max-width:460px;padding:24px 28px;">
-    <h3 id="itemPopupTitle" style="color:#D4A040;font-size:18px;font-weight:600;margin-bottom:12px;letter-spacing:2px;">标题</h3>
-    <div id="itemPopupBody" style="color:#C8D8E8;font-size:14px;line-height:1.8;margin-bottom:20px;white-space:pre-wrap;"></div>
-    <button class="enter-btn" id="itemPopupClose">知道了</button>
-  </div>
-</div>
-
-<script>
 window.onerror=function(m,u,l){var e=document.getElementById('err');e.style.display='flex';e.textContent='JS Error: '+m+'\nLine: '+l;};
 function initApp(){
 try {
@@ -111,9 +21,6 @@ scn.fog=new THREE.FogExp2(0x0A1020,0.0006);
 var appMode='block'; // 'block' | 'cafe'
 var cafeGroup=null;
 var blockGroup=new THREE.Group(); scn.add(blockGroup);
-// 注意力数值系统
-var npcAttention=100;
-function updateAttentionUI(){var el=document.getElementById('npcAttentionVal');if(el)el.textContent=npcAttention;}
 // Keep references to global objects for mode switching
 var gAmbient=null, gMoon=null, gHemi=null, gStars=null;
 var ren=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true});
@@ -924,16 +831,16 @@ function buildCafeScene(){
     add(cafe,new THREE.BoxGeometry(22,0.6,16),M2(0x4A4545,{shin:20,spec:0x333333}),0,0.3,0);
     add(cafe,new THREE.BoxGeometry(22,0.3,16.3),M2(0x3A3535,{shin:20,spec:0x333333}),0,0.75,0);
 
-    // 木外墙（暖黄色）
-    var wallMat=M2(0x8B6914,{shin:15,spec:0x332211});
+    // 木外墙（暖棕深色，带竖条纹理）
+    var wallMat=M2(0x5C3D2E,{shin:15,spec:0x222222});
     add(cafe,new THREE.BoxGeometry(20,5.5,14),wallMat,0,3.75,0);
-    // 木纹装饰条（竖向，暖深棕）
+    // 木纹装饰条（竖向）
     for(var wi=-9;wi<=9;wi+=3){
-        add(cafe,new THREE.BoxGeometry(0.08,5.5,0.08),M2(0x5C3D1E),wi,3.75,-7.05);
+        add(cafe,new THREE.BoxGeometry(0.08,5.5,0.08),M2(0x4A2D1E),wi,3.75,-7.05);
     }
 
-    // 内部暖黄色墙
-    add(cafe,new THREE.BoxGeometry(18.5,4.8,12.5),M2(0xFFCC66,{shin:20,spec:0xAA8844}),0,3.4,0);
+    // 内部浅色墙
+    add(cafe,new THREE.BoxGeometry(18.5,4.8,12.5),M2(0xF5F0E8,{shin:5,spec:0x0A0A0A}),0,3.4,0);
 
     // ----- 屋顶（精致坡屋顶）-----
     var roofMat=M2(0x2A2520,{shin:20,spec:0x333333});
@@ -1360,38 +1267,17 @@ function buildCafeScene(){
     mkWinBox(-6,2.2,-7.2);
     mkWinBox(3,2.2,-7.2);
 
-    // ----- 咖啡店暖光点光源（昏暗暖光风格） -----
-    // 外部暖光：很弱，只做远处可见的暖色光晕
+    // ----- 咖啡店暖光点光源 -----
     if(lightCount<MAX_PT_LIGHTS){
-        var cafeLight1=new THREE.PointLight(0xFF8844,0.15,18);
+        var cafeLight1=new THREE.PointLight(0xFFAA44,0.8,35);
         cafeLight1.position.set(-1.5,4,-6);
         scn.add(cafeLight1);lightCount++;
     }
     if(lightCount<MAX_PT_LIGHTS){
-        var cafeLight2=new THREE.PointLight(0xFFAA55,0.12,15);
+        var cafeLight2=new THREE.PointLight(0xFFCC66,0.6,30);
         cafeLight2.position.set(5,3.5,-11);
         scn.add(cafeLight2);lightCount++;
     }
-    // 咖啡馆内部暖光（进入后可见）—— 再加强
-    var cafeAmbient=new THREE.AmbientLight(0xFFCC88,1.2);
-    cafeGroup.add(cafeAmbient);
-    var cafeSpot=new THREE.SpotLight(0xFFCC66,3.0,40,Math.PI/3,0.3);
-    cafeSpot.position.set(0,5.5,-4);
-    cafeSpot.target.position.set(0,1,-7);
-    cafeSpot.castShadow=true;
-    cafeGroup.add(cafeSpot);
-    cafeGroup.add(cafeSpot.target);
-    // 桌面点光源（暖黄光晕）加强
-    var tableLight=new THREE.PointLight(0xFFAA44,2.0,18);
-    tableLight.position.set(0,2.2,-6);
-    cafeGroup.add(tableLight);
-    // 窗边暖光（让窗户透出暖光）
-    var winGlow=new THREE.PointLight(0xFFCC44,1.5,14);
-    winGlow.position.set(-6,3.5,-7);
-    cafeGroup.add(winGlow);
-    var winGlow2=new THREE.PointLight(0xFFCC44,1.5,14);
-    winGlow2.position.set(3,3.5,-7);
-    cafeGroup.add(winGlow2);
 
     console.log('Cafe scene built, lights:',lightCount);
 }
@@ -1449,6 +1335,25 @@ ren.domElement.addEventListener('click',function(e){
                 }
                 if(iObj.userData&&iObj.userData.type==='plant'){
                     showItemPopup('绿植的秘密',getPlantContent());
+                    return;
+                }
+                if(iObj.userData&&iObj.userData.type==='egg'){
+                    var egIdx=iObj.userData.eggIdx;
+                    var eggMesh=iObj;
+                    if(window._eggStates[egIdx]){
+                        // 消耗彩蛋，增加注意力
+                        window._eggStates[egIdx]=false;
+                        var bonuses=[5,10,15];
+                        npcAttention+=bonuses[egIdx];
+                        document.getElementById('npcAttentionVal').textContent=npcAttention;
+                        // 盒子变暗（已拾取）
+                        eggMesh.material=new THREE.MeshBasicMaterial({color:0x333333,transparent:true,opacity:0.3});
+                        showItemPopup('彩蛋 · '+eggMesh.userData.eggName,getEggContent(egIdx));
+                    } else {
+                        showItemPopup('彩蛋 · '+eggMesh.userData.eggName,'这个盒子已经空了……
+
+「没关系，注意力已经拿到啦。」');
+                    }
                     return;
                 }
                 iObj=iObj.parent;
@@ -1510,7 +1415,7 @@ function enterCafeInterior(){
     cafeGroup.visible=false;
     interiorGroup.visible=true;
     // 降低环境光，营造昏暗温馨氛围
-    gAmbient.intensity=0.5;
+    gAmbient.intensity=0.25;
     // 隐藏所有外部UI
     document.querySelector('.ctrl').style.display='none';
     document.querySelector('.ctrl-l').style.display='none';
@@ -1618,6 +1523,26 @@ function buildInteriorScene(){
     ia(interiorGroup,new THREE.BoxGeometry(6,0.06,0.6),IM(0x5C3D2E),barX,2.5,barZ+0.15);
     ia(interiorGroup,new THREE.BoxGeometry(6,0.06,0.6),IM(0x5C3D2E),barX,3.2,barZ+0.15);
 
+    // ===== 彩蛋盒子（吧台架板，3个彩色盒子，可点击）=====
+    window._eggStates=[true,true,true];
+    (function(){
+        var eggColors=[0xFF4466, 0x44AAFF, 0xFFDD44];
+        var eggPositions=[-2, 0.8, 2.5];
+        var eggNames=['红盒子','蓝盒子','金盒子'];
+        for(var ei=0;ei<3;ei++){
+            (function(idx){
+                var eggMesh=new THREE.Mesh(
+                    new THREE.BoxGeometry(0.32,0.32,0.32),
+                    IM(eggColors[idx],{shin:60,spec:0xFFFFFF})
+                );
+                eggMesh.position.set(eggPositions[idx],2.53,barZ+0.15);
+                eggMesh.castShadow=true;
+                eggMesh.userData={type:'egg',eggIdx:idx,eggName:eggNames[idx]};
+                interiorGroup.add(eggMesh);
+            })(ei);
+        }
+    })();
+
     // 咖啡机（吧台上，可点击查看优惠）
     var cmGroup=new THREE.Group();
     var cmX=-2, cmZ=barZ-0.2;
@@ -1627,9 +1552,9 @@ function buildInteriorScene(){
     ia(cmGroup,new THREE.BoxGeometry(0.9,0.08,0.65),IM(0x444444,{shin:30,spec:0x444444}),0,0.94,0);
     // 出水口
     ia(cmGroup,new THREE.BoxGeometry(0.3,0.35,0.15),IM(0x222222),0,0.25,0.25);
-    // 杯子在下面
-    ia(cmGroup,new THREE.CylinderGeometry(0.1,0.08,0.2,8),IM(0xF5F0E8,{shin:30,spec:0x444444}),0,0.15,0.25);
-    cmGroup.position.set(cmX,1.1,cmZ);
+    // 杯子在出水口正下方（紧贴底面）
+    ia(cmGroup,new THREE.CylinderGeometry(0.1,0.08,0.18,8),IM(0xF5F0E8,{shin:30,spec:0x444444}),0,0.09,0.25);
+    cmGroup.position.set(cmX,1.05,cmZ);
     cmGroup.userData={type:'coffeeMachine'};
     interiorGroup.add(cmGroup);
 
@@ -1834,7 +1759,7 @@ function buildInteriorScene(){
         // 灯罩
         ia(interiorGroup,new THREE.CylinderGeometry(0.15,0.4,0.3,12),IM(0x2A2A2A,{shin:20,spec:0x444444}),lx,H-1.1,lz);
         // 灯泡（发光）
-        ia(interiorGroup,new THREE.SphereGeometry(0.12,8,6),IEm(0xFFDD88,0.9),lx,H-1.2,lz);
+        ia(interiorGroup,new THREE.SphereGeometry(0.12,8,6),IEm(0xFFCC66,0.7),lx,H-1.2,lz);
     }
 
     // ===== 盆栽（可点击，与植物对话） =====
@@ -1856,22 +1781,22 @@ function buildInteriorScene(){
     ia(interiorGroup,new THREE.BoxGeometry(0.06,0.12,D-0.3),IM(0x5C4033),-W/2+0.03,0.06,2);
     ia(interiorGroup,new THREE.BoxGeometry(0.06,0.12,D-0.3),IM(0x5C4033),W/2-0.03,0.06,2);
 
-    // ===== 暖光点光源（昏暗温馨风格） =====
+    // ===== 暖光点光源（昏暗温馨风格，深黄暖调） =====
     if(lightCount<MAX_PT_LIGHTS){
-        var iLight1=new THREE.PointLight(0xFFAA44,0.7,18);
-        iLight1.position.set(0,3.5,2);scn.add(iLight1);lightCount++;
+        var iLight1=new THREE.PointLight(0xFF8C22,0.55,16);
+        iLight1.position.set(0,3.2,2);scn.add(iLight1);lightCount++;
     }
     if(lightCount<MAX_PT_LIGHTS){
-        var iLight2=new THREE.PointLight(0xFFCC66,0.45,12);
-        iLight2.position.set(-3,3.5,0);scn.add(iLight2);lightCount++;
+        var iLight2=new THREE.PointLight(0xFFAA44,0.4,12);
+        iLight2.position.set(-3,3.2,0);scn.add(iLight2);lightCount++;
     }
     if(lightCount<MAX_PT_LIGHTS){
-        var iLight3=new THREE.PointLight(0xFFCC66,0.45,12);
-        iLight3.position.set(3,3.5,3);scn.add(iLight3);lightCount++;
+        var iLight3=new THREE.PointLight(0xFFAA44,0.4,12);
+        iLight3.position.set(3,3.2,3);scn.add(iLight3);lightCount++;
     }
     if(lightCount<MAX_PT_LIGHTS){
-        var iLight4=new THREE.PointLight(0xFF8833,0.5,10);
-        iLight4.position.set(0,2.5,-1);scn.add(iLight4);lightCount++;
+        var iLight4=new THREE.PointLight(0xFF7722,0.4,10);
+        iLight4.position.set(0,2.2,-1);scn.add(iLight4);lightCount++;
     }
 
     // ===== 出口门（前墙门洞，从内部看出去的门） =====
@@ -1995,70 +1920,77 @@ function buildInteriorScene(){
     console.log('Interior scene built, lights:',lightCount);
 }
 
-// ===== NPC对话系统（线性模式：下一条 + 离开） =====
-var npcLines=[
-    '欢迎来到慢半拍~ 今天想喝点什么？\n（也可以聊聊天，我这儿不忙）',
-    '如果你是第一次来，试试我们的招牌"慢半拍特调"吧。用云南的豆子，手冲的，带着点坚果香。不着急，慢慢喝。',
-    '这里是慢半拍，蛋生壹号街区的第一间咖啡店。说是咖啡店，其实更像是一个入口。推开门走进来的每个人，都是慢了半拍的——但也正因如此，才能看见别人看不见的东西。',
-    '拓圈啊……一句话：一个不让算法喂你的地方。你觉得现在刷抖音、刷小红书是在「探索」，还是在被「投喂」？拓圈就是给那些想「自己走、自己感受」的人，一个场子。',
-    '别愣着了，去探索吧~ 慢走~ 门不用关，自己会关的。记得常来坐坐，不一定要喝咖啡。'
+// ===== NPC点亮系统 =====
+var npcAttention=100; // 初始注意力值
+var igniteCount=0;
+var npcIgniteLines=[
+    '小拍的门牌微微亮了一下...\n「谢谢你，又多了一点光。」',
+    '小拍笑了笑：「你每次点亮，\n我的空间就会大一点点。」\n（空间 +1㎡）',
+    '「你知道吗，点亮不是随便点的。\n只有真正被打动的瞬间，\n人才会按下那个按钮。」',
+    '小拍递过来一杯咖啡：\n「你已经点亮了我这么多次，\n这杯算我请的。」',
+    '「有人说，注意力是这个世界上最\n稀缺的资源。你愿意把注意力给我，\n我很珍惜。」',
+    '「你有没有想过，\n你点亮我的时候，\n其实我也在点亮你？」',
+    '小拍靠在吧台上，看着你说：\n「你知道吗，\n在旧宇宙里，光熄灭之后……\n就什么都没了。但这里不一样。」',
+    '「你是少数愿意慢慢走的人。\n大部分人推开门就走了。\n而你，留下来了。」',
+    '「慢半拍这个名字啊，\n不是说慢，是说要给自己\n留出那个「半拍」的时间——\n去感受，去碰撞，去被点亮。」',
+    '小拍举起杯子，像是在敬你：\n「不管你是谁，不管你从哪来，\n你愿意在这里停留，\n本身就是一种点亮。」'
 ];
-var npcLineIdx=0;
+var npcIgniteIdx=0;
 
 function openNpcDialog(){
-    npcLineIdx=0;
-    updateAttentionUI();
-    renderNpcDialog();
     document.getElementById('npcDialog').style.display='flex';
+    document.getElementById('npcAttentionVal').textContent=npcAttention;
+    document.getElementById('npcText').innerHTML='欢迎来到慢半拍~\n点击「点亮」消耗1点注意力，给小拍的光。<br><span style="color:rgba(255,255,255,.35);font-size:12px;">（每点亮一次，小拍会说不同的话）</span>';
 }
 function closeNpcDialog(){
     document.getElementById('npcDialog').style.display='none';
 }
-function renderNpcDialog(){
-    var text=npcLines[npcLineIdx];
-    if(!text){closeNpcDialog();return;}
-    document.getElementById('npcText').innerHTML=text.replace(/\n/g,'<br>');
-    var optsDiv=document.getElementById('npcOptions');
-    optsDiv.innerHTML='';
-    // "下一条"按钮
-    if(npcLineIdx<npcLines.length-1){
-        (function(idx){
-            var btn=document.createElement('button');
-            btn.textContent='下一条 ▸';
-            btn.style.cssText='padding:10px 16px;background:rgba(74,158,184,.12);border:1px solid rgba(74,158,184,.4);border-radius:10px;color:#7DD4E8;font-size:13px;cursor:pointer;text-align:left;transition:background .15s,border-color .15s;';
-            btn.onmouseover=function(){this.style.background='rgba(74,158,184,.25)';this.style.borderColor='#4A9EB8';};
-            btn.onmouseout=function(){this.style.background='rgba(74,158,184,.12)';this.style.borderColor='rgba(74,158,184,.4)';};
-            btn.onclick=function(){
-                npcLineIdx=idx+1;
-                renderNpcDialog();
-            };
-            optsDiv.appendChild(btn);
-        })(npcLineIdx);
+function doIgnite(){
+    if(npcAttention<=0){
+        document.getElementById('npcText').innerHTML='<span style="color:#E89090;">注意力不足了……<br>明天再来吧，慢半拍永远等你。</span>';
+        return;
     }
-    // "离开对话"按钮
-    var btn2=document.createElement('button');
-    btn2.textContent=npcLineIdx>=npcLines.length-1?'拜拜 👋':'离开对话';
-    btn2.style.cssText='padding:10px 16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:rgba(255,255,255,.5);font-size:13px;cursor:pointer;text-align:left;transition:background .15s,border-color .15s;';
-    btn2.onmouseover=function(){this.style.background='rgba(255,255,255,.1)';this.style.borderColor='rgba(255,255,255,.3)';};
-    btn2.onmouseout=function(){this.style.background='rgba(255,255,255,.05)';this.style.borderColor='rgba(255,255,255,.15)';};
-    btn2.onclick=closeNpcDialog;
-    optsDiv.appendChild(btn2);
-}
-function updateAttentionUI(){
-    var el=document.getElementById('npcAttentionVal');
-    if(el)el.textContent=npcAttention;
-}
-// ===== 点亮按钮逻辑 =====
-document.getElementById('npcIgnite').onclick=function(){
-    npcAttention+=1;
-    updateAttentionUI();
+    npcAttention--;
+    igniteCount++;
+    // 更新数值
+    document.getElementById('npcAttentionVal').textContent=npcAttention;
+    // 飘出 +1 动画
     var anim=document.getElementById('npcIgniteAnim');
-    anim.textContent='+1 ✨';
+    anim.textContent='+1';
     anim.style.opacity='1';
-    anim.style.transform='translate(-50%,-50%) translateY(-30px)';
-    setTimeout(function(){anim.style.opacity='0';anim.style.transform='translate(-50%,-50%) translateY(0)';},1200);
-};
-// ===== 点击遮罩层关闭对话框 =====
+    anim.style.transform='translate(-50%,-80%)';
+    setTimeout(function(){anim.style.opacity='0';anim.style.transform='translate(-50%,-50%)';},600);
+    // 显示小拍的话
+    var line=npcIgniteLines[npcIgniteIdx % npcIgniteLines.length];
+    npcIgniteIdx++;
+    document.getElementById('npcText').innerHTML=line.replace(/\n/g,'<br>');
+    // 按钮反馈
+    var btn=document.getElementById('npcIgnite');
+    btn.style.background='linear-gradient(135deg,rgba(212,160,64,.3),rgba(232,93,48,.3))';
+    btn.style.boxShadow='0 0 20px rgba(212,160,64,.3)';
+    setTimeout(function(){
+        btn.style.background='linear-gradient(135deg,rgba(212,160,64,.15),rgba(232,93,48,.15))';
+        btn.style.boxShadow='none';
+    },300);
+    // 注意力低时变色提示
+    if(npcAttention<=10){
+        document.getElementById('npcAttentionVal').style.color='#E89090';
+    }
+}
+
+// ===== 彩蛋盒子对话 =====
+function getEggContent(idx){
+    var msgs=[
+        '【红盒子】\n\n你小心翼翼打开红盒子……\n里面飘出一阵暖光。\n\n>> 注意力 +5 <<\n\n小拍探头看了一眼：\n「哦，那个啊。是上次\n一个探索者落下的。\n他说打开的人会走运。」',
+        '【蓝盒子】\n\n蓝盒子里面是一张皱巴巴的纸条：\n\n"如果你看到了这条纸条，\n说明你愿意为好奇心\n停留3秒钟。"\n\n>> 注意力 +10 <<\n\n（纸条背面写着：\n「小拍的咖啡其实没有那么好喝，\n但店里的氛围是一流的。」）',
+        '【金盒子】\n\n金盒子自己「咔嗒」一声打开了。\n里面有一枚亮闪闪的徽章：\n\n[ 探索者之友 ]\n\n>> 注意力 +15 <<\n\n小拍在远处吹了声口哨：\n「那是我的私藏，\n算你捡着了。」'
+    ];
+    return msgs[idx];
+}
+
+// 点亮按钮事件
+document.getElementById('npcIgnite').onclick=doIgnite;
+// 点击overlay背景关闭
 document.getElementById('npcDialog').addEventListener('click',function(e){
     if(e.target===this) closeNpcDialog();
 });
@@ -2171,6 +2103,3 @@ console.log('initApp done, THREE r'+THREE.REVISION+', Lights:'+lightCount);
     }
     if(typeof THREE!=='undefined')initApp(); else go();
 })();
-</script>
-</body>
-</html>

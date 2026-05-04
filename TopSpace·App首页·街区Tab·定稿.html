@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>TopSpace · 街区</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif; background:#0B0F1E; color:#ccc; overflow-x:hidden; padding-bottom:65px; }
+
+/* 状态栏 */
+.topbar { display:flex; justify-content:space-between; align-items:center; padding:12px 18px; background:rgba(11,15,30,.95); position:sticky; top:0; z-index:100; backdrop-filter:blur(14px); border-bottom:1px solid rgba(255,255,255,.03); }
+.loc { display:flex; align-items:center; gap:7px; }
+.pin { width:20px;height:20px; background:linear-gradient(135deg,#E8B44C,#F5D276); border-radius:50% 50% 50% 0; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; }
+.pin::after { content:''; width:5px;height:5px; background:#0B0F1E; border-radius:50%; transform:rotate(45deg); }
+.loc-txt { font-size:15px; font-weight:700; color:#F5F0E8; }
+.loc-sub { font-size:11px; color:#8A8578; margin-left:5px; }
+.hd-acts { display:flex; gap:10px; }
+.hbtn { width:32px;height:32px; border-radius:50%; background:rgba(255,255,255,.05); border:none; color:#8A8578; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.hbtn.on { background:rgba(232,180,76,.1); color:#E8B44C; }
+
+/* 注意力 */
+.attbar { display:flex; align-items:center; gap:9px; padding:9px 18px; background:rgba(255,255,255,.008); border-bottom:1px solid rgba(255,255,255,.02); }
+.att-lbl { font-size:11px; color:#8A8578; flex-shrink:0; }
+.adots { display:flex; gap:3.5px; flex:1; }
+.ado { width:6.5px;height:6.5px; border-radius:50%; background:rgba(232,180,76,.1); }
+.ado.on { background:#E8B44C; box-shadow:0 0 5px rgba(232,180,76,.3); }
+.aval { font-size:11px; color:#E8B44C; font-weight:700; flex-shrink:0; }
+
+/* 街区地图 */
+.street { position:relative; width:100%; height:320px; background:linear-gradient(180deg,#0D1120,#111828,#0C1020); overflow:hidden; }
+.stars { position:absolute; top:0;left:0;right:0;bottom:0; }
+.star { position:absolute; width:1.5px;height:1.5px; background:#fff; border-radius:50%; animation:twinkle var(--d) ease-in-out infinite alternate; }
+@keyframes twinkle { 0%{opacity:.3;transform:scale(1)} 100%{opacity:1;transform:scale(1.2)} }
+.sgnd { position:absolute; bottom:0;left:0;right:0;height:120px; background:linear-gradient(180deg,transparent 0%,rgba(15,20,36,.6) 20%,#0D1120 80%); pointer-events:none; }
+.sln { position:absolute; bottom:63px; left:6%;right:6%;height:1px; background:linear-gradient(90deg,transparent,rgba(232,180,76,.12) 30%,rgba(232,180,76,.22) 50%,rgba(232,180,76,.12) 70%,transparent); }
+.sln2 { position:absolute; bottom:36px; left:9%;right:9%;height:1px; background:linear-gradient(90deg,transparent,rgba(232,180,76,.06) 40%,rgba(232,180,76,.1) 60%,transparent); }
+
+/* 门牌 */
+.pw { position:absolute; display:flex; flex-direction:column; align-items:center; cursor:pointer; z-index:10; }
+.plt { width:42px;height:42px; border-radius:12px; display:flex;align-items:center;justify-content:center; font-size:8.5px; font-weight:800; color:#0B0F1E; box-shadow:0 3px 12px rgba(0,0,0,.35); position:relative; }
+.plt.fire { background:linear-gradient(135deg,#D96B6B,#E8A0A0); }
+.plt.water { background:linear-gradient(135deg,#4A9EB8,#7EC8DE); }
+.plt.wood { background:linear-gradient(135deg,#A0B87A,#C5D8A8); }
+.plt.metal { background:linear-gradient(135deg,#E8B44C,#F5D276); }
+.plt.earth { background:linear-gradient(135deg,#9B7BBF,#BDA0D8); }
+.pw.mine .plt { box-shadow:0 0 0 2.5px rgba(232,180,76,.6),0 4px 20px rgba(232,180,76,.25); animation:gm 3s ease-in-out infinite; }
+@keyframes gm { 0%,100%{box-shadow:0 0 0 2.5px rgba(232,180,76,.6),0 4px 20px rgba(232,180,76,.25)} 50%{box-shadow:0 0 0 3.5px rgba(232,180,76,.8),0 4px 30px rgba(232,180,76,.45)} }
+.ldot { position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:#E8B44C;border-radius:50%;border:2px solid #0B0F1E;animation:pl 2s ease-in-out infinite; }
+@keyframes pl { 0%,100%{transform:scale(1);opacity:.8} 50%{transform:scale(1.3);opacity:.4} }
+.pnm { margin-top:4px;font-size:8.5px;color:#8A8578;max-width:52px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.pw.mine .pnm { color:#E8B44C;font-weight:700; }
+
+/* 碰撞FAB */
+.cfab { position:absolute;bottom:22px;right:18px;width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#E8B44C,#F5D276);border:none;color:#0B0F1E;font-size:19px;font-weight:800;cursor:pointer;box-shadow:0 5px 22px rgba(232,180,76,.4);z-index:30;display:flex;align-items:center;justify-content:center; }
+.cfab:active { transform:scale(.9); }
+
+/* 街区信息 */
+.sinfo { padding:14px 18px; border-bottom:1px solid rgba(232,180,76,.04); }
+.sitop { display:flex;justify-content:space-between;align-items:center;margin-bottom:9px; }
+.sn { font-size:15px;font-weight:800;color:#F5F0E8; }
+.sp { font-size:11px;color:#8A8578; }
+.sts { display:flex;gap:6px;flex-wrap:wrap; }
+.st { padding:3px 9px;border-radius:14px;font-size:10px;background:rgba(255,255,255,.025);color:#8A8578;border:1px solid rgba(255,255,255,.035); }
+.st.on { background:rgba(232,180,76,.07);color:#E8B44C;border-color:rgba(232,180,76,.12); }
+
+/* Section */
+.sec { padding:16px 18px; }
+.shd { display:flex;justify-content:space-between;align-items:center;margin-bottom:12px; }
+.stit { font-size:15px;font-weight:800;color:#F5F0E8; }
+.smo { font-size:11px;color:#8A8578; }
+
+/* 碰撞动态 */
+.feed { display:flex;flex-direction:column;gap:7px; }
+.fc { display:flex;align-items:center;gap:10px;padding:11px 12px;background:rgba(255,255,255,.018);border-radius:12px;border:1px solid rgba(255,255,255,.025);cursor:pointer; }
+.fc:active { background:rgba(255,255,255,.04); }
+.fa { width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0; }
+.fa.fire { background:rgba(217,107,107,.1); }
+.fa.water { background:rgba(74,158,184,.1); }
+.fa.wood { background:rgba(160,184,122,.1); }
+.fa.metal { background:rgba(232,180,76,.1); }
+.fa.earth { background:rgba(155,123,191,.1); }
+.fb { flex:1;min-width:0; }
+.ft { font-size:11.5px;color:#AAA69E;line-height:1.45; }
+.ft b { color:#F5F0E8;font-weight:700; }
+.ft .hl { color:#E8B44C;font-weight:700; }
+.ftm { font-size:10px;color:#555;margin-top:3px; }
+.fbb { font-size:10px;color:#E8B44C;font-weight:700;flex-shrink:0;padding:3px 8px;border-radius:6px;background:rgba(232,180,76,.06);border:none;cursor:pointer; }
+
+/* 附近门牌 */
+.nsc { display:flex;gap:10px;overflow-x:auto;padding-bottom:6px; }
+.nsc::-webkit-scrollbar { display:none; }
+.nc { flex-shrink:0;width:130px;background:rgba(255,255,255,.018);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.025);cursor:pointer; }
+.nc:active { transform:scale(.96); }
+.nct { height:72px;display:flex;align-items:center;justify-content:center;font-size:28px; }
+.nct.fire { background:linear-gradient(135deg,rgba(217,107,107,.07),rgba(217,107,107,.005)); }
+.nct.water { background:linear-gradient(135deg,rgba(74,158,184,.07),rgba(74,158,184,.005)); }
+.nct.wood { background:linear-gradient(135deg,rgba(160,184,122,.07),rgba(160,184,122,.005)); }
+.nct.metal { background:linear-gradient(135deg,rgba(232,180,76,.07),rgba(232,180,76,.005)); }
+.nct.earth { background:linear-gradient(135deg,rgba(155,123,191,.07),rgba(155,123,191,.005)); }
+.ncb { padding:8px 9px; }
+.ncn { font-size:11.5px;font-weight:700;color:#F5F0E8;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.ncd { font-size:10px;color:#8A8578;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.ncm { display:flex;gap:7px; }
+.ncm span { font-size:9px;color:#555;display:flex;align-items:center;gap:2px; }
+
+/* 底部Tab */
+.tbar { position:fixed;bottom:0;left:0;right:0;height:60px;background:rgba(11,15,30,.97);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;justify-content:space-around;align-items:center;border-top:1px solid rgba(255,255,255,.025);z-index:1000;padding-bottom:env(safe-area-inset-bottom); }
+.ti { display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 11px;border-radius:7px; }
+.tic { font-size:18px;line-height:1;filter:grayscale(.6) brightness(.55);transition:filter .2s; }
+.til { font-size:9px;color:#555;font-weight:600;transition:color .2s; }
+.ti.on .tic { filter:none; }
+.ti.on .til { color:#E8B44C; }
+</style>
+</head>
+<body>
+
+<!-- 状态栏 -->
+<div class="topbar">
+  <div class="loc">
+    <div class="pin"></div>
+    <span class="loc-txt">蛋生壹号街区</span>
+    <span class="loc-sub">金陵大陆</span>
+  </div>
+  <div class="hd-acts">
+    <button class="hbtn">&#x1F50D;</button>
+    <button class="hbtn on">&#x2699;&#xFE0F;</button>
+  </div>
+</div>
+
+<!-- 注意力 -->
+<div class="attbar">
+  <span class="att-lbl">&#x26A1; 注意力</span>
+  <div class="adots">
+    <div class="ado on"></div><div class="ado on"></div><div class="ado on"></div>
+    <div class="ado on"></div><div class="ado on"></div><div class="ado on"></div>
+    <div class="ado on"></div><div class="ado"></div><div class="ado"></div><div class="ado"></div>
+  </div>
+  <span class="aval">7 / 10</span>
+</div>
+
+<!-- 街区地图 -->
+<div class="street" id="streetView">
+  <div class="stars" id="stars"></div>
+  <div class="sln"></div><div class="sln2"></div><div class="sgnd"></div>
+
+  <!-- 自己 -->
+  <div class="pw mine" style="left:50%;top:52%;">
+    <div class="plt metal">0527</div>
+    <div class="pnm">苏菜菜</div>
+  </div>
+  <!-- 阿楠 -->
+  <div class="pw" style="left:16%;top:38%;">
+    <div class="plt water">0512</div>
+    <div class="ldot"></div>
+    <div class="pnm">阿楠</div>
+  </div>
+  <!-- 老王 -->
+  <div class="pw" style="left:80%;top:35%;">
+    <div class="plt fire">0483</div>
+    <div class="pnm">老王</div>
+  </div>
+  <!-- 叶子 -->
+  <div class="pw" style="left:29%;top:67%;">
+    <div class="plt wood">0561</div>
+    <div class="ldot"></div>
+    <div class="pnm">叶子</div>
+  </div>
+  <!-- 大福 -->
+  <div class="pw" style="left:70%;top:64%;">
+    <div class="plt earth">0420</div>
+    <div class="pnm">大福</div>
+  </div>
+  <!-- 海亮 -->
+  <div class="pw" style="left:10%;top:62%;">
+    <div class="plt metal">0397</div>
+    <div class="pnm">海亮</div>
+  </div>
+  <!-- 小C -->
+  <div class="pw" style="left:87%;top:54%;">
+    <div class="plt water">0618</div>
+    <div class="ldot"></div>
+    <div class="pnm">小C</div>
+  </div>
+
+  <button class="cfab" onclick="alert('碰撞：浏览附近门牌')">&#x26A1;</button>
+</div>
+
+<!-- 街区信息 -->
+<div class="sinfo">
+  <div class="sitop">
+    <div class="sn">蛋生壹号街区</div>
+    <div class="sp">147 人</div>
+  </div>
+  <div class="sts">
+    <span class="st on">内容创作</span>
+    <span class="st">手作工坊</span>
+    <span class="st">咖啡空间</span>
+    <span class="st">独立设计</span>
+  </div>
+</div>
+
+<!-- 今日碰撞 -->
+<div class="sec">
+  <div class="shd">
+    <span class="stit">今日碰撞</span>
+    <span class="smo">查看全部 &gt;</span>
+  </div>
+  <div class="feed">
+    <div class="fc">
+      <div class="fa water">&#x1F4A7;</div>
+      <div class="fb">
+        <div class="ft"><b>阿楠</b> 碰撞了你的门牌，留下 <span class="hl">3个光点</span></div>
+        <div class="ftm">12分钟前</div>
+      </div>
+      <button class="fbb">点亮</button>
+    </div>
+    <div class="fc">
+      <div class="fa fire">&#x1F525;</div>
+      <div class="fb">
+        <div class="ft"><b>老王</b> 点亮了你，你的空间 <span class="hl">+1m&sup2;</span></div>
+        <div class="ftm">47分钟前</div>
+      </div>
+      <button class="fbb">进入</button>
+    </div>
+    <div class="fc">
+      <div class="fa wood">&#x1F33F;</div>
+      <div class="fb">
+        <div class="ft"><b>叶子</b> 把你的门牌 <span class="hl">收藏进星空</span></div>
+        <div class="ftm">2小时前</div>
+      </div>
+      <button class="fbb">查看</button>
+    </div>
+  </div>
+</div>
+
+<!-- 附近门牌 -->
+<div class="sec">
+  <div class="shd">
+    <span class="stit">附近门牌</span>
+    <span class="smo">街区全景 &gt;</span>
+  </div>
+  <div class="nsc">
+    <div class="nc">
+      <div class="nct water">&#x1F4A7;</div>
+      <div class="ncb">
+        <div class="ncn">阿楠</div>
+        <div class="ncd">短视频 &middot; 内容创作</div>
+        <div class="ncm"><span>&#x1F525; 12</span><span>&#x26A1; 3</span></div>
+      </div>
+    </div>
+    <div class="nc">
+      <div class="nct fire">&#x1F525;</div>
+      <div class="ncb">
+        <div class="ncn">老王</div>
+        <div class="ncd">精酿酒吧 &middot; 线下空间</div>
+        <div class="ncm"><span>&#x1F525; 28</span><span>&#x26A1; 7</span></div>
+      </div>
+    </div>
+    <div class="nc">
+      <div class="nct wood">&#x1F33F;</div>
+      <div class="ncb">
+        <div class="ncn">叶子</div>
+        <div class="ncd">手工皮具 &middot; 实体产品</div>
+        <div class="ncm"><span>&#x1F525; 9</span><span>&#x26A1; 2</span></div>
+      </div>
+    </div>
+    <div class="nc">
+      <div class="nct earth">&#x1F30D;</div>
+      <div class="ncb">
+        <div class="ncn">大福</div>
+        <div class="ncd">活动策划 &middot; 部落</div>
+        <div class="ncm"><span>&#x1F525; 15</span><span>&#x26A1; 4</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 底部Tab栏 -->
+<div class="tbar">
+  <div class="ti on">
+    <div class="tic">&#x1F3D7;&#xFE0F;</div>
+    <div class="til">街区</div>
+  </div>
+  <div class="ti">
+    <div class="tic">&#x1F4E2;</div>
+    <div class="til">广场</div>
+  </div>
+  <div class="ti">
+    <div class="tic">&#x2795;</div>
+    <div class="til">发布</div>
+  </div>
+  <div class="ti">
+    <div class="tic">&#x26A1;</div>
+    <div class="til">碰撞</div>
+  </div>
+  <div class="ti">
+    <div class="tic">&#x1F4D6;</div>
+    <div class="til">故事</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var c = document.getElementById('stars');
+  for(var i=0;i<50;i++){
+    var s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = Math.floor(Math.random()*100)+'%';
+    s.style.top = Math.floor(Math.random()*65)+'%';
+    s.style.setProperty('--d', (2+Math.random()*3)+'s');
+    s.style.animationDelay = Math.random()*3+'s';
+    c.appendChild(s);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>TopSpace · 故事</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --dark:#0B0F1E;
+  --paper:#F5F0E8;
+  --amber:#E8B44C;
+  --amber-light:#F5D276;
+  --amber-glow:rgba(232,180,76,.5);
+  --text-dark:#2C2824;
+  --text-muted:#8A8578;
+  --fire:#D96B6B;
+  --water:#4A9EB8;
+  --wood:#A0B87A;
+  --gold:#E8B44C;
+  --earth:#9B7BBF;
+}
+html,body{width:100%;min-height:100vh;background:var(--paper);color:var(--text-dark);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+body{-webkit-user-select:none;user-select:none;}
+
+/* ===== 顶部栏 ===== */
+.top-bar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:44px 20px 12px;
+  background:linear-gradient(180deg,rgba(11,15,30,.96) 60%,rgba(11,15,30,.6) 85%,transparent 100%);
+  transition:background .4s;
+}
+.top-bar.scrolled{background:rgba(245,240,232,.96);border-bottom:1px solid rgba(42,42,62,.06);}
+.top-bar.scrolled .tb-title{color:var(--text-dark);}
+.top-bar.scrolled .tb-sub{color:var(--text-muted);}
+.top-bar.scrolled .tb-actions .icon-btn{background:rgba(0,0,0,.04);color:var(--text-dark);}
+.tb-left{width:32px;}
+.tb-center{flex:1;text-align:center;}
+.tb-title{font-size:17px;font-weight:700;color:#F5F0E8;letter-spacing:2px;transition:color .4s;}
+.tb-sub{font-size:10px;color:rgba(245,240,232,.35);margin-top:2px;letter-spacing:2px;transition:color .4s;}
+.tb-actions{display:flex;align-items:center;gap:8px;}
+.icon-btn{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.06);border:none;color:rgba(245,240,232,.6);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;}
+
+/* ===== Hero区（深色星空） ===== */
+.hero{position:relative;min-height:100vh;background:linear-gradient(180deg,#080C1A 0%,var(--dark) 40%,#0F1326 75%,var(--paper) 100%);overflow:hidden;}
+.hero-stars{position:absolute;inset:0;z-index:0;}
+.hero-star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite alternate;opacity:0;}
+@keyframes twinkle{0%{opacity:.03;transform:scale(.5)}100%{opacity:var(--o,.6);transform:scale(1.1)}}
+.hero-glow{position:absolute;top:28%;left:50%;transform:translate(-50%,-50%);width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(232,180,76,.06) 0%,rgba(74,158,184,.03) 40%,transparent 70%);pointer-events:none;z-index:1;}
+.hero-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;padding:140px 24px 60px;text-align:center;}
+
+/* 引言卡片 */
+.hero-quote{
+  width:100%;max-width:340px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:20px;padding:28px 22px;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  position:relative;overflow:hidden;
+}
+.hero-quote::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(232,180,76,.1) 0%,transparent 70%);pointer-events:none;}
+.hero-quote::after{content:'';position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;background:radial-gradient(circle,rgba(74,158,184,.07) 0%,transparent 70%);pointer-events:none;}
+.hero-quote-mark{font-size:42px;line-height:1;color:rgba(232,180,76,.2);font-family:Georgia,serif;position:absolute;top:8px;left:14px;}
+.hero-quote-text{font-size:15px;color:rgba(245,240,232,.85);line-height:1.8;font-style:italic;position:relative;z-index:1;text-shadow:0 1px 3px rgba(0,0,0,.4);}
+.hero-quote-attr{font-size:10px;color:rgba(232,180,76,.5);margin-top:14px;letter-spacing:2px;position:relative;z-index:1;}
+
+/* Hero底部滚动提示 */
+.hero-scroll{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);z-index:3;text-align:center;animation:heroFloat 2.5s ease-in-out infinite;}
+@keyframes heroFloat{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-8px)}}
+.hero-scroll-line{width:1px;height:32px;background:linear-gradient(180deg,rgba(232,180,76,.4),transparent);margin:0 auto 8px;}
+.hero-scroll-text{font-size:10px;color:rgba(245,240,232,.25);letter-spacing:2px;}
+
+/* ===== 纸张质感背景 ===== */
+.paper-bg{
+  position:relative;z-index:1;
+  background:var(--paper);
+  background-image:
+    radial-gradient(ellipse at 20% 10%,rgba(155,123,191,.04) 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 40%,rgba(74,158,184,.03) 0%,transparent 50%),
+    radial-gradient(ellipse at 50% 90%,rgba(232,180,76,.02) 0%,transparent 60%);
+}
+
+/* ===== 剧本进度 ===== */
+.script-section{padding:32px 20px 28px;}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.section-title{font-size:15px;font-weight:700;color:var(--text-dark);display:flex;align-items:center;gap:8px;}
+.section-dot{width:6px;height:6px;border-radius:50%;}
+.section-more{font-size:12px;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;gap:4px;}
+
+.script-card{
+  background:#fff;border-radius:18px;padding:20px;
+  box-shadow:0 2px 16px rgba(0,0,0,.04);
+  cursor:pointer;transition:transform .2s;
+}
+.script-card:active{transform:scale(.98);}
+.script-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.script-card-title{font-size:14px;font-weight:700;color:var(--text-dark);display:flex;align-items:center;gap:8px;}
+.script-badge{font-size:10px;padding:2px 9px;border-radius:10px;background:linear-gradient(135deg,var(--amber),#D4A038);color:#fff;font-weight:600;}
+.script-progress{display:flex;align-items:center;gap:4px;margin-bottom:16px;}
+.script-progress-track{flex:1;height:3px;background:#EDE8E0;border-radius:2px;overflow:hidden;}
+.script-progress-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--water),var(--amber));transition:width .6s;}
+.script-progress-text{font-size:11px;color:var(--text-muted);flex-shrink:0;}
+
+/* 剧本集数 - 圆环式 */
+.ep-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.ep-item{
+  text-align:center;padding:10px 2px;border-radius:12px;
+  background:#FAF8F4;border:1.5px solid transparent;
+  transition:all .2s;cursor:pointer;position:relative;
+}
+.ep-item.completed{background:rgba(74,158,184,.06);border-color:rgba(74,158,184,.2);}
+.ep-item.completed .ep-num{color:var(--water);}
+.ep-item.current{background:rgba(232,180,76,.1);border-color:rgba(232,180,76,.35);animation:epPulse 2.5s infinite;}
+.ep-item.current .ep-num{color:#D4A038;}
+.ep-item.locked{opacity:.35;}
+.ep-num{font-size:18px;font-weight:800;color:#C8C0B4;margin-bottom:3px;}
+.ep-name{font-size:9px;color:#A8A098;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ep-check{position:absolute;top:4px;right:4px;font-size:8px;color:var(--water);}
+@keyframes epPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,180,76,.12)}50%{box-shadow:0 0 0 5px rgba(232,180,76,.03)}}
+
+/* ===== 故事流 ===== */
+.feed-section{padding:8px 20px 24px;}
+.feed-card{
+  background:#fff;border-radius:18px;padding:18px;
+  margin-bottom:16px;box-shadow:0 2px 16px rgba(0,0,0,.04);
+  cursor:pointer;transition:transform .2s;position:relative;overflow:hidden;
+}
+.feed-card:active{transform:scale(.98);}
+.feed-card::before{
+  content:'';position:absolute;top:0;left:0;width:3px;height:100%;
+  border-radius:3px 0 0 3px;
+}
+.feed-card.fire::before{background:var(--fire);}
+.feed-card.water::before{background:var(--water);}
+.feed-card.wood::before{background:var(--wood);}
+.feed-card.gold::before{background:var(--gold);}
+.feed-card.earth::before{background:var(--earth);}
+
+.feed-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.feed-avatar{
+  width:38px;height:38px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;flex-shrink:0;
+}
+.feed-meta{flex:1;min-width:0;}
+.feed-name{font-size:13px;font-weight:600;color:var(--text-dark);display:flex;align-items:center;gap:6px;}
+.feed-tag{font-size:9px;padding:2px 7px;border-radius:8px;font-weight:500;}
+.fire .feed-tag{background:rgba(217,107,107,.1);color:var(--fire);}
+.water .feed-tag{background:rgba(74,158,184,.1);color:var(--water);}
+.wood .feed-tag{background:rgba(160,184,122,.1);color:var(--wood);}
+.gold .feed-tag{background:rgba(232,180,76,.1);color:#D4A038;}
+.earth .feed-tag{background:rgba(155,123,191,.1);color:var(--earth);}
+.feed-loc{font-size:10px;color:#B8B0A8;margin-top:2px;}
+.feed-body{font-size:13px;color:#4A4540;line-height:1.8;margin-bottom:12px;}
+.feed-body .hl{color:#D4A038;font-weight:500;}
+.feed-images{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:12px;border-radius:10px;overflow:hidden;}
+.feed-img{aspect-ratio:1;border-radius:6px;}
+.feed-foot{display:flex;align-items:center;gap:18px;padding-top:10px;border-top:1px solid #F0EBE3;}
+.feed-act{display:flex;align-items:center;gap:4px;font-size:11px;color:#B8B0A8;cursor:pointer;transition:color .2s;}
+.feed-act.liked{color:var(--fire);}
+.feed-act .fa-icon{font-size:14px;}
+
+/* ===== Topoo哲学网格 ===== */
+.philosophy-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.philosophy-item{
+  background:#fff;border-radius:16px;padding:16px 14px;
+  box-shadow:0 2px 12px rgba(0,0,0,.03);cursor:pointer;
+  transition:transform .2s;position:relative;overflow:hidden;
+}
+.philosophy-item:active{transform:scale(.97);}
+.philosophy-item::before{
+  content:'';position:absolute;top:0;left:0;width:3px;height:100%;
+  border-radius:3px 0 0 3px;background:linear-gradient(180deg,var(--amber),var(--water));
+  opacity:.3;
+}
+.ph-icon{
+  width:38px;height:38px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;margin-bottom:10px;
+}
+.ph-name{font-size:13px;font-weight:700;color:var(--text-dark);margin-bottom:4px;}
+.ph-desc{font-size:11px;color:var(--text-muted);line-height:1.6;}
+
+/* ===== 宇宙法则（新增） ===== */
+.laws-section{padding:8px 20px 32px;}
+.laws-card{
+  background:linear-gradient(135deg,#2C2824,#3A3630);
+  border-radius:20px;padding:28px 20px;position:relative;overflow:hidden;
+}
+.laws-card::before{content:'';position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:radial-gradient(circle,rgba(232,180,76,.1) 0%,transparent 70%);pointer-events:none;}
+.laws-card::after{content:'';position:absolute;bottom:-15px;left:-15px;width:80px;height:80px;background:radial-gradient(circle,rgba(74,158,184,.08) 0%,transparent 70%);pointer-events:none;}
+.laws-title{font-size:13px;color:rgba(232,180,76,.5);letter-spacing:3px;margin-bottom:18px;text-align:center;}
+.law-item{display:flex;align-items:flex-start;gap:14px;margin-bottom:20px;}
+.law-item:last-child{margin-bottom:0;}
+.law-icon{
+  width:40px;height:40px;border-radius:12px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+}
+.law-icon.collision{background:rgba(232,180,76,.12);}
+.law-icon.ignite{background:rgba(217,107,107,.12);}
+.law-icon.notebook{background:rgba(74,158,184,.12);}
+.law-content{flex:1;}
+.law-name{font-size:14px;font-weight:700;color:#F5F0E8;margin-bottom:3px;}
+.law-desc{font-size:12px;color:rgba(245,240,232,.5);line-height:1.7;}
+.law-divider{width:100%;height:1px;background:rgba(255,255,255,.06);margin:18px 0;}
+
+/* ===== 每个人都有纸条 ===== */
+.everyone-section{padding:16px 20px 24px;text-align:center;}
+.everyone-title{font-size:20px;font-weight:800;color:var(--text-dark);margin-bottom:8px;}
+.everyone-sub{font-size:12px;color:var(--text-muted);line-height:1.8;margin-bottom:24px;}
+.everyone-cta{
+  display:inline-block;padding:14px 40px;border-radius:28px;
+  border:1.5px solid rgba(232,180,76,.4);
+  background:linear-gradient(135deg,rgba(232,180,76,.08),rgba(232,180,76,.02));
+  color:var(--amber);font-size:14px;font-weight:700;letter-spacing:3px;
+  cursor:pointer;transition:all .2s;
+}
+.everyone-cta:active{background:rgba(232,180,76,.15);transform:scale(.97);}
+
+/* ===== 开荒者彩蛋 ===== */
+.easter-egg{
+  margin:8px 20px 32px;border-radius:18px;padding:20px;
+  background:linear-gradient(135deg,#E8E4DC,#DDD8D0);
+  border:1.5px dashed #C8C0B4;cursor:pointer;
+  opacity:.55;transition:all .3s;position:relative;overflow:hidden;
+}
+.easter-egg::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(200,192,180,.08) 10px,rgba(200,192,180,.08) 20px);
+  pointer-events:none;
+}
+.easter-egg:active{opacity:.75;background:linear-gradient(135deg,#DDD8D0,#D4CFC6);}
+.egg-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.egg-lock{font-size:16px;color:#A8A098;}
+.egg-title{font-size:12px;color:#A8A098;font-weight:500;letter-spacing:1px;}
+.egg-hint{font-size:10px;color:#B8B0A8;font-style:italic;line-height:1.6;position:relative;z-index:1;}
+.egg-glow{
+  position:absolute;top:50%;left:50%;width:120px;height:120px;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle,rgba(232,180,76,.06) 0%,transparent 70%);
+  pointer-events:none;animation:eggGlow 4s infinite;
+}
+@keyframes eggGlow{0%,100%{opacity:.4;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}}
+
+/* ===== 纸条弹框 ===== */
+.note-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(11,15,30,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  z-index:300;flex-direction:column;align-items:center;justify-content:center;padding:40px;
+}
+.note-overlay.show{display:flex;animation:noteFadeIn .5s ease;}
+@keyframes noteFadeIn{from{opacity:0}to{opacity:1}}
+
+.note-paper{
+  width:100%;max-width:300px;
+  background:var(--paper);border-radius:6px;
+  padding:36px 28px;position:relative;
+  box-shadow:0 12px 48px rgba(0,0,0,.35),0 0 0 1px rgba(0,0,0,.05);
+  animation:noteSlideUp .6s cubic-bezier(.23,1,.32,1);
+}
+@keyframes noteSlideUp{from{transform:translateY(30px) rotate(-2deg);opacity:0}to{transform:translateY(0) rotate(-1deg);opacity:1}}
+
+.note-paper::before{
+  content:'';position:absolute;top:0;left:20px;right:20px;height:3px;
+  background:linear-gradient(90deg,transparent,rgba(200,192,180,.3),transparent);
+}
+.note-paper::after{
+  content:'';position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
+  width:80%;height:6px;
+  background:radial-gradient(ellipse,rgba(0,0,0,.08),transparent);filter:blur(2px);
+}
+
+.note-text{font-size:14px;color:#4A4540;line-height:2;font-style:italic;text-align:center;position:relative;z-index:1;}
+.note-flip{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  margin-top:18px;font-size:10px;color:#C8C0B4;
+}
+.note-close{
+  margin-top:28px;font-size:11px;color:rgba(245,240,232,.3);
+  cursor:pointer;letter-spacing:1px;animation:noteBlink 2.5s infinite;
+}
+@keyframes noteBlink{0%,100%{opacity:.3}50%{opacity:.7}}
+
+/* ===== 分隔装饰 ===== */
+.section-gap{height:1px;margin:0 20px;background:linear-gradient(90deg,transparent,rgba(0,0,0,.04),transparent);}
+
+/* ===== 滚动淡入 ===== */
+.fade-up{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease;}
+.fade-up.in{opacity:1;transform:translateY(0);}
+
+/* ===== Toast ===== */
+.toast{
+  display:none;position:fixed;top:60px;left:50%;transform:translateX(-50%);
+  background:rgba(44,40,36,.9);color:#F5F0E8;font-size:12px;
+  padding:9px 20px;border-radius:22px;z-index:500;white-space:nowrap;
+  backdrop-filter:blur(8px);animation:toastIn .3s ease;
+}
+.toast.show{display:block;}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* ===== 底部安全区 ===== */
+.safe-bottom{height:calc(20px + env(safe-area-inset-bottom,0px));}
+</style>
+</head>
+<body>
+
+<!-- 顶部栏 -->
+<div class="top-bar" id="topBar">
+  <div class="tb-left">
+    <div class="icon-btn" onclick="history.back()">←</div>
+  </div>
+  <div class="tb-center">
+    <div class="tb-title">故 事</div>
+    <div class="tb-sub">痕迹即灵魂</div>
+  </div>
+  <div class="tb-actions">
+    <div class="icon-btn" onclick="showToast('搜索故事功能开发中')">🔍</div>
+    <div class="icon-btn" onclick="showToast('已复制分享链接')">↗</div>
+  </div>
+</div>
+
+<!-- ===== Hero区（深色星空） ===== -->
+<div class="hero" id="heroSection">
+  <div class="hero-stars" id="heroStars"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-quote">
+      <div class="hero-quote-mark">"</div>
+      <div class="hero-quote-text">
+        碰撞产生变化，变化涌现意识。<br>痕迹即灵魂，愿力塑造未来。
+      </div>
+      <div class="hero-quote-attr">—— Topoo 宇宙</div>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="hero-scroll-line"></div>
+    <div class="hero-scroll-text">向下探索</div>
+  </div>
+</div>
+
+<!-- ===== 纸张内容区 ===== -->
+<div class="paper-bg">
+
+  <!-- 剧本进度 -->
+  <div class="script-section fade-up">
+    <div class="section-head">
+      <div class="section-title">
+        <span class="section-dot" style="background:var(--water)"></span>
+        新手剧本
+      </div>
+      <div class="section-more" onclick="showToast('剧本入口开发中')">进入 →</div>
+    </div>
+    <div class="script-card" onclick="showToast('剧本入口开发中')">
+      <div class="script-card-head">
+        <div class="script-card-title">
+          🌌 拓圈宇宙 · 觉醒纪元
+          <span class="script-badge">全10幕</span>
+        </div>
+      </div>
+      <div class="script-progress">
+        <div class="script-progress-track">
+          <div class="script-progress-fill" style="width:100%"></div>
+        </div>
+        <div class="script-progress-text">10/10</div>
+      </div>
+      <div class="ep-grid" onclick="location.href='TopSpace·剧本·H5.html'">
+        <div class="ep-item completed">
+          <div class="ep-num">01</div>
+          <div class="ep-name">坠落</div>
+          <span class="ep-check">✓</span>
+        </div>
+        <div class="ep-item completed">
+          <div class="ep-num">02</div>
+          <div class="ep-name">三件东西</div>
+          <span class="ep-check">✓</span>
+        </div>
+        <div class="ep-item completed">
+          <div class="ep-num">03</div>
+          <div class="ep-name">心情检测</div>
+          <span class="ep-check">✓</span>
+        </div>
+        <div class="ep-item completed">
+          <div class="ep-num">04</div>
+          <div class="ep-name">遇见噢</div>
+          <span class="ep-check">✓</span>
+        </div>
+        <div class="ep-item completed">
+          <div class="ep-num">05</div>
+          <div class="ep-name">第一次碰撞</div>
+          <span class="ep-check">✓</span>
+        </div>
+        <div class="ep-item completed">
+          <div class="ep-num">06</div>
+          <div class="ep-name">创造者</div>
+          <span class="ep-check">✓</span>
+        </div>
+        <div class="ep-item completed">
+          <div class="ep-num">07</div>
+          <div class="ep-name">真相</div>
+          <span class="ep-check">✓</span>
+        </div>
+        <div class="ep-item completed">
+          <div class="ep-num">08</div>
+          <div class="ep-name">禁区</div>
+          <span class="ep-check">✓</span>
+        </div>
+        <div class="ep-item completed">
+          <div class="ep-num">09</div>
+          <div class="ep-name">身份卡</div>
+          <span class="ep-check">✓</span>
+        </div>
+        <div class="ep-item completed">
+          <div class="ep-num">10</div>
+          <div class="ep-name">未完成</div>
+          <span class="ep-check">✓</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-gap"></div>
+
+  <!-- Topoo哲学 -->
+  <div class="laws-section fade-up" style="padding-top:8px;padding-bottom:8px;">
+    <div class="section-head" style="margin-bottom:16px;">
+      <div class="section-title">
+        <span class="section-dot" style="background:var(--amber)"></span>
+        Topoo哲学
+      </div>
+      <div class="section-more" onclick="location.href='TopSpace·碰撞·Topoo哲学·H5.html'">进入 →</div>
+    </div>
+    <div class="philosophy-grid">
+      <div class="philosophy-item" onclick="location.href='TopSpace·碰撞·Topoo哲学·H5.html'">
+        <div class="ph-icon" style="background:rgba(217,107,107,.1);color:var(--fire);">🔍</div>
+        <div class="ph-name">探索 vs 喂养</div>
+        <div class="ph-desc">算法投喂让你被动空洞，主动探索才是真正的看见</div>
+      </div>
+      <div class="philosophy-item" onclick="location.href='TopSpace·碰撞·Topoo哲学·H5.html'">
+        <div class="ph-icon" style="background:rgba(74,158,184,.1);color:var(--water);">💫</div>
+        <div class="ph-name">痕迹即灵魂</div>
+        <div class="ph-desc">你碰撞过谁，点亮过什么，3个月后拼出灵魂画像</div>
+      </div>
+      <div class="philosophy-item" onclick="location.href='TopSpace·碰撞·Topoo哲学·H5.html'">
+        <div class="ph-icon" style="background:rgba(160,184,122,.1);color:var(--wood);">🧭</div>
+        <div class="ph-name">空白即力量</div>
+        <div class="ph-desc">不知道自己是谁没关系，留白是等待被碰撞的空间</div>
+      </div>
+      <div class="philosophy-item" onclick="location.href='TopSpace·碰撞·Topoo哲学·H5.html'">
+        <div class="ph-icon" style="background:rgba(232,180,76,.1);color:var(--amber);">⚡</div>
+        <div class="ph-name">共鸣靠一瞬间</div>
+        <div class="ph-desc">那一瞬间的碰撞，比你刷一千条信息都有意义</div>
+      </div>
+      <div class="philosophy-item" onclick="location.href='TopSpace·碰撞·Topoo哲学·H5.html'">
+        <div class="ph-icon" style="background:rgba(155,123,191,.1);color:var(--earth);">❓</div>
+        <div class="ph-name">提问即筛选</div>
+        <div class="ph-desc">你问出的问题，本身就是你的灵魂在发声</div>
+      </div>
+      <div class="philosophy-item" onclick="location.href='TopSpace·碰撞·Topoo哲学·H5.html'">
+        <div class="ph-icon" style="background:rgba(139,126,106,.1);color:#8B7E6A;">♾️</div>
+        <div class="ph-name">愿力塑造未来</div>
+        <div class="ph-desc">一个人的念想是种子，一群人的念想是土壤</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-gap"></div>
+
+  <!-- 故事流 -->
+  <div class="feed-section">
+    <div class="section-head fade-up">
+      <div class="section-title">
+        <span class="section-dot" style="background:var(--fire)"></span>
+        正在发生
+      </div>
+      <div class="section-more" onclick="showToast('更多故事即将开放')">更多 →</div>
+    </div>
+
+    <!-- 故事1：火·门店 -->
+    <div class="feed-card fire fade-up" onclick="showToast('故事详情页开发中')">
+      <div class="feed-head">
+        <div class="feed-avatar" style="background:linear-gradient(135deg,#D96B6B,#C05555)">林</div>
+        <div class="feed-meta">
+          <div class="feed-name">林深见鹿 <span class="feed-tag">火 · 门店</span></div>
+          <div class="feed-loc">2小时前 · 金陵城 · 老门东街区</div>
+        </div>
+      </div>
+      <div class="feed-body">
+        今天第一次有人从门外走进来，不是因为路过，是因为<span class="hl">看到了我在Topoo上发的那个自制酵母配方</span>。她说她试了三次都失败了，第四次终于成功了。
+        <br><br>
+        那一刻我突然觉得——我的面包不只养活了我的胃，还养活了别人的一点点信心。
+      </div>
+      <div class="feed-images">
+        <div class="feed-img" style="background:linear-gradient(135deg,#E8D5C0,#D4C0A8)"></div>
+        <div class="feed-img" style="background:linear-gradient(135deg,#D4E0C8,#C0D0B4)"></div>
+        <div class="feed-img" style="background:linear-gradient(135deg,#C8D8E0,#B4C8D4)"></div>
+      </div>
+      <div class="feed-foot">
+        <div class="feed-act liked" onclick="event.stopPropagation()"><span class="fa-icon">✦</span> 3</div>
+        <div class="feed-act" onclick="event.stopPropagation();showToast('评论功能开发中')"><span class="fa-icon">💬</span> 7</div>
+        <div class="feed-act" onclick="event.stopPropagation();showToast('已收藏到你的星空')"><span class="fa-icon">☆</span></div>
+      </div>
+    </div>
+
+    <!-- 故事2：水·内容 -->
+    <div class="feed-card water fade-up" onclick="showToast('故事详情页开发中')">
+      <div class="feed-head">
+        <div class="feed-avatar" style="background:linear-gradient(135deg,#4A9EB8,#3A8EA8)">陈</div>
+        <div class="feed-meta">
+          <div class="feed-name">陈字不识 <span class="feed-tag">水 · 内容</span></div>
+          <div class="feed-loc">5小时前 · 金陵城 · 先锋街区</div>
+        </div>
+      </div>
+      <div class="feed-body">
+        做了一个决定：<span class="hl">把收藏夹里那1000多个"以后再看"全部删掉</span>。
+        <br><br>
+        不是冲动。是突然意识到——那些"以后再看"的意思就是"永远不会看"。它们不是我的兴趣，是被算法喂养出来的假欲望。
+        <br><br>
+        删完以后，手机变轻了。
+      </div>
+      <div class="feed-foot">
+        <div class="feed-act" onclick="event.stopPropagation()"><span class="fa-icon">✦</span> 12</div>
+        <div class="feed-act" onclick="event.stopPropagation();showToast('评论功能开发中')"><span class="fa-icon">💬</span> 23</div>
+        <div class="feed-act" onclick="event.stopPropagation();showToast('已收藏到你的星空')"><span class="fa-icon">☆</span></div>
+      </div>
+    </div>
+
+    <!-- 故事3：木·产品 -->
+    <div class="feed-card wood fade-up" onclick="showToast('故事详情页开发中')">
+      <div class="feed-head">
+        <div class="feed-avatar" style="background:linear-gradient(135deg,#A0B87A,#8AA864)">周</div>
+        <div class="feed-meta">
+          <div class="feed-name">周木木 <span class="feed-tag">木 · 产品</span></div>
+          <div class="feed-loc">昨天 23:17 · 金陵城 · 国创园街区</div>
+        </div>
+      </div>
+      <div class="feed-body">
+        第一批手工皂卖完了。不多，32块。但每一块都是我自己切的、自己包的、自己写的小卡片。
+        <br><br>
+        有个买家私信我："<span class="hl">你包装上那句话是什么意思？'触得到的手工，摸得到的真心'</span>"
+        <br><br>
+        我说：就是我做的时候心里想的事。
+      </div>
+      <div class="feed-images">
+        <div class="feed-img" style="background:linear-gradient(135deg,#E0D8C8,#D0C8B8)"></div>
+        <div class="feed-img" style="background:linear-gradient(135deg,#D8E0D0,#C8D4C0)"></div>
+        <div class="feed-img" style="background:linear-gradient(135deg,#E0D0C8,#D4C0B8)"></div>
+      </div>
+      <div class="feed-foot">
+        <div class="feed-act liked" onclick="event.stopPropagation()"><span class="fa-icon">✦</span> 28</div>
+        <div class="feed-act" onclick="event.stopPropagation();showToast('评论功能开发中')"><span class="fa-icon">💬</span> 15</div>
+        <div class="feed-act" onclick="event.stopPropagation();showToast('已收藏到你的星空')"><span class="fa-icon">☆</span></div>
+      </div>
+    </div>
+
+    <!-- 故事4：土·活动 -->
+    <div class="feed-card earth fade-up" onclick="showToast('故事详情页开发中')">
+      <div class="feed-head">
+        <div class="feed-avatar" style="background:linear-gradient(135deg,#9B7BBF,#8568A8)">苏</div>
+        <div class="feed-meta">
+          <div class="feed-name">苏小游 <span class="feed-tag">土 · 活动</span></div>
+          <div class="feed-loc">昨天 18:42 · 金陵城 · 颐和路街区</div>
+        </div>
+      </div>
+      <div class="feed-body">
+        第一场线下碰头会来了9个人。说好7点开始，7点15到齐。
+        <br><br>
+        没有任何主题。就是坐在一起聊天。
+        <br><br>
+        结果聊到10点半。一个做音乐的说想办一场"不用话筒的音乐会"，一个写代码的说想做个"AI帮你写日记的工具"，一个刚辞职的说<span class="hl">"我不知道我想干什么，但我知道我不想再干那个了"</span>。
+        <br><br>
+        散场的时候有人说："下次什么时候？"
+      </div>
+      <div class="feed-foot">
+        <div class="feed-act" onclick="event.stopPropagation()"><span class="fa-icon">✦</span> 45</div>
+        <div class="feed-act" onclick="event.stopPropagation();showToast('评论功能开发中')"><span class="fa-icon">💬</span> 31</div>
+        <div class="feed-act" onclick="event.stopPropagation();showToast('已收藏到你的星空')"><span class="fa-icon">☆</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-gap"></div>
+
+  <!-- 宇宙法则 -->
+  <div class="laws-section fade-up">
+    <div class="laws-card">
+      <div class="laws-title">宇 宙 法 则</div>
+      <div class="law-item">
+        <div class="law-icon collision">⚡</div>
+        <div class="law-content">
+          <div class="law-name">碰撞 Collision</div>
+          <div class="law-desc">路过门牌、查看主页、进入空间——每一次碰撞都消耗注意力，留下看不见的光点。</div>
+        </div>
+      </div>
+      <div class="law-divider"></div>
+      <div class="law-item">
+        <div class="law-icon ignite">✦</div>
+        <div class="law-content">
+          <div class="law-name">点亮 Ignition</div>
+          <div class="law-desc">被深度触动时点亮对方，一天仅三次。对方的门牌会发光，空间会多出1㎡。</div>
+        </div>
+      </div>
+      <div class="law-divider"></div>
+      <div class="law-item">
+        <div class="law-icon notebook">📓</div>
+        <div class="law-content">
+          <div class="law-name">笔记本 Notebook</div>
+          <div class="law-desc">自动记录所有碰撞与点亮。三个月后生成灵魂画像——所有你发出的声音，都会成为判断你的依据。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 每个人都有纸条 -->
+  <div class="everyone-section fade-up">
+    <div class="everyone-title">每个人，都带着一张纸条</div>
+    <div class="everyone-sub">
+      不是谁有什么特权。<br>
+      是每个人都有没说完的话。<br>
+      拓圈的本质——帮你把你的圈，拓出来。
+    </div>
+    <div class="everyone-cta" onclick="location.href='TopSpace·剧本·H5.html'">开 始 我 的 故 事</div>
+    <div style="text-align:center;margin-top:16px;">
+      <a href="TopSpace·书写故事·H5.html" style="font-size:12px;color:var(--text-muted);letter-spacing:2px;text-decoration:none;border-bottom:1px solid rgba(0,0,0,.08);padding-bottom:1px;">或 · 书写你的故事</a>
+    </div>
+  </div>
+
+  <!-- 开荒者彩蛋 -->
+  <div class="easter-egg fade-up" onclick="openNote()">
+    <div class="egg-glow"></div>
+    <div class="egg-header">
+      <span class="egg-lock">🔒</span>
+      <span class="egg-title">开荒者的秘密</span>
+    </div>
+    <div class="egg-hint">这个地方好像有什么东西……但我说不清楚。也许你走近了就能看到。</div>
+  </div>
+
+  <div class="safe-bottom"></div>
+</div>
+
+<!-- 纸条弹框 -->
+<div class="note-overlay" id="noteOverlay" onclick="closeNote(event)">
+  <div class="note-paper" onclick="event.stopPropagation()">
+    <div class="note-text">
+      因为有一个人消失了，<br>
+      我决定把那些没说的话，<br>
+      说给所有人听。
+    </div>
+    <div class="note-flip">
+      <span style="font-size:12px">🔒</span> 反面被锁住了
+    </div>
+  </div>
+  <div class="note-close" onclick="closeNote()">点任意处关闭</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== 星空 ===== */
+(function(){
+  var el=document.getElementById('heroStars');
+  for(var i=0;i<90;i++){
+    var s=document.createElement('div');
+    s.className='hero-star';
+    var maxO=(.2+Math.random()*.5).toFixed(2);
+    s.style.cssText=
+      'left:'+(Math.random()*100)+'%;'+
+      'top:'+(Math.random()*100)+'%;'+
+      'width:'+(0.5+Math.random()*1.8)+'px;'+
+      'height:'+(0.5+Math.random()*1.8)+'px;'+
+      '--d:'+(2+Math.random()*5)+'s;'+
+      '--o:'+maxO+';'+
+      'animation-delay:'+(Math.random()*4)+'s;';
+    el.appendChild(s);
+  }
+})();
+
+/* ===== 顶栏滚动变色 ===== */
+var topBar=document.getElementById('topBar');
+var heroH=document.getElementById('heroSection').offsetHeight;
+window.addEventListener('scroll',function(){
+  if(window.scrollY>heroH*0.6){
+    topBar.classList.add('scrolled');
+  }else{
+    topBar.classList.remove('scrolled');
+  }
+},true);
+
+/* ===== 滚动淡入 ===== */
+function checkFade(){
+  var els=document.querySelectorAll('.fade-up');
+  els.forEach(function(el){
+    var r=el.getBoundingClientRect();
+    if(r.top<window.innerHeight*0.88) el.classList.add('in');
+  });
+}
+window.addEventListener('scroll',checkFade,true);
+checkFade();
+
+/* ===== Toast ===== */
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2000);
+}
+
+/* ===== 剧本 ===== */
+function goEp(n){
+  var names=['','坠落','三件东西','心情检测','遇见噢','第一次碰撞','创造者','真相','禁区','身份卡','未完成'];
+  if(n<=3) showToast('第'+n+'幕：'+names[n]);
+  else showToast('🔒 尚未解锁');
+}
+
+/* ===== 纸条弹框 ===== */
+function openNote(){
+  document.getElementById('noteOverlay').classList.add('show');
+}
+function closeNote(e){
+  if(!e||e.target===document.getElementById('noteOverlay')||e.target.classList.contains('note-close')){
+    document.getElementById('noteOverlay').classList.remove('show');
+  }
+}
+</script>
+</body>
+</html>

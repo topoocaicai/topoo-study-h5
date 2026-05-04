@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>TopSpace · 街区地图</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#F5F0E8;font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;overflow:hidden;height:100vh;width:100vw;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+canvas{display:block;width:100%;height:100%}
+.hint{position:fixed;top:0;left:0;right:0;z-index:90;text-align:center;padding:13px;font-size:12px;color:rgba(26,26,26,0.28);letter-spacing:1px;pointer-events:none;transition:opacity 0.5s}
+.info-panel{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(245,240,232,0.97);border-top:1px solid rgba(42,42,62,0.10);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.info-panel.show{transform:translateY(0)}
+.info-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.info-avatar{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.info-name{font-size:17px;font-weight:700;color:#1A1A1A;line-height:1.3}
+.info-id{font-size:12px;color:rgba(26,26,26,0.40);font-family:"SF Mono","Menlo",monospace;margin-top:2px;letter-spacing:1px}
+.info-type{font-size:12px;margin-top:2px;letter-spacing:0.5px}
+.info-desc{font-size:13px;color:rgba(26,26,26,0.55);line-height:1.6;margin-top:8px}
+</style>
+</head>
+<body>
+
+<div class="hint" id="hint">单指拖动 · 双指缩放 · 点击门牌查看</div>
+<canvas id="mapCanvas"></canvas>
+
+<div class="info-panel" id="infoPanel">
+  <div class="info-header">
+    <div class="info-avatar" id="infoAvatar"></div>
+    <div>
+      <div class="info-name" id="infoName">—</div>
+      <div class="info-id"   id="infoId"></div>
+      <div class="info-type" id="infoType">—</div>
+    </div>
+  </div>
+  <div class="info-desc" id="infoDesc">点击地图其他位置关闭</div>
+</div>
+
+<script>
+// ============================================================
+//  TopSpace 街区地图 —— 街道网络版 v7（最终逻辑正确版）
+//  核心逻辑：维护街道网络表，合并时删除内部街道
+//  街道 = 地块之间的灰色间隙（有虚线中线）
+//  合并cell → 内部街道消失 → 大地块连成一片
+//  VI：底#F5F0E8   文字#1A1A1A
+//  五色：火#D96B6B  水#4A9EB8  木#A0B87A  金#E8B44C  土#9B7BBF
+// ============================================================
+
+var ELEM = {
+  fire:  {c:'#D96B6B', label:'火 · 门店型', desc:'烟火气聚集地，线下体验空间', emoji:'🔥'},
+  water: {c:'#4A9EB8', label:'水 · 内容型', desc:'无形流淌，触达每个角落', emoji:'💧'},
+  wood:  {c:'#A0B87A', label:'木 · 产品型', desc:'从种子到果实，生长可见', emoji:'🌱'},
+  metal: {c:'#E8B44C', label:'金 · 服务型', desc:'高价值硬通货，专业交付', emoji:'⚙️'},
+  earth: {c:'#9B7BBF', label:'土 · 活动型', desc:'承载万物的地基，连接你我', emoji:'🌍'}
+};
+var ELEM_KEYS = ['fire','water','wood','metal','earth'];
+
+// ===== 参数 =====
+var COLS = 8, ROWS = 6;
+var CELL = 110;           // 每格尺寸
+var STREET = 14;         // 街道宽度
+var ALLEY = 6;           // 超大块内部小巷宽度
+
+// ===== 数据结构 =====
+// grid[r][c] = blockId（每个格子属于哪个block）
+// hStreet[r][c] = true 表示第r行格子与第r+1行格子之间有横向街道
+// vStreet[r][c] = true 表示第c列格子与第c+1列格子之间有纵向街道
+// 初始：所有相邻格子之间都有街道
+var grid = [];
+var hStreet = [];  // hStreet[r][c] : 行r和行r+1之间，列c位置（0~COLS-1）
+var vStreet = [];  // vStreet[r][c] : 列c和列c+1之间，行r位置（0~ROWS-1）
+
+// 初始化
+var blocks = [];
+var bid = 0;
+for (var r = 0; r < ROWS; r++) {
+  grid[r] = [];
+  hStreet[r] = [];
+  vStreet[r] = [];
+  for (var c = 0; c < COLS; c++) {
+    grid[r][c] = bid;
+    blocks.push({
+      cells: [[r,c]],
+      elem: ELEM_KEYS[Math.floor(Math.random()*5)],
+      depth: 0.2 + Math.random() * 0.8,
+      dead: false,
+      hasAlley: false,
+      alleyDir: '',
+      visited: Math.random() < 0.55
+    });
+    bid++;
+    // 初始化街道（都存在）
+    hStreet[r][c] = true;
+    vStreet[r][c] = true;
+  }
+}
+// 边界外街道不存在
+for (var c = 0; c < COLS; c++) {
+  hStreet[ROWS-1][c] = false;  // 最后一行下方无街道
+}
+for (var r = 0; r < ROWS; r++) {
+  vStreet[r][COLS-1] = false;  // 最后一列右方无街道
+}
+
+// ===== 合并：删除内部街道 =====
+var MERGE_TRIES = Math.floor(COLS * ROWS * 0.38);
+for (var t = 0; t < MERGE_TRIES; t++) {
+  var rr = Math.floor(Math.random() * ROWS);
+  var cc = Math.floor(Math.random() * COLS);
+  var dr = 0, dc = 0;
+  var rnd = Math.random();
+  if (rnd < 0.40)      { dc = 1; }
+  else if (rnd < 0.80) { dr = 1; }
+  else                   { dr = 1; dc = 1; }
+  if (rr + dr >= ROWS || cc + dc >= COLS) continue;
+  var idA = grid[rr][cc];
+  var idB = grid[rr+dr][cc+dc];
+  if (idA === idB) continue;
+  if (blocks[idA].dead || blocks[idB].dead) continue;
+
+  // 删除这两个cell之间的街道！
+  if (dr === 1 && dc === 0) {
+    // 上下合并 → 删除横向街道
+    hStreet[rr][cc] = false;
+  } else if (dr === 0 && dc === 1) {
+    // 左右合并 → 删除纵向街道
+    vStreet[rr][cc] = false;
+  } else {
+    // 斜向合并 → 两个方向都删
+    hStreet[rr][cc] = false;
+    vStreet[rr][cc] = false;
+  }
+
+  // 合并：idB → idA
+  for (var r2 = 0; r2 < ROWS; r2++) {
+    for (var c2 = 0; c2 < COLS; c2++) {
+      if (grid[r2][c2] === idB) {
+        grid[r2][c2] = idA;
+        blocks[idA].cells.push([r2,c2]);
+      }
+    }
+  }
+  blocks[idB].dead = true;
+}
+
+// ===== 整理存活block =====
+var liveBlocks = [];
+var remap = {};
+var liveIdx = 0;
+for (var i = 0; i < blocks.length; i++) {
+  if (blocks[i].dead) continue;
+  remap[i] = liveIdx;
+  var b = blocks[i];
+  var cells = b.cells;
+  // 超大块加内部小巷
+  if (cells.length >= 4 && Math.random() < 0.5) {
+    b.hasAlley = true;
+    b.alleyDir = Math.random() < 0.5 ? 'H' : 'V';
+  }
+  // bounding box
+  var minR=ROWS, maxR=-1, minC=COLS, maxC=-1;
+  for (var j = 0; j < cells.length; j++) {
+    minR = Math.min(minR, cells[j][0]);
+    maxR = Math.max(maxR, cells[j][0]);
+    minC = Math.min(minC, cells[j][1]);
+    maxC = Math.max(maxC, cells[j][1]);
+  }
+  // 像素坐标（地块 = 格子区域 + 街道间隙）
+  // 关键：地块尺寸 = 格子总尺寸 + 街道总宽度（只考虑外部街道）
+  // 用hStreet/vStreet判断哪些间隙是街道
+  var px = 0, py = 0;
+  // x方向：从左边开始，累加格子宽度和街道宽度
+  for (var c = 0; c < minC; c++) {
+    px += CELL + STREET;  // 每个格子+右边街道
+  }
+  px += STREET;  // 左边距
+  // y方向同理
+  for (var r = 0; r < minR; r++) {
+    py += CELL + STREET;
+  }
+  py += STREET;
+
+  // 宽度：从minC到maxC，包含格子+内部间隙
+  var pw = 0;
+  for (var c = minC; c <= maxC; c++) {
+    pw += CELL;
+    if (c < maxC) {
+      // 检查这个间隙是否是街道
+      // 只要这一行的任意行有vStreet，就有街道（简化处理：用第一行）
+      var hasStreet = false;
+      for (var r = minR; r <= maxR; r++) {
+        if (vStreet[r] && vStreet[r][c] === true) { hasStreet = true; break; }
+      }
+      if (hasStreet) { pw += STREET; }
+    }
+  }
+  var ph = 0;
+  for (var r = minR; r <= maxR; r++) {
+    ph += CELL;
+    if (r < maxR) {
+      var hasStreet = false;
+      for (var c = minC; c <= maxC; c++) {
+        if (hStreet[r] && hStreet[r][c] === true) { hasStreet = true; break; }
+      }
+      if (hasStreet) { ph += STREET; }
+    }
+  }
+
+  // 门牌位置：贴地块边缘
+  var edge = Math.floor(Math.random()*4);
+  var doorX, doorY, m = 12;
+  if (edge===0)      { doorX=px+pw*(0.2+Math.random()*0.6); doorY=py+m; }
+  else if (edge===1) { doorX=px+pw*(0.2+Math.random()*0.6); doorY=py+ph-m; }
+  else if (edge===2) { doorX=px+m; doorY=py+ph*(0.2+Math.random()*0.6); }
+  else               { doorX=px+pw-m; doorY=py+ph*(0.2+Math.random()*0.6); }
+
+  liveBlocks.push({
+    x:px, y:py, w:pw, h:ph,
+    elem: b.elem,
+    depth: b.depth,
+    skew: (Math.random()-0.5)*4,
+    visited: b.visited,
+    hasAlley: b.hasAlley,
+    alleyDir: b.alleyDir,
+    doorX: doorX,
+    doorY: doorY,
+    name: '',
+    id: ''
+  });
+  liveIdx++;
+}
+
+// ===== 分配名字和号段 =====
+var NAMES = [
+  '星尘','流光','青木','金石','厚土','晨露','焱焰','碧藤','银铃','琥珀',
+  '极光','赤松','云归','霜降','岚烟','墨染','月蚀','星轨','潮汐','萤火',
+  '破晓','暮色','归鸿','逝川','空镜','浮岛','晚祷','迷迭','霜天','半夏',
+  '长风','微澜','寒烟','素履','清欢','南风','北望','东篱','西洲','中岳'
+];
+for (var i = 0; i < liveBlocks.length; i++) {
+  liveBlocks[i].name = NAMES[i % NAMES.length];
+  liveBlocks[i].id   = (1001 + i).toString();
+}
+
+// ===== 世界尺寸 =====
+var WORLD_W = COLS * CELL + (COLS+1) * STREET + 40;
+var WORLD_H = ROWS * CELL + (ROWS+1) * STREET + 40;
+
+// ===== Canvas =====
+var canvas = document.getElementById('mapCanvas');
+var ctx;
+var W, H, dpr;
+var viewX = WORLD_W/2, viewY = WORLD_H/2, zoom = 1;
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function init() {
+  resize();
+  requestAnimationFrame(loop);
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+window.addEventListener('load', function(){ resize(); });
+window.addEventListener('resize', resize);
+
+// ===== 坐标转换 =====
+function toScreen(wx, wy) {
+  return { x: W/2 + (wx - viewX) * zoom, y: H/2 + (wy - viewY) * zoom };
+}
+
+// ===== 颜色工具 =====
+function hexRGB(h) {
+  return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+}
+function rgba(hex, a) {
+  var c = hexRGB(hex);
+  return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a.toFixed(3) + ')';
+}
+
+// ===== 触摸/鼠标 =====
+var touch=false, pinch=false, tx0=0,ty0=0,vx0=0,vy0=0,pDist0=0,pZoom0=1;
+
+canvas.addEventListener('touchstart', function(e){
+  e.preventDefault();
+  if(e.touches.length===1){touch=true;pinch=false;tx0=e.touches[0].clientX;ty0=e.touches[0].clientY;vx0=viewX;vy0=viewY;}
+  else if(e.touches.length===2){pinch=true;touch=false;var dx=e.touches[1].clientX-e.touches[0].clientX,dy=e.touches[1].clientY-e.touches[0].clientY;pDist0=Math.sqrt(dx*dx+dy*dy);pZoom0=zoom;}
+},{passive:false});
+
+canvas.addEventListener('touchmove', function(e){
+  e.preventDefault();
+  if(pinch&&e.touches.length===2){
+    var dx=e.touches[1].clientX-e.touches[0].clientX,dy=e.touches[1].clientY-e.touches[0].clientY;
+    zoom=Math.max(0.15,Math.min(4,pZoom0*Math.sqrt(dx*dx+dy*dy)/pDist0));
+  }else if(touch&&e.touches.length===1){
+    viewX=vx0-(e.touches[0].clientX-tx0)/zoom;
+    viewY=vy0-(e.touches[0].clientY-ty0)/zoom;
+  }
+},{passive:false});
+
+canvas.addEventListener('touchend', function(){touch=false;pinch=false;});
+
+var mDown=false,mx0=0,my0=0,mvx0=0,mvy0=0;
+canvas.addEventListener('mousedown',function(e){mDown=true;mx0=e.clientX;my0=e.clientY;mvx0=viewX;mvy0=viewY;});
+canvas.addEventListener('mousemove',function(e){if(!mDown)return;viewX=mvx0-(e.clientX-mx0)/zoom;viewY=mvy0-(e.clientY-my0)/zoom;});
+canvas.addEventListener('mouseup',function(){mDown=false;});
+canvas.addEventListener('mouseleave',function(){mDown=false;});
+canvas.addEventListener('wheel',function(e){e.preventDefault();zoom=Math.max(0.15,Math.min(4,zoom*(e.deltaY>0?0.92:1.08));},{passive:false});
+
+// ===== 点击检测 =====
+canvas.addEventListener('click', function(e){
+  document.getElementById('hint').style.opacity='0';
+  var closest=-1, best=40;
+  for(var i=0;i<liveBlocks.length;i++){
+    var p=toScreen(liveBlocks[i].doorX, liveBlocks[i].doorY);
+    var dx=e.clientX-p.x, dy=e.clientY-p.y, d=Math.sqrt(dx*dx+dy*dy);
+    if(d<best){closest=i;best=d;}
+  }
+  if(closest>=0) showInfo(closest);
+  else document.getElementById('infoPanel').classList.remove('show');
+});
+
+function showInfo(i){
+  var b=liveBlocks[i], ec=ELEM[b.elem];
+  document.getElementById('infoAvatar').style.background=rgba(ec.c,0.20);
+  document.getElementById('infoAvatar').textContent=ec.emoji;
+  document.getElementById('infoName').textContent=b.name;
+  document.getElementById('infoId').textContent='#'+b.id;
+  document.getElementById('infoId').style.color=ec.c;
+  document.getElementById('infoType').textContent=ec.label;
+  document.getElementById('infoType').style.color=ec.c;
+  document.getElementById('infoDesc').textContent=ec.desc;
+  document.getElementById('infoPanel').classList.add('show');
+}
+document.addEventListener('click',function(e){
+  var p=document.getElementById('infoPanel');
+  if(!p.contains(e.target)&&e.target!==canvas) p.classList.remove('show');
+});
+
+// ===== 渲染 =====
+function loop(){ requestAnimationFrame(loop); render(); }
+
+function render(){
+  if(!ctx||!W||!H) return;
+  ctx.clearRect(0,0,W,H);
+
+  // —— 0. 街道灰色底面（全铺）——
+  ctx.fillStyle = '#E8E2D8';
+  ctx.fillRect(0, 0, W, H);
+
+  var r0 = Math.max(7, 13*zoom);
+
+  // —— 1. 画地块色块（盖在街道上面，间隙露出=街道）——
+  for (var i = 0; i < liveBlocks.length; i++) {
+    var b = liveBlocks[i], ec = ELEM[b.elem], d = b.depth, sk = b.skew;
+    var ox=[sk*0.7,-sk*0.5,sk*0.4,-sk*0.6];
+    var oy=[-sk*0.5,sk*0.4,sk*0.7,-sk*0.4];
+    var c0=toScreen(b.x+ox[0],b.y+oy[0]);
+    var c1=toScreen(b.x+b.w+ox[1],b.y+oy[1]);
+    var c2=toScreen(b.x+b.w+ox[2],b.y+b.h+oy[2]);
+    var c3=toScreen(b.x+ox[3],b.y+b.h+oy[3]);
+    var oob=true;
+    var pts=[c0,c1,c2,c3];
+    for(var cc=0;cc<4;cc++){if(pts[cc].x>-120&&pts[cc].x<W+120&&pts[cc].y>-120&&pts[cc].y<H+120){oob=false;break;}}
+    if(oob) continue;
+
+    ctx.beginPath();
+    ctx.moveTo(c0.x,c0.y);
+    ctx.lineTo(c1.x,c1.y);
+    ctx.lineTo(c2.x,c2.y);
+    ctx.lineTo(c3.x,c3.y);
+    ctx.closePath();
+
+    if(b.visited){
+      ctx.fillStyle = rgba(ec.c, 0.18 + d*0.32);
+    } else {
+      ctx.fillStyle = 'rgba(42,42,62,0.030)';
+    }
+    ctx.fill();
+
+    // 地块边框
+    ctx.strokeStyle = rgba(ec.c, 0.12 + d*0.23);
+    ctx.lineWidth = Math.max(1, 1.3*zoom);
+    ctx.setLineDash([4+Math.abs(sk)*1.3, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 超大块内部小巷
+    if(b.hasAlley && b.visited){
+      ctx.save();
+      var a1x,a1y,a2x,a2y;
+      if(b.alleyDir==='H'){
+        a1x=b.x+20; a1y=b.y+b.h/2;
+        a2x=b.x+b.w-20; a2y=b.y+b.h/2;
+        var ap1=toScreen(a1x,a1y), ap2=toScreen(a2x,a2y);
+        ctx.strokeStyle='#E8E2D8';
+        ctx.lineWidth=ALLEY*zoom;
+        ctx.beginPath(); ctx.moveTo(ap1.x,ap1.y); ctx.lineTo(ap2.x,ap2.y); ctx.stroke();
+        ctx.strokeStyle='rgba(255,255,255,0.6)';
+        ctx.lineWidth=Math.max(0.5,0.7*zoom);
+        ctx.setLineDash([4,4]);
+        ctx.beginPath(); ctx.moveTo(ap1.x,ap1.y); ctx.lineTo(ap2.x,ap2.y); ctx.stroke();
+      } else {
+        a1x=b.x+b.w/2; a1y=b.y+20;
+        a2x=b.x+b.w/2; a2y=b.y+b.h-20;
+        var ap1=toScreen(a1x,a1y), ap2=toScreen(a2x,a2y);
+        ctx.strokeStyle='#E8E2D8';
+        ctx.lineWidth=ALLEY*zoom;
+        ctx.beginPath(); ctx.moveTo(ap1.x,ap1.y); ctx.lineTo(ap2.x,ap2.y); ctx.stroke();
+        ctx.strokeStyle='rgba(255,255,255,0.6)';
+        ctx.lineWidth=Math.max(0.5,0.7*zoom);
+        ctx.setLineDash([4,4]);
+        ctx.beginPath(); ctx.moveTo(ap1.x,ap1.y); ctx.lineTo(ap2.x,ap2.y); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+  }
+
+  // —— 2. 画街道虚线中线（只在真实街道上）——
+  // 横向街道中线
+  ctx.lineCap = 'round';
+  for (var r = 0; r < ROWS-1; r++) {
+    for (var c = 0; c < COLS; c++) {
+      if (!hStreet[r][c]) continue;  // 这条街道已被合并删除！
+      // 街道中线y坐标
+      var streetY = (r+1) * CELL + (r+1) * STREET - STREET/2;
+      var p1 = toScreen(0, streetY);
+      var p2 = toScreen(WORLD_W, streetY);
+      if (p1.y < -15 || p2.y > H+15) continue;
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+      ctx.lineWidth = Math.max(0.8, 1.0*zoom);
+      ctx.setLineDash([7*zoom, 7*zoom]);
+      ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+  // 纵向街道中线
+  for (var c = 0; c < COLS-1; c++) {
+    for (var r = 0; r < ROWS; r++) {
+      if (!vStreet[r][c]) continue;  // 这条街道已被合并删除！
+      var streetX = (c+1) * CELL + (c+1) * STREET - STREET/2;
+      var p1 = toScreen(streetX, 0);
+      var p2 = toScreen(streetX, WORLD_H);
+      if (p1.x < -15 || p2.x > W+15) continue;
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+      ctx.lineWidth = Math.max(0.8, 1.0*zoom);
+      ctx.setLineDash([7*zoom, 7*zoom]);
+      ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  // —— 3. 画门牌 ——
+  for (var i = 0; i < liveBlocks.length; i++) {
+    var b = liveBlocks[i], ec = ELEM[b.elem], d = b.depth;
+    var p = toScreen(b.doorX, b.doorY);
+    if(p.x<-50||p.x>W+50||p.y<-50||p.y>H+50) continue;
+    var r = r0;
+
+    if(b.visited){
+      ctx.fillStyle = rgba(ec.c, 0.75 + d*0.25);
+      ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle = rgba(ec.c, 0.90);
+      ctx.lineWidth = Math.max(1.5, 2*zoom);
+      ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.stroke();
+      ctx.fillStyle = rgba(ec.c, 0.07+d*0.09);
+      ctx.beginPath(); ctx.arc(p.x,p.y,r+5*zoom,0,Math.PI*2); ctx.fill();
+      ctx.font = Math.round(r*1.15)+'px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(ec.emoji, p.x, p.y-0.5);
+      if(zoom>0.45){
+        ctx.font = Math.max(8,Math.round(9.5*zoom))+'px -apple-system,"PingFang SC",sans-serif';
+        ctx.fillStyle = rgba(ec.c,0.80);
+        ctx.textAlign='center'; ctx.textBaseline='top';
+        ctx.fillText(b.name, p.x, p.y+r+3*zoom);
+        ctx.font = Math.max(7,Math.round(7*zoom))+'px "SF Mono","Menlo",monospace';
+        ctx.fillStyle='rgba(26,26,26,0.26)';
+        ctx.fillText('#'+b.id, p.x, p.y+r+3*zoom+11*zoom);
+      }
+    } else {
+      ctx.strokeStyle='rgba(42,42,62,0.14)';
+      ctx.lineWidth=Math.max(1,1.2*zoom);
+      ctx.setLineDash([3,4]);
+      ctx.beginPath(); ctx.arc(p.x,p.y,r,0,Math.PI*2); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha=0.13;
+      ctx.font=Math.round(r*0.9)+'px sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillStyle='rgba(26,26,26,0.4)';
+      ctx.fillText('?',p.x,p.y);
+      ctx.globalAlpha=1;
+    }
+  }
+}
+</script>
+</body>
+</html>

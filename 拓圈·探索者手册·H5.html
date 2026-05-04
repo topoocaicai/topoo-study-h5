@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拓圈·探索者手册</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#F5F0E8;--bg2:#EDE7DB;--bg3:#E5DFD3;
+--dark:#0B0F1E;--dark2:#1A1E2E;--dark3:#2A2E3E;
+--accent:#4A9EB8;--accent2:#3A8EA8;--accent-light:#B8DDE8;
+--fire:#D96B6B;--water:#4A9EB8;--wood:#A0B87A;--gold:#E8B44C;--earth:#9B7BBF;
+--text:#2C2824;--text2:#5C5752;--text3:#8A8580;
+--radius:12px;--radius-lg:16px;--radius-xl:24px;
+}
+body{
+font-family:'Noto Sans SC',sans-serif;
+background:var(--bg);
+color:var(--text);
+line-height:1.8;
+font-size:15px;
+-webkit-font-smoothing:antialiased;
+}
+.page{
+max-width:420px;
+margin:0 auto;
+min-height:100vh;
+background:var(--bg);
+overflow-x:hidden;
+}
+.hero{
+position:relative;
+padding:60px 28px 48px;
+background:linear-gradient(165deg,#0B0F1E 0%,#1A2540 50%,#243050 100%);
+color:#fff;
+overflow:hidden;
+}
+.hero::before{
+content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;
+background:radial-gradient(circle,rgba(74,158,184,0.15) 0%,transparent 70%);
+border-radius:50%;
+}
+.hero::after{
+content:'';position:absolute;bottom:-60px;left:-60px;width:250px;height:250px;
+background:radial-gradient(circle,rgba(155,123,191,0.1) 0%,transparent 70%);
+border-radius:50%;
+}
+.hero-badge{
+display:inline-block;
+padding:4px 14px;
+background:rgba(74,158,184,0.2);
+border:1px solid rgba(74,158,184,0.3);
+border-radius:20px;
+font-size:12px;color:var(--accent-light);
+letter-spacing:1px;
+margin-bottom:20px;
+}
+.hero h1{
+font-family:'Noto Serif SC',serif;
+font-size:32px;font-weight:700;
+line-height:1.3;margin-bottom:12px;
+letter-spacing:2px;
+}
+.hero h1 span{color:var(--accent)}
+.hero-sub{
+font-size:14px;color:rgba(255,255,255,0.6);
+line-height:1.7;
+font-weight:300;
+}
+.stars{
+position:absolute;top:20px;left:0;right:0;height:100%;
+pointer-events:none;
+}
+.star{
+position:absolute;
+background:#fff;
+border-radius:50%;
+animation:twinkle 3s ease-in-out infinite alternate;
+}
+@keyframes twinkle{0%{opacity:0.2}100%{opacity:0.8}}
+
+.content{padding:0 24px 200px;}
+
+.section{
+margin-top:40px;
+}
+.section-title{
+font-family:'Noto Serif SC',serif;
+font-size:22px;font-weight:600;
+color:var(--dark);
+margin-bottom:24px;
+padding-left:16px;
+border-left:3px solid var(--accent);
+line-height:1.4;
+}
+
+.pain-text{
+font-size:15px;
+color:var(--text);
+line-height:2;
+}
+.pain-text .line{
+display:block;
+margin-bottom:4px;
+opacity:0;
+animation:fadeInUp 0.6s ease forwards;
+}
+.pain-text .line:nth-child(1){animation-delay:0.1s}
+.pain-text .line:nth-child(2){animation-delay:0.2s}
+.pain-text .line:nth-child(3){animation-delay:0.3s}
+.pain-text .line:nth-child(4){animation-delay:0.4s}
+
+.highlight{
+background:linear-gradient(to bottom,transparent 60%,rgba(74,158,184,0.15) 60%);
+padding:0 2px;
+}
+.highlight-fire{
+background:linear-gradient(to bottom,transparent 60%,rgba(217,107,107,0.15) 60%);
+}
+.highlight-gold{
+background:linear-gradient(to bottom,transparent 60%,rgba(232,180,76,0.15) 60%);
+}
+
+.core-text{
+font-size:14.5px;color:var(--text2);line-height:2;
+margin-top:16px;
+}
+.core-text strong{color:var(--text);font-weight:500}
+
+.quote-box{
+background:var(--dark);
+color:#fff;
+padding:24px;
+border-radius:var(--radius-lg);
+margin-top:24px;
+position:relative;
+overflow:hidden;
+}
+.quote-box::before{
+content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,var(--accent),var(--earth),var(--gold));
+}
+.quote-text{
+font-family:'Noto Serif SC',serif;
+font-size:17px;font-weight:600;
+line-height:1.8;
+text-align:center;
+letter-spacing:1px;
+}
+
+.card{
+background:#fff;
+border-radius:var(--radius-lg);
+padding:24px;
+margin-bottom:16px;
+border:1px solid rgba(0,0,0,0.04);
+}
+.card-header{
+display:flex;align-items:center;gap:12px;
+margin-bottom:16px;
+}
+.card-icon{
+width:42px;height:42px;
+border-radius:var(--radius);
+display:flex;align-items:center;justify-content:center;
+font-size:20px;flex-shrink:0;
+}
+.card-icon.water{background:rgba(74,158,184,0.12);color:var(--water)}
+.card-icon.fire{background:rgba(217,107,107,0.12);color:var(--fire)}
+.card-icon.wood{background:rgba(160,184,122,0.12);color:var(--wood)}
+.card-icon.gold{background:rgba(232,180,76,0.12);color:var(--gold)}
+.card-icon.earth{background:rgba(155,123,191,0.12);color:var(--earth)}
+.card-icon.dark{background:rgba(11,15,30,0.08);color:var(--dark)}
+
+.card-title{
+font-size:17px;font-weight:600;
+color:var(--dark);
+}
+.card-desc{
+font-size:14px;color:var(--text2);line-height:1.9;
+}
+.card-desc b{color:var(--text);font-weight:500}
+
+.tag{
+display:inline-block;
+padding:2px 10px;
+border-radius:10px;
+font-size:11px;font-weight:500;
+margin-right:6px;margin-bottom:4px;
+}
+.tag.water{background:rgba(74,158,184,0.1);color:var(--water)}
+.tag.fire{background:rgba(217,107,107,0.1);color:var(--fire)}
+.tag.wood{background:rgba(160,184,122,0.1);color:var(--wood)}
+.tag.gold{background:rgba(232,180,76,0.1);color:var(--gold)}
+.tag.earth{background:rgba(155,123,191,0.1);color:var(--earth)}
+
+.divider{
+height:1px;
+background:linear-gradient(90deg,transparent,var(--bg3),transparent);
+margin:32px 0;
+}
+
+.month-block{
+margin-bottom:20px;
+}
+.month-title{
+font-size:15px;font-weight:600;
+color:var(--dark);
+margin-bottom:10px;
+display:flex;align-items:center;gap:8px;
+}
+.month-dot{
+width:8px;height:8px;border-radius:50%;flex-shrink:0;
+}
+.course-item{
+display:flex;justify-content:space-between;align-items:center;
+padding:10px 14px;
+background:var(--bg);
+border-radius:var(--radius);
+margin-bottom:6px;
+font-size:13.5px;
+}
+.course-name{color:var(--text2)}
+.course-price{
+font-weight:500;color:var(--fire);
+font-size:13px;
+white-space:nowrap;
+}
+.course-free{
+font-weight:500;color:var(--wood);
+font-size:13px;
+}
+
+.series-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-bottom:16px;
+}
+.series-card{
+background:#fff;
+border-radius:var(--radius);
+padding:16px;
+border:1px solid rgba(0,0,0,0.04);
+}
+.series-name{
+font-size:14px;font-weight:600;
+margin-bottom:6px;
+}
+.series-count{
+font-size:12px;color:var(--text3);
+}
+.series-list{
+font-size:12px;color:var(--text2);
+line-height:1.7;
+margin-top:8px;
+}
+
+.level-table{
+width:100%;
+border-collapse:collapse;
+margin-top:12px;
+font-size:13px;
+}
+.level-table th{
+background:var(--dark);
+color:#fff;
+padding:10px 12px;
+text-align:left;
+font-weight:500;
+font-size:12px;
+}
+.level-table th:first-child{border-radius:8px 0 0 0}
+.level-table th:last-child{border-radius:0 8px 0 0}
+.level-table td{
+padding:10px 12px;
+border-bottom:1px solid var(--bg3);
+}
+.level-table tr:last-child td{border-bottom:none}
+.level-table tr:last-child td:first-child{border-radius:0 0 0 8px}
+.level-table tr:last-child td:last-child{border-radius:0 0 8px 0}
+.level-bar{
+display:inline-block;
+height:8px;
+border-radius:4px;
+vertical-align:middle;
+margin-right:6px;
+}
+.pricing-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+margin-top:16px;
+}
+.pricing-card{
+padding:20px 16px;
+border-radius:var(--radius-lg);
+text-align:center;
+}
+.pricing-card.seed{
+background:linear-gradient(135deg,var(--dark) 0%,#1A2540 100%);
+color:#fff;
+border:2px solid var(--accent);
+position:relative;
+}
+.pricing-card.seed::before{
+content:'推荐';
+position:absolute;top:-1px;right:16px;
+background:var(--accent);
+color:#fff;
+font-size:10px;
+padding:2px 10px;
+border-radius:0 0 8px 8px;
+font-weight:500;
+}
+.pricing-card.normal{
+background:#fff;
+border:1px solid var(--bg3);
+color:var(--text);
+}
+.pricing-label{font-size:12px;opacity:0.7;margin-bottom:8px}
+.pricing-amount{font-size:36px;font-weight:700;margin-bottom:4px}
+.pricing-amount small{font-size:14px;font-weight:400}
+.pricing-period{font-size:12px;opacity:0.6;margin-bottom:12px}
+.pricing-features{font-size:12px;line-height:1.8;opacity:0.8;text-align:left}
+
+.seed-desc{
+background:rgba(74,158,184,0.08);
+border:1px solid rgba(74,158,184,0.15);
+border-radius:var(--radius);
+padding:16px;
+margin-top:16px;
+font-size:13px;
+color:var(--text2);
+line-height:1.8;
+}
+
+.upgrade-grid{
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:8px;
+margin-top:12px;
+}
+.upgrade-item{
+text-align:center;
+padding:14px 8px;
+background:var(--bg);
+border-radius:var(--radius);
+}
+.upgrade-icon{font-size:24px;margin-bottom:6px}
+.upgrade-name{font-size:12px;font-weight:600;color:var(--dark)}
+.upgrade-desc{font-size:11px;color:var(--text3);margin-top:4px;line-height:1.5}
+
+.note-box{
+display:flex;gap:10px;
+padding:14px 16px;
+background:rgba(232,180,76,0.08);
+border-left:3px solid var(--gold);
+border-radius:0 var(--radius) var(--radius) 0;
+margin-top:16px;
+font-size:13px;
+color:var(--text2);
+line-height:1.7;
+}
+
+.resource-list{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-top:12px;
+}
+.resource-item{
+display:flex;align-items:center;gap:8px;
+padding:12px;
+background:#fff;
+border-radius:var(--radius);
+border:1px solid rgba(0,0,0,0.04);
+font-size:13px;
+}
+.resource-dot{
+width:6px;height:6px;border-radius:50%;flex-shrink:0;
+}
+
+.section-sep{
+height:6px;
+background:var(--dark);
+margin:40px -24px;
+}
+
+.closing{
+text-align:center;
+padding:40px 0 20px;
+}
+.closing-text{
+font-family:'Noto Serif SC',serif;
+font-size:16px;
+color:var(--text2);
+line-height:2;
+}
+
+@keyframes fadeInUp{
+from{opacity:0;transform:translateY(12px)}
+to{opacity:1;transform:translateY(0)}
+}
+.fade-in{
+animation:fadeInUp 0.5s ease forwards;
+}
+
+.bottom-nav{
+position:fixed;
+bottom:0;left:50%;
+transform:translateX(-50%);
+width:100%;max-width:420px;
+background:rgba(245,240,232,0.95);
+backdrop-filter:blur(12px);
+border-top:1px solid var(--bg3);
+padding:8px 16px 12px;
+z-index:100;
+display:flex;
+justify-content:space-around;
+}
+.nav-item{
+text-align:center;
+padding:4px 8px;
+cursor:pointer;
+font-size:10px;
+color:var(--text3);
+transition:all 0.2s;
+}
+.nav-item.active{color:var(--accent)}
+.nav-dot{
+width:4px;height:4px;
+background:var(--accent);
+border-radius:50%;
+margin:4px auto 0;
+}
+.nav-dot.hidden{opacity:0}
+
+.faq-list{display:flex;flex-direction:column;gap:8px}
+.faq-item{
+background:#fff;
+border-radius:var(--radius);
+border:1px solid rgba(0,0,0,0.04);
+overflow:hidden;
+padding:14px 16px;
+}
+.faq-q{
+font-size:13.5px;
+font-weight:500;
+color:var(--dark);
+line-height:1.5;
+margin-bottom:6px;
+}
+.faq-a{
+font-size:13px;
+color:var(--text2);
+line-height:1.9;
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- Hero -->
+<div class="hero">
+<div class="stars">
+<div class="star" style="top:30px;left:15%;width:2px;height:2px;animation-delay:0s"></div>
+<div class="star" style="top:60px;left:45%;width:1.5px;height:1.5px;animation-delay:0.8s"></div>
+<div class="star" style="top:25px;left:70%;width:2px;height:2px;animation-delay:1.5s"></div>
+<div class="star" style="top:80px;left:25%;width:1px;height:1px;animation-delay:2s"></div>
+<div class="star" style="top:50px;left:85%;width:1.5px;height:1.5px;animation-delay:0.5s"></div>
+<div class="star" style="top:100px;left:55%;width:1px;height:1px;animation-delay:1.2s"></div>
+<div class="star" style="top:40px;left:90%;width:2px;height:2px;animation-delay:2.5s"></div>
+<div class="star" style="top:90px;left:10%;width:1px;height:1px;animation-delay:1.8s"></div>
+</div>
+<div class="hero-badge">SEEKER</div>
+<h1>探索者<span>手册</span></h1>
+<p class="hero-sub">你在找的，可能已经在找你</p>
+</div>
+
+<!-- Content -->
+<div class="content">
+
+<!-- Section 1: Why -->
+<div class="section">
+<h2 class="section-title">为什么要成为探索者？</h2>
+<div class="pain-text">
+<span class="line">刷了几个小时手机，放下的时候脑子里什么都没留下。不是内容不好，是你<span class="highlight">被动接受</span>了太多，主动探索得太少。</span>
+<span class="line">你在短视频里看别人旅行，在社交平台上看别人发光，在信息流里被算法喂到麻木。你停不下来——因为停下来之后，你发现自己不知道想干什么。</span>
+<span class="line"><span class="highlight-fire">不是没有兴趣，是不知道自己的兴趣在哪里。</span></span>
+<span class="line"><span class="highlight-fire">不是没有能力，是没有地方试。</span></span>
+<span class="line"><span class="highlight-fire">不是不想改变，是一个人走不动。</span></span>
+</div>
+<div class="core-text">
+探索者，就是给这样的你准备的。<br><br>
+你走进拓圈，不是来"上课"的，不是来"打卡"的，不是来被另一个算法喂的。你是来<strong>碰撞</strong>的——碰到活动、碰到人、碰到内容、碰到你自己。<br><br>
+拓圈做了一件事：把一座虚拟大陆建起来，里面有街区、有部落、有门牌、有空间。你走进来，<strong>自己走，自己感受</strong>。没有人替你安排路线，没有人告诉你"你应该"。<br><br>
+但你不是一个人。你路过别人的门牌，留下一个光点；别人路过你的门牌，你看到有人来过。有人被你点亮，你的空间就会变大。你参加活动、写东西、发声音——这些痕迹全部留在你的笔记本里，三个月后，系统帮你画出一幅灵魂画像。<br><br>
+你还可以发声音、约人、<strong>走起</strong>——在拓圈里发一条"有人一起去吗"，碰到同频的人，然后一起去做一件事。不是社交，是找到本来就该遇到的人。
+</div>
+<div class="quote-box">
+<div class="quote-text">你发出的每一个声音，<br>都会成为未来判断你的依据。</div>
+</div>
+<div class="core-text" style="text-align:center;margin-top:20px;font-size:13px;color:var(--text3)">
+这不是课程，不是社群，不是训练营。<br>这是一个让你<span class="highlight">主动探索自己</span>的地方。
+</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- Section 2: What can you do -->
+<div class="section">
+<h2 class="section-title">探索者能做什么？</h2>
+
+<!-- Space -->
+<div class="card">
+<div class="card-header">
+<div class="card-icon water">&#x1F3E0;</div>
+<div class="card-title">你的空间</div>
+</div>
+<div class="card-desc">
+<b>我的小家</b> — 每个探索者有一个自己的空间，初始10㎡。有窗、有桌、有墙，你可以布置它。<br><br>
+<b>被点亮就变大</b> — 别人被你的内容、故事、产品打动，点亮你，空间就+1㎡。慢慢地，房间→院子→小家→领地。<br><br>
+<b>门牌</b> — 空间外面挂着3D门牌，上面有你的号段。别人路过能看到，点进去就是你的世界。材质和颜色可以自己选。<br><br>
+<b>笔记本</b> — 所有碰撞、点亮、互动，系统自动记录。三个月后，生成一幅<span class="highlight">灵魂画像</span>。<br><br>
+<b>星空收藏夹</b> — 遇到触动你的人，悄悄放进你的星空。对方不知道，只有你自己看得到。<br><br>
+<b>窗帘</b> — 不想被打扰？拉上。想开就开，想关就关。<strong>你的空间，你做主。</strong>
+</div>
+</div>
+
+<!-- Identity -->
+<div class="card">
+<div class="card-header">
+<div class="card-icon gold">&#x1F4CB;</div>
+<div class="card-title">你的身份</div>
+</div>
+<div class="card-desc">
+<b>唯一编号</b> — 每个探索者有专属号段，越早入场编号越靠前。<br><br>
+</div>
+<div style="background:var(--dark);color:#fff;padding:20px;border-radius:var(--radius);margin-bottom:16px;position:relative;overflow:hidden">
+<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--fire),var(--gold))"></div>
+<div style="font-size:15px;font-weight:600;margin-bottom:12px;color:var(--gold)">&#x1F3AF; 号段 = 资产，不是消费</div>
+<div style="font-size:13.5px;line-height:2;color:rgba(255,255,255,0.85)">
+<b style="color:#fff">这个号，未来可以卖。</b><br><br>
+它不是普通账号，是你在拓圈里的数字资产。三层价值：<br><br>
+<b>① 编号稀缺</b> — 前500个种子号，别人再也拿不到了。越早入场，号码越靠前，越稀缺。<br><br>
+<b>② 权重积累</b> — 你在拓圈里积累的一切——等级、碰撞记录、灵魂画像、空间大小——全部跟着号走。号不在了，这些数据就没了。<br><br>
+<b>③ 可交易</b> — 随时可以转让，价格由你和买家自己谈。平台提供通道，不定价。<br><br>
+<span style="color:var(--gold)">等级越高，这个号越值钱。</span> 一个60级的种子号，和一个1级的号，买家出的价格完全不一样。你的等级、你的积累，都会变成这个号的售价。
+</div>
+</div>
+<div class="card-desc">
+<b>身份卡</b> — 数字版+实体版。上面有你的号段、二维码、灵魂画像摘要，还有一句话：
+</div>
+<div style="text-align:center;margin:16px 0;font-family:'Noto Serif SC',serif;font-size:16px;color:var(--dark);font-weight:600">
+"你在找的，可能已经在找你"
+</div>
+</div>
+
+<!-- Limited Edition -->
+<div class="card">
+<div class="card-header">
+<div class="card-icon earth">&#x2728;</div>
+<div class="card-title">专属限量版</div>
+</div>
+<div class="card-desc">
+每个探索者送一个实体信物——长腿黑毛球，拓圈NPC"噢"的形象。<br><br>
+<span class="tag earth">唯一编号</span>肚子上有你的专属编号，全球就这一个<br>
+<span class="tag gold">前500绝版</span>种子号=前500个=绝版<br>
+<span class="tag water">虚实一体</span>角色卡和实体绑定同一编号<br><br>
+它是你在拓圈的实体存在。拿在手里，就知道你不是虚拟的。
+</div>
+</div>
+
+<!-- Growth -->
+<div class="card">
+<div class="card-header">
+<div class="card-icon wood">&#x1F331;</div>
+<div class="card-title">你的成长</div>
+</div>
+<div class="card-desc">
+<b>等级体系</b> — 探索者从1级到60级。不分子等级名字，就叫探索者。<br>
+等级越高：<span class="highlight">空间越大，分配越多，号段越值钱</span>。
+</div>
+<div style="margin-top:14px;padding:16px;background:var(--bg);border-radius:var(--radius)">
+<div style="font-size:12px;color:var(--text3);margin-bottom:12px">等级加成示意</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;align-items:center;gap:10px">
+<span style="font-size:12px;color:var(--text2);width:60px;flex-shrink:0">1-10级</span>
+<div style="flex:1;height:10px;background:var(--bg2);border-radius:5px;overflow:hidden">
+<div style="width:15%;height:100%;background:var(--text3);border-radius:5px"></div>
+</div>
+<span style="font-size:11px;color:var(--text3)">入门</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px">
+<span style="font-size:12px;color:var(--text2);width:60px;flex-shrink:0">11-20级</span>
+<div style="flex:1;height:10px;background:var(--bg2);border-radius:5px;overflow:hidden">
+<div style="width:30%;height:100%;background:var(--water);border-radius:5px"></div>
+</div>
+<span style="font-size:11px;color:var(--water)">进阶</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px">
+<span style="font-size:12px;color:var(--text2);width:60px;flex-shrink:0">21-30级</span>
+<div style="flex:1;height:10px;background:var(--bg2);border-radius:5px;overflow:hidden">
+<div style="width:50%;height:100%;background:var(--accent);border-radius:5px"></div>
+</div>
+<span style="font-size:11px;color:var(--accent)">核心</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px">
+<span style="font-size:12px;color:var(--text2);width:60px;flex-shrink:0">31-40级</span>
+<div style="flex:1;height:10px;background:var(--bg2);border-radius:5px;overflow:hidden">
+<div style="width:42%;height:100%;background:var(--wood);border-radius:5px"></div>
+</div>
+<span style="font-size:11px;color:var(--wood)">高阶</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px">
+<span style="font-size:12px;color:var(--text2);width:60px;flex-shrink:0">41-50级</span>
+<div style="flex:1;height:10px;background:var(--bg2);border-radius:5px;overflow:hidden">
+<div style="width:60%;height:100%;background:var(--gold);border-radius:5px"></div>
+</div>
+<span style="font-size:11px;color:var(--gold)">精英</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px">
+<span style="font-size:12px;color:var(--text2);width:60px;flex-shrink:0">51-60级</span>
+<div style="flex:1;height:10px;background:var(--bg2);border-radius:5px;overflow:hidden">
+<div style="width:80%;height:100%;background:linear-gradient(90deg,var(--fire),var(--gold));border-radius:5px"></div>
+</div>
+<span style="font-size:11px;color:var(--fire)">顶级</span>
+</div>
+</div>
+<div style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.6">进度条越长 = 分配越多 + 号段交易时买家给的价格越高</div>
+</div>
+<div class="upgrade-grid">
+<div class="upgrade-item">
+<div class="upgrade-icon">&#x1F4CB;</div>
+<div class="upgrade-name">任务线</div>
+<div class="upgrade-desc">完成平台任务<br>免费攒经验</div>
+</div>
+<div class="upgrade-item">
+<div class="upgrade-icon">&#x26A1;</div>
+<div class="upgrade-name">加速器</div>
+<div class="upgrade-desc">给探索加点燃料<br>快一步找到方向</div>
+</div>
+<div class="upgrade-item">
+<div class="upgrade-icon">&#x1F4B0;</div>
+<div class="upgrade-name">积分线</div>
+<div class="upgrade-desc">打卡·碰撞·点亮<br>日常就能攒</div>
+</div>
+</div>
+</div>
+
+<!-- Income -->
+<div class="card">
+<div class="card-header">
+<div class="card-icon fire">&#x1F4B0;</div>
+<div class="card-title">收益分配</div>
+</div>
+<div class="card-desc">
+拓圈做一年赚到的钱，会拿出一部分来分给所有角色。探索者分到的份额是所有角色里最多的。<br><br>
+你分多少，取决于两个东西：<br>
+<b>1. 你在哪个等级档位</b>（越高档分越多）<br>
+<b>2. 这个档位里有多少人</b>（人越少，每人分得越多）<br><br>
+这不是主要收入来源，是额外奖励。但种子用户不用交年费也照样拿。
+</div>
+<table class="level-table">
+<tr><th>档位</th><th>等级</th><th>分配加成</th></tr>
+<tr><td><span class="level-bar" style="width:20px;background:var(--text3)"></span>入门</td><td>1-10级</td><td style="color:var(--text3)">&#x25CF;&#x25CB;&#x25CB;&#x25CB;&#x25CB;</td></tr>
+<tr><td><span class="level-bar" style="width:30px;background:var(--water)"></span>进阶</td><td>11-20级</td><td style="color:var(--water)">&#x25CF;&#x25CF;&#x25CB;&#x25CB;&#x25CB;</td></tr>
+<tr><td><span class="level-bar" style="width:45px;background:var(--accent)"></span>核心</td><td>21-30级</td><td style="color:var(--accent)">&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CB;</td></tr>
+<tr><td><span class="level-bar" style="width:35px;background:var(--wood)"></span>高阶</td><td>31-40级</td><td style="color:var(--wood)">&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CB;</td></tr>
+<tr><td><span class="level-bar" style="width:28px;background:var(--gold)"></span>精英</td><td>41-50级</td><td style="color:var(--gold)">&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;</td></tr>
+<tr><td><span class="level-bar" style="width:18px;background:var(--fire)"></span>顶级</td><td>51-60级</td><td style="color:var(--fire)">&#x25CF;&#x25CF;&#x25CF;&#x25CF;&#x25CF;</td></tr>
+</table>
+</div>
+
+<!-- Interaction -->
+<div class="card">
+<div class="card-header">
+<div class="card-icon dark">&#x1F4AC;</div>
+<div class="card-title">发声音 &amp; 走起</div>
+</div>
+<div class="card-desc">
+你可以在这些地方发出声音：<br><br>
+<b>拓圈公众号</b> — 投稿文章，经审核后发布<br>
+<b>拓圈平台</b> — 发布故事、笔记、观察<br>
+<b>TopSpace内部</b> — 写文章、写故事，只有碰撞到你的人能看到<br><br>
+你也可以<b>发起走起</b>——找到同频的人，一起去做一件事。不是社交，是碰撞到了，就一起走。<br><br>
+你的声音，可能成为别人探索的起点。
+</div>
+</div>
+</div>
+
+<div class="section-sep"></div>
+
+<!-- Section 3: Activities -->
+<div class="section">
+<h2 class="section-title">你能参加什么？</h2>
+
+<div class="note-box" style="margin-bottom:20px">
+&#x1F4A1; 探索者每月可任选1场线下活动免费参加，其余场次享受探索者折扣价。线上直播课全部免费。
+</div>
+
+<!-- Offline -->
+<h3 style="font-size:16px;font-weight:600;color:var(--dark);margin-bottom:16px">
+<span style="color:var(--fire);margin-right:6px">&#x25CF;</span>线下学习活动 · 29场
+</h3>
+
+<div class="month-block">
+<div class="month-title"><span class="month-dot" style="background:var(--fire)"></span>5月（加场）</div>
+<div class="course-item"><span class="course-name">张明军 · 精品工作坊</span><span class="course-price">¥199</span></div>
+</div>
+
+<div class="month-block">
+<div class="month-title"><span class="month-dot" style="background:var(--water)"></span>6月 · 自我认知月</div>
+<div class="course-item"><span class="course-name">解读人类图</span><span class="course-price">¥199</span></div>
+<div class="course-item"><span class="course-name">MBTI深度工作坊</span><span class="course-price">¥179</span></div>
+<div class="course-item"><span class="course-name">情绪地图绘制</span><span class="course-price">¥149</span></div>
+<div class="course-item"><span class="course-name">价值观澄清练习</span><span class="course-price">¥149</span></div>
+</div>
+
+<div class="month-block">
+<div class="month-title"><span class="month-dot" style="background:var(--wood)"></span>7月 · 创意表达月</div>
+<div class="course-item"><span class="course-name">设计入门：从观察到表达</span><span class="course-price">¥199</span></div>
+<div class="course-item"><span class="course-name">写作工坊：找到你的声音</span><span class="course-price">¥179</span></div>
+<div class="course-item"><span class="course-name">用手机拍出感觉</span><span class="course-price">¥149</span></div>
+<div class="course-item"><span class="course-name">即兴表达练习</span><span class="course-price">¥149</span></div>
+</div>
+
+<div class="month-block">
+<div class="month-title"><span class="month-dot" style="background:var(--gold)"></span>8月 · 思维升级月</div>
+<div class="course-item"><span class="course-name">系统思维入门</span><span class="course-price">¥199</span></div>
+<div class="course-item"><span class="course-name">批判性思维练习</span><span class="course-price">¥179</span></div>
+<div class="course-item"><span class="course-name">心理学经典共读</span><span class="course-price">¥149</span></div>
+<div class="course-item"><span class="course-name">决策练习工坊</span><span class="course-price">¥149</span></div>
+</div>
+
+<div class="month-block">
+<div class="month-title"><span class="month-dot" style="background:var(--earth)"></span>9月 · 生活设计月</div>
+<div class="course-item"><span class="course-name">设计人生 · 入门课</span><span class="course-price">¥199</span></div>
+<div class="course-item"><span class="course-name">能量管理而非时间管理</span><span class="course-price">¥179</span></div>
+<div class="course-item"><span class="course-name">极简生活实验</span><span class="course-price">¥149</span></div>
+<div class="course-item"><span class="course-name">建立个人仪式感</span><span class="course-price">¥149</span></div>
+</div>
+
+<div class="month-block">
+<div class="month-title"><span class="month-dot" style="background:var(--fire)"></span>10月 · 身体感知月</div>
+<div class="course-item"><span class="course-name">身体扫描与冥想入门</span><span class="course-price">¥199</span></div>
+<div class="course-item"><span class="course-name">舞动自由工作坊</span><span class="course-price">¥179</span></div>
+<div class="course-item"><span class="course-name">行走冥想 · 城市漫步（户外）</span><span class="course-price">¥149</span></div>
+<div class="course-item"><span class="course-name">瑜伽与自我接纳</span><span class="course-price">¥149</span></div>
+</div>
+
+<div class="month-block">
+<div class="month-title"><span class="month-dot" style="background:var(--water)"></span>11月 · 技能深化月</div>
+<div class="course-item"><span class="course-name">设计进阶：做一张海报</span><span class="course-price">¥199</span></div>
+<div class="course-item"><span class="course-name">手作工作坊：陶艺 / 木工</span><span class="course-price">¥179</span></div>
+<div class="course-item"><span class="course-name">声音工作坊：找到你的声音</span><span class="course-price">¥149</span></div>
+<div class="course-item"><span class="course-name">整理术：从物品到人生</span><span class="course-price">¥149</span></div>
+</div>
+
+<div class="month-block">
+<div class="month-title"><span class="month-dot" style="background:var(--wood)"></span>12月 · 整合与输出月</div>
+<div class="course-item"><span class="course-name">年终灵魂画像绘制</span><span class="course-price">¥199</span></div>
+<div class="course-item"><span class="course-name">设计一个小型展览</span><span class="course-price">¥179</span></div>
+<div class="course-item"><span class="course-name">写信给明年自己</span><span class="course-price">¥149</span></div>
+<div class="course-item"><span class="course-name">探索者年会 · 闭门</span><span class="course-free">免费</span></div>
+</div>
+
+<!-- Premium activities -->
+<div style="margin-top:24px;padding:16px;background:rgba(232,180,76,0.06);border:1px solid rgba(232,180,76,0.15);border-radius:var(--radius)">
+<h3 style="font-size:15px;font-weight:600;color:var(--dark);margin-bottom:8px">
+<span style="color:var(--gold);margin-right:6px">&#x25CF;</span>线下精品活动 · 12场
+</h3>
+<p style="font-size:13px;color:var(--text3)">每月任选1场免费参加 · 南京地缘特色 · 具体活动列表敬请期待</p>
+</div>
+
+<!-- Online courses -->
+<h3 style="font-size:16px;font-weight:600;color:var(--dark);margin:28px 0 16px">
+<span style="color:var(--accent);margin-right:6px">&#x25CF;</span>线上直播课 · 52场 · 全免费
+</h3>
+<p style="font-size:13px;color:var(--text3);margin-bottom:16px">每周2次直播，可互动提问</p>
+
+<div class="series-grid">
+<div class="series-card">
+<div class="series-name"><span class="tag water">水</span> 自我认知</div>
+<div class="series-count">8场</div>
+<div class="series-list">人类图基础 · 情绪识别 · 价值观排序 · 能量类型 · 决策机制 · 天赋挖掘 · 阴影面工作 · 整合练习</div>
+</div>
+<div class="series-card">
+<div class="series-name"><span class="tag wood">木</span> 创意表达</div>
+<div class="series-count">8场</div>
+<div class="series-list">写作入门 · 视觉叙事 · 手机摄影 · 即兴口语 · 声音探索 · 手绘日记 · 短视频表达 · 创意习惯养成</div>
+</div>
+<div class="series-card">
+<div class="series-name"><span class="tag gold">金</span> 思维工具</div>
+<div class="series-count">8场</div>
+<div class="series-list">系统思维 · 批判性思维 · 第一性原理 · 概率思维 · 博弈论入门 · 心智模型 · 决策树练习 · 思维偏差识别</div>
+</div>
+<div class="series-card">
+<div class="series-name"><span class="tag fire">火</span> 生活设计</div>
+<div class="series-count">6场</div>
+<div class="series-list">设计人生方法论 · 能量管理 · 习惯设计 · 仪式感建立 · 极简生活 · 人生盘点练习</div>
+</div>
+<div class="series-card">
+<div class="series-name"><span class="tag earth">土</span> 身体与感知</div>
+<div class="series-count">6场</div>
+<div class="series-list">身体扫描 · 舞动自由 · 呼吸练习 · 感官唤醒 · 饮食与情绪 · 睡眠与修复</div>
+</div>
+<div class="series-card">
+<div class="series-name"><span class="tag water">水</span> 关系与沟通</div>
+<div class="series-count">6场</div>
+<div class="series-list">非暴力沟通 · 边界设定 · 冲突处理 · 倾听练习 · 真诚表达 · 关系盘点</div>
+</div>
+<div class="series-card">
+<div class="series-name"><span class="tag gold">金</span> 职业探索</div>
+<div class="series-count">6场</div>
+<div class="series-list">能力盘点 · 兴趣验证 · 副业测试 · 职业访谈方法 · 个人定位 · 自由职业入门</div>
+</div>
+<div class="series-card">
+<div class="series-name"><span class="tag earth">土</span> 年终整合</div>
+<div class="series-count">4场</div>
+<div class="series-list">年度回顾方法 · 灵魂画像绘制 · 明年目标设计 · 写给自己的信</div>
+</div>
+</div>
+
+<!-- Resources -->
+<h3 style="font-size:16px;font-weight:600;color:var(--dark);margin:28px 0 12px">
+<span style="color:var(--gold);margin-right:6px">&#x25CF;</span>研报与学习资料 · 免费
+</h3>
+<div class="resource-list">
+<div class="resource-item"><span class="resource-dot" style="background:var(--fire)"></span>行业调研报告</div>
+<div class="resource-item"><span class="resource-dot" style="background:var(--water)"></span>活动复盘文档</div>
+<div class="resource-item"><span class="resource-dot" style="background:var(--wood)"></span>学习方法论卡片</div>
+<div class="resource-item"><span class="resource-dot" style="background:var(--gold)"></span>推荐书单 / 影单</div>
+</div>
+<p style="font-size:12px;color:var(--text3);margin-top:10px">以上资料，探索者均可免费获取电子版</p>
+</div>
+
+<div class="section-sep"></div>
+
+<!-- Section 4: How to join -->
+<div class="section">
+<h2 class="section-title">如何成为探索者？</h2>
+
+<div class="pricing-grid">
+<div class="pricing-card seed">
+<div class="pricing-label">种子计划</div>
+<div class="pricing-amount">¥365<small></small></div>
+<div class="pricing-period">终身买断</div>
+<div class="pricing-features">
+&#x2713; 前500人专享<br>
+&#x2713; 不用再交年费<br>
+&#x2713; 号码可溢价交易<br>
+&#x2713; 限量版信物
+</div>
+</div>
+<div class="pricing-card normal">
+<div class="pricing-label">正式计划</div>
+<div class="pricing-amount">¥599<small>/年</small></div>
+<div class="pricing-period">每年续费</div>
+<div class="pricing-features">
+&#x2713; 名额不限<br>
+&#x2713; 全部权益同享<br>
+&#x2713; 每年续费<br>
+&#x2713; 限量版信物
+</div>
+</div>
+</div>
+
+<div class="seed-desc">
+<b>种子期是什么意思？</b><br><br>
+你早进来，代价是——你看到的东西可能还不完美。<br>
+但好处是——你的号码是终身资产。<br><br>
+<b style="color:var(--text)">未来如果你不想继续了，这个号可以卖掉。</b>价格由你和买家自己谈，平台只提供通道。种子号编号靠前、越早积累越多，转让时自然更值钱。就算你什么都不做，光靠"前500号"的稀缺性，就已经比后入场的人有优势了。<br><br>
+前500人满额后，种子价关闭，后续加入均为¥599/年。
+</div>
+</div>
+
+<!-- Closing -->
+<div class="closing">
+<div style="width:40px;height:1px;background:var(--bg3);margin:0 auto 24px"></div>
+<p class="closing-text">
+选你想要的，跳过你不需要的<br>
+这才是探索，不是打卡。
+</p>
+</div>
+
+</div>
+</div>
+
+<!-- FAQ -->
+<div class="section-sep"></div>
+<div class="section" id="faq-section" style="padding-bottom:0">
+<h2 class="section-title">你可能想问的</h2>
+<div class="faq-list">
+<div class="faq-item"><div class="faq-q">探索者和漫游者有什么区别？</div><div class="faq-a">漫游者免费注册，看看拓圈长什么样。探索者付费加入，有专属编号、自己的空间和门牌、身份卡，能参加全年线下活动和线上直播课，还有收益分配资格。漫游者看风景，探索者走进去。</div></div>
+<div class="faq-item"><div class="faq-q">种子计划和正式计划哪个划算？</div><div class="faq-a">如果你确定自己感兴趣，种子计划闭眼选。¥365终身，后续不用再交年费。正式计划¥599/年，逐年续。而且种子号编号更靠前，未来交易时越早的号越值钱。</div></div>
+<div class="faq-item"><div class="faq-q">种子计划前500人满了怎么办？</div><div class="faq-a">满了就关闭，后续只能选正式计划¥599/年。不存在"补位"或"候补"。</div></div>
+<div class="faq-item"><div class="faq-q">这个号到底是什么？凭什么能卖？</div><div class="faq-a">这不是普通账号，是你在拓圈里的数字资产。三层价值：①编号越靠前越稀缺，新的用户拿不到你的号了；②你积累的一切——等级、碰撞记录、灵魂画像——都跟着号走；③平台允许私下交易号段，类似游戏账号交易，价格由你和买家自己谈。你等级越高、积累越多，这个号就越值钱。</div></div>
+<div class="faq-item"><div class="faq-q">等级怎么升？要多久？</div><div class="faq-a">三条路：任务线（完成平台任务，免费攒经验）、积分线（日常碰撞、打卡、互动也能攒）、加速器（想快一点可以用）。60级上限，不设时间限制。探索不是赶工。</div></div>
+<div class="faq-item"><div class="faq-q">等级高了有什么好处？</div><div class="faq-a">第一，空间更大（被点亮的效率更高）；第二，分配更多（等级越高档位越好）；第三，号段越值钱（60级的号肯定比1级的号贵得多）。等级是你在这片大陆上"走过"的证明。</div></div>
+<div class="faq-item"><div class="faq-q">收益分配大概能拿多少？</div><div class="faq-a">取决于两个东西——你在哪个等级档位，以及这个档位里有多少人。档位越高分越多，同档位人越少每人分得越多。这不是主要收入来源，是额外奖励。种子用户不交年费也照样有资格拿。</div></div>
+<div class="faq-item"><div class="faq-q">线下活动都在南京吗？</div><div class="faq-a">2026年所有线下活动在南京举办。线上直播课全国都能参加。后续拓圈会扩展到其他城市，届时会有本地活动。</div></div>
+<div class="faq-item"><div class="faq-q">每个月只能免费参加1场线下活动？</div><div class="faq-a">是的，每月可选1场免费，其余场次享受探索者折扣价。线上直播课全部免费，不限次数。</div></div>
+<div class="faq-item"><div class="faq-q">线上课什么形式？能回看吗？</div><div class="faq-a">每周2次直播，实时互动提问，课后有回放。8大系列52场，覆盖自我认知、创意表达、思维工具、生活设计、身体感知、关系沟通、职业探索、年终整合。</div></div>
+<div class="faq-item"><div class="faq-q">退出后号段能保留多久？</div><div class="faq-a">只要不主动注销，号段一直保留。即便退出了，号段资产还在，随时可以回来或者卖掉。</div></div>
+<div class="faq-item"><div class="faq-q">空间怎么变大？</div><div class="faq-a">别人被你的内容、故事或产品打动后可以"点亮"你（每天每人限3次）。被点亮后门牌发光，空间+1㎡。这不是求来的，是你做的东西打动了别人。</div></div>
+<div class="faq-item"><div class="faq-q">探索者能升级成创造者吗？</div><div class="faq-a">可以。创造者是在探索者基础上做产品/内容/IP的角色，需要申请+保证金。你积累的等级、号段、灵魂画像全部保留，带入新身份。</div></div>
+<div class="faq-item"><div class="faq-q">加速器是付费的吗？</div><div class="faq-a">加速器是可选的成长工具，给想快一步找到方向的人准备的。具体方案后续发布，不是强制消费。</div></div>
+<div class="faq-item"><div class="faq-q">专属限量版信物是什么？什么时候收到？</div><div class="faq-a">每个探索者收到一个拓圈NPC"噢"的实体形象——长腿黑毛球，肚子上有你的专属编号。前500个种子号的信物是绝版编号，后续不再复刻。入圈后1-2个月内寄出。</div></div>
+<div class="faq-item"><div class="faq-q">拓圈和普通社群有什么区别？</div><div class="faq-a">普通社群靠运营维持活跃，训练营有固定周期。拓圈是一个空间——你有自己的门牌、空间、笔记本。没人逼你打卡，没人给你KPI。你走进来，自己走，自己感受。不是来消费的，是来生长的。</div></div>
+<div class="faq-item"><div class="faq-q">我的号段编号是什么格式的？</div><div class="faq-a">每个探索者有唯一数字编号，按入圈顺序发放。种子号是前500号，编号直接对应入场顺序——越早进来，号越小越值钱。</div></div>
+<div class="faq-item"><div class="faq-q">笔记本里记录了什么？我能删吗？</div><div class="faq-a">笔记本自动记录你所有的碰撞、点亮、互动行为，是"留存灵魂"的地方。你可以选择隐藏某些记录，但数据本身不会被删除——因为这些痕迹组成了你的灵魂画像。</div></div>
+<div class="faq-item"><div class="faq-q">如果我想换一个街区/部落，可以吗？</div><div class="faq-a">可以。街区搬迁是自由的，但你的门牌位置需要在新街区重新选择。等级和号段不受影响。</div></div>
+<div class="faq-item"><div class="faq-q">探索者之间怎么交流？有群吗？</div><div class="faq-a">TopSpace里有碰撞机制——路过门牌、点亮、进入对方空间，这些都是交流。你也可以通过"走起"功能发起一起做某件事的邀请。不建传统微信群，因为拓圈本身就是交流的场所。</div></div>
+<div class="faq-item"><div class="faq-q">我现在加入，是不是太早了？</div><div class="faq-a">恰恰相反，现在是最值得加入的时候。种子号前500个，编号稀缺、终身免年费、号段可交易——这些都是越早越有优势的东西。等拓圈完全建好了、人进来了，这些优势就没了。</div></div>
+</div>
+</div>
+
+<!-- 底部留白 -->
+<div style="height:120px"></div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+<div class="nav-item active">
+<div style="font-size:18px;margin-bottom:2px">&#x2728;</div>
+手册
+<div class="nav-dot"></div>
+</div>
+<div class="nav-item">
+<div style="font-size:18px;margin-bottom:2px">&#x1F4CB;</div>
+能参加什么
+<div class="nav-dot hidden"></div>
+</div>
+<div class="nav-item">
+<div style="font-size:18px;margin-bottom:2px">&#x1F4B0;</div>
+加入
+<div class="nav-dot hidden"></div>
+</div>
+<div class="nav-item">
+<div style="font-size:18px;margin-bottom:2px">&#x2753;</div>
+问答
+<div class="nav-dot hidden"></div>
+</div>
+</div>
+
+<script>
+const navItems=document.querySelectorAll('.nav-item');
+const sections=[...document.querySelectorAll('.section')];
+
+navItems.forEach((item,i)=>{
+item.addEventListener('click',()=>{
+navItems.forEach(n=>{n.classList.remove('active');n.querySelector('.nav-dot').classList.add('hidden')});
+item.classList.add('active');
+item.querySelector('.nav-dot').classList.remove('hidden');
+const target=i===0?sections[0]:i===1?sections[2]:i===2?sections[3]:sections[4];
+if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+});
+});
+
+let lastScroll=0;
+const nav=document.querySelector('.bottom-nav');
+window.addEventListener('scroll',()=>{
+const st=window.scrollY;
+if(st>200){
+nav.style.boxShadow='0 -2px 20px rgba(0,0,0,0.06)';
+}else{
+nav.style.boxShadow='none';
+}
+lastScroll=st;
+},{passive:true});
+</script>
+</body>
+</html>

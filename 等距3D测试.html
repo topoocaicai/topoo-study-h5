@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>等距3D测试·无CDN</title>
+<style>body{margin:0;background:#121828;overflow:hidden;display:flex;align-items:center;justify-content:center;height:100vh}</style>
+</head>
+<body>
+<canvas id="c" width="400" height="400"></canvas>
+<script>
+(function(){
+  var canvas = document.getElementById('c');
+  var ctx = canvas.getContext('2d');
+  var W = 400, H = 400;
+  canvas.style.background = '#121828';
+
+  // 等距投影变换（钻石法）
+  // 将3D坐标(x,y,z)映射到画布2D坐标
+  function iso(x, y, z) {
+    var sx = (x - z) * Math.cos(Math.PI/6);  // 30°
+    var sy = (x + z) * Math.sin(Math.PI/6) - y;
+    return { x: W/2 + sx*20, y: H/2 + sy*20 };
+  }
+
+  // 画一个立方体（等距）
+  function drawBox(cx, cy, cz, w, h, d, fill, stroke) {
+    // 8个顶点
+    var v = [];
+    [[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],
+     [-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]
+    ].forEach(function(p,i){
+      v[i] = iso(cx + p[0]*w/2, cy + p[1]*h/2, cz + p[2]*d/2);
+    });
+    // 可见面渲染（画家算法简易）
+    function face(indices, color) {
+      ctx.beginPath();
+      ctx.moveTo(v[indices[0]].x, v[indices[0]].y);
+      for (var i=1;i<indices.length;i++) ctx.lineTo(v[indices[i]].x, v[indices[i]].y);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = stroke||'rgba(0,0,0,0.2)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    // 顶面
+    face([4,5,6,7], fill);
+    // 左面
+    face([0,3,7,4], lighten(fill, -20));
+    // 右面
+    face([5,1,2,6], lighten(fill, -40));
+  }
+  function lighten(hex, amt) {
+    var c = hex.replace('#','');
+    var r = Math.max(0, Math.min(255, parseInt(c.substring(0,2),16)+amt));
+    var g = Math.max(0, Math.min(255, parseInt(c.substring(2,4),16)+amt));
+    var b = Math.max(0, Math.min(255, parseInt(c.substring(4,6),16)+amt));
+    return 'rgb('+r+','+g+','+b+')';
+  }
+
+  // 画建筑物
+  var buildings = [
+    // x, z, w, h, d, color
+    [-3, -3, 1.5, 2.5, 1.5, '#D96B6B'],
+    [1, -2, 1.2, 1.8, 1.2, '#A0B87A'],
+    [-1, 2, 1.8, 3.0, 1.5, '#4A9EB8'],
+    [3, 1, 1.0, 1.2, 1.0, '#E8B44C'],
+    [0, 0, 2.0, 1.5, 2.0, '#9B7BBF'],
+    [-4, 2, 1.0, 2.0, 1.0, '#D96B6B'],
+    [4, -3, 1.3, 1.6, 1.3, '#A0B87A'],
+  ];
+
+  var angle = 0;
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    // 画地面格子
+    ctx.strokeStyle = 'rgba(74,158,184,0.08)';
+    for (var gx=-8; gx<=8; gx++) for (var gz=-8; gz<=8; gz++) {
+      var p1 = iso(gx, 0, gz);
+      var p2 = iso(gx+1, 0, gz);
+      var p3 = iso(gx, 0, gz+1);
+      ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p3.x,p3.y); ctx.stroke();
+    }
+    // 旋转所有建筑
+    angle += 0.008;
+    var cosA = Math.cos(angle), sinA = Math.sin(angle);
+    buildings.forEach(function(b){
+      // 旋转（绕Y轴）
+      var rx = b[0]*cosA - b[1]*sinA;
+      var rz = b[0]*sinA + b[1]*cosA;
+      drawBox(rx, 0, rz, b[2], b[3], b[4], b[5]);
+      // 屋顶（四棱锥）
+      var tp = iso(rx, b[3], rz);
+      var ttl = iso(rx-0.4, b[3]+0.4, rz-0.4);
+      var ttr = iso(rx+0.4, b[3]+0.4, rz-0.4);
+      var tbr = iso(rx+0.4, b[3]+0.4, rz+0.4);
+      var tbl = iso(rx-0.4, b[3]+0.4, rz+0.4);
+      ctx.beginPath();
+      ctx.moveTo(tp.x, tp.y);
+      ctx.lineTo(ttl.x, ttl.y); ctx.lineTo(ttr.x, ttr.y);
+      ctx.lineTo(tbr.x, tbr.y); ctx.lineTo(tbl.x, tbl.y);
+      ctx.closePath();
+      ctx.fillStyle = lighten(b[5], 20);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+      ctx.stroke();
+    });
+    // 画树
+    [[-5,-5],[5,-4],[-6,3],[6,4],[0,-6],[0,6]].forEach(function(t){
+      var tx = t[0]*cosA - t[1]*sinA;
+      var tz = t[0]*sinA + t[1]*cosA;
+      // 树干
+      var b = iso(tx, 0.8, tz);
+      ctx.fillStyle = '#6B4226';
+      ctx.fillRect(b.x-2, b.y-8, 4, 8);
+      // 树冠
+      var c = iso(tx, 2.2, tz);
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, 10, 0, Math.PI*2);
+      ctx.fillStyle = '#4A8C5C';
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+  console.log('等距3D测试初始化完成（无CDN）');
+})();
+</script>
+</body>
+</html>

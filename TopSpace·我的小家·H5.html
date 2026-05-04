@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TopSpace · 我的小家</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #F5F0E8;
+            color: #2C2824;
+            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+            overflow: hidden;
+            height: 100vh; width: 100vw;
+            -webkit-user-select: none; user-select: none;
+        }
+
+        /* ===== 手机壳 ===== */
+        .phone-shell {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 375px; height: 812px; border-radius: 44px;
+            background: #F5F0E8;
+            box-shadow: 0 0 0 2px #3C3834, 0 0 0 6px #1a1816, 0 20px 60px rgba(0,0,0,0.3), inset 0 0 0 2px rgba(255,255,255,0.1);
+            overflow: hidden; position: relative;
+        }
+        .phone-notch {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 150px; height: 30px; background: #2C2824;
+            border-radius: 0 0 18px 18px; z-index: 200;
+        }
+        .phone-notch::before {
+            content: ''; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+            width: 60px; height: 6px; background: #3C3834; border-radius: 3px;
+        }
+
+        /* ===== 顶部栏 ===== */
+        .top-bar {
+            position: absolute; top: 0; left: 0; right: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 44px 20px 12px;
+            background: linear-gradient(180deg, rgba(245,240,232,0.95) 60%, rgba(245,240,232,0) 100%);
+            transition: background 0.5s;
+        }
+        .top-bar.dark-mode {
+            background: linear-gradient(180deg, rgba(11,15,30,0.9) 60%, rgba(11,15,30,0) 100%);
+        }
+        .top-left { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .back-arrow { font-size: 18px; color: #2C2824; transition: color 0.5s; }
+        .top-bar.dark-mode .back-arrow { color: #E8E2D8; }
+        .top-center { text-align: center; }
+        .space-title { font-size: 15px; font-weight: 600; letter-spacing: 1px; color: #2C2824; transition: color 0.5s; }
+        .top-bar.dark-mode .space-title { color: #E8E2D8; }
+        .space-area { font-size: 11px; color: #8B8680; margin-top: 2px; transition: color 0.5s; }
+        .top-bar.dark-mode .space-area { color: #7A7570; }
+        .top-right { display: flex; align-items: center; gap: 10px; }
+        .icon-btn {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.06);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; color: #2C2824; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .icon-btn:active { transform: scale(0.92); }
+        .privacy-btn { position: relative; }
+        .privacy-dot {
+            position: absolute; top: 5px; right: 5px;
+            width: 7px; height: 7px; border-radius: 50%;
+            transition: background 0.3s;
+        }
+        .privacy-dot.open { background: #A0B87A; }
+        .privacy-dot.peek { background: #E8B44C; }
+        .privacy-dot.closed { background: #D96B6B; }
+
+        /* ===== 空间容器 ===== */
+        .space-container {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            overflow: hidden;
+        }
+
+        /* ===== 空间场景 ===== */
+        .room-scene {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 墙面纹理（纸张质感） */
+        .wall-bg {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: #F5F0E8;
+            background-image:
+                radial-gradient(ellipse at 30% 40%, rgba(232,192,124,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 60%, rgba(160,184,122,0.04) 0%, transparent 50%);
+            transition: background 0.5s;
+        }
+        .wall-bg::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent, transparent 120px,
+                rgba(200,192,180,0.06) 120px, rgba(200,192,180,0.06) 121px
+            );
+            pointer-events: none;
+        }
+        .wall-bg::after {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* ===== 地板 ===== */
+        .floor {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 180px;
+            background: linear-gradient(180deg, #E8E2D8 0%, #DDD6CA 100%);
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+        .floor::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent, transparent 75px,
+                rgba(0,0,0,0.03) 75px, rgba(0,0,0,0.03) 76px
+            );
+        }
+
+        /* ===== 窗户 ===== */
+        .window-frame {
+            position: absolute; top: 90px; left: 50%; transform: translateX(-50%);
+            width: 220px; height: 200px;
+            border-radius: 12px 12px 4px 4px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1), inset 0 0 0 3px #C8C0B4;
+            cursor: pointer;
+            transition: all 0.4s;
+        }
+        .window-frame:active { transform: translateX(-50%) scale(0.98); }
+
+        /* 窗帘 */
+        .curtain {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 5;
+            pointer-events: none;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .curtain-left, .curtain-right {
+            position: absolute; top: 0; bottom: 0; width: 55px;
+            background: linear-gradient(180deg, #D4CBC0 0%, #C8C0B4 50%, #BEB6AA 100%);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .curtain-left { left: 0; border-radius: 8px 0 0 0; }
+        .curtain-right { right: 0; border-radius: 0 8px 0 0; }
+        .curtain.open .curtain-left { left: -45px; }
+        .curtain.open .curtain-right { right: -45px; }
+        .curtain.peek .curtain-left { left: -15px; opacity: 0.7; }
+        .curtain.peek .curtain-right { right: -15px; opacity: 0.7; }
+        .curtain.closed .curtain-left { left: 0; width: 50%; }
+        .curtain.closed .curtain-right { right: 0; width: 50%; }
+        .curtain-curtain-rod {
+            position: absolute; top: -6px; left: -10px; right: -10px;
+            height: 6px; background: #8B8680; border-radius: 3px;
+            z-index: 6;
+        }
+
+        /* 窗外景色 */
+        .window-view {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, #1a1f3a 0%, #2a3a5a 40%, #3a4a6a 70%, #C8C0B4 90%, #DDD6CA 100%);
+            overflow: hidden;
+        }
+        .stars-canvas {
+            position: absolute; top: 0; left: 0;
+        }
+        .window-buildings {
+            position: absolute; bottom: 30px; left: 0; right: 0;
+            display: flex; justify-content: center; gap: 8px;
+        }
+        .window-building {
+            border-radius: 3px 3px 0 0;
+            opacity: 0.5;
+        }
+
+        /* 窗台 */
+        .windowsill {
+            position: absolute; top: 285px; left: 50%; transform: translateX(-50%);
+            width: 240px; height: 16px;
+            background: linear-gradient(180deg, #C8C0B4 0%, #BEB6AA 100%);
+            border-radius: 2px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+
+        /* 光点（被点亮留下） */
+        .light-dots-area {
+            position: absolute; top: 260px; left: 50%; transform: translateX(-50%);
+            width: 240px; height: 40px;
+            pointer-events: none;
+        }
+        .light-dot {
+            position: absolute;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #FFD700 0%, rgba(255,215,0,0.3) 60%, transparent 100%);
+            animation: dotGlow 3s ease-in-out infinite;
+        }
+        .light-dot:nth-child(1) { top: 8px; left: 30px; animation-delay: 0s; }
+        .light-dot:nth-child(2) { top: 5px; left: 80px; animation-delay: 0.5s; width: 6px; height: 6px; }
+        .light-dot:nth-child(3) { top: 12px; left: 120px; animation-delay: 1s; width: 10px; height: 10px; }
+        .light-dot:nth-child(4) { top: 6px; left: 165px; animation-delay: 1.5s; }
+        .light-dot:nth-child(5) { top: 10px; left: 200px; animation-delay: 2s; width: 7px; height: 7px; }
+        @keyframes dotGlow {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+
+        /* ===== 身份卡墙 ===== */
+        .id-card-wall {
+            position: absolute; top: 100px; right: 30px;
+            width: 120px; height: 75px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            transform: rotate(2deg);
+        }
+        .id-card-wall:active { transform: rotate(2deg) scale(0.95); }
+        .id-card-wall .card-mini-title {
+            font-size: 8px; color: #8B8680; letter-spacing: 1px; text-transform: uppercase;
+        }
+        .id-card-wall .card-mini-number {
+            font-size: 16px; font-weight: 700; color: #2C2824; margin-top: 2px;
+        }
+        .id-card-wall .card-mini-role {
+            font-size: 9px; color: #4A9EB8; margin-top: 4px;
+            display: flex; align-items: center; gap: 3px;
+        }
+        .id-card-wall .card-mini-role .role-dot {
+            width: 5px; height: 5px; border-radius: 50%; background: #4A9EB8;
+        }
+
+        /* ===== 展示架 ===== */
+        .display-shelf {
+            position: absolute; top: 200px; right: 25px;
+            width: 130px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .display-shelf:active { transform: scale(0.95); }
+        .shelf-board {
+            width: 100%; height: 4px;
+            background: #BEB6AA;
+            border-radius: 1px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .shelf-items {
+            display: flex; gap: 8px; margin-bottom: 4px;
+        }
+        .shelf-item {
+            width: 28px; height: 28px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+        .shelf-item:nth-child(1) { background: rgba(74,158,184,0.15); }
+        .shelf-item:nth-child(2) { background: rgba(160,184,122,0.15); }
+        .shelf-item:nth-child(3) { background: rgba(232,180,76,0.15); }
+        .shelf-label {
+            font-size: 9px; color: #8B8680; text-align: center; margin-top: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== 书桌 ===== */
+        .desk {
+            position: absolute; bottom: 140px; left: 25px;
+            width: 160px; height: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .desk:active { transform: scale(0.97); }
+        .desk-top {
+            width: 100%; height: 8px;
+            background: linear-gradient(180deg, #C8C0B4 0%, #B8B0A4 100%);
+            border-radius: 2px 2px 0 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .desk-legs {
+            display: flex; justify-content: space-between; padding: 0 10px;
+        }
+        .desk-leg {
+            width: 4px; height: 42px;
+            background: linear-gradient(180deg, #B8B0A4, #A8A098);
+            border-radius: 0 0 1px 1px;
+        }
+        .desk-items {
+            position: absolute; top: -20px; left: 10px;
+            display: flex; gap: 12px; align-items: flex-end;
+        }
+        .desk-item {
+            font-size: 18px;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.1));
+        }
+        .desk-item.notebook {
+            width: 22px; height: 18px; border-radius: 2px;
+            background: #4A9EB8; position: relative;
+        }
+        .desk-item.notebook::before {
+            content: ''; position: absolute; top: 3px; left: 3px; right: 3px; bottom: 3px;
+            border: 1px solid rgba(255,255,255,0.4); border-radius: 1px;
+        }
+
+        /* ===== 照片墙 ===== */
+        .photo-wall {
+            position: absolute; top: 320px; left: 20px;
+            width: 200px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .photo-wall:active { transform: scale(0.97); }
+        .photo-wall-label {
+            font-size: 9px; color: #8B8680; letter-spacing: 1px; margin-bottom: 6px;
+        }
+        .photos-row {
+            display: flex; gap: 6px; flex-wrap: wrap;
+        }
+        .polaroid {
+            width: 56px; height: 62px; background: #fff;
+            padding: 4px 4px 14px 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transform: rotate(var(--rot, 0deg));
+            transition: all 0.3s;
+        }
+        .polaroid:nth-child(1) { --rot: -3deg; }
+        .polaroid:nth-child(2) { --rot: 2deg; }
+        .polaroid:nth-child(3) { --rot: -1deg; }
+        .polaroid:nth-child(4) { --rot: 3deg; }
+        .polaroid:nth-child(5) { --rot: -2deg; }
+        .polaroid:nth-child(6) { --rot: 1deg; }
+        .polaroid-img {
+            width: 100%; height: 40px; border-radius: 2px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+        }
+        .polaroid:nth-child(1) .polaroid-img { background: rgba(74,158,184,0.12); }
+        .polaroid:nth-child(2) .polaroid-img { background: rgba(160,184,122,0.12); }
+        .polaroid:nth-child(3) .polaroid-img { background: rgba(232,180,76,0.12); }
+        .polaroid:nth-child(4) .polaroid-img { background: rgba(155,123,191,0.12); }
+        .polaroid:nth-child(5) .polaroid-img { background: rgba(217,107,107,0.12); }
+        .polaroid:nth-child(6) .polaroid-img { background: rgba(74,158,184,0.08); }
+        .polaroid-text {
+            font-size: 6px; color: #8B8680; text-align: center;
+            margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* ===== 抽屉 ===== */
+        .drawer {
+            position: absolute; bottom: 30px; right: 30px;
+            width: 70px; height: 45px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .drawer:active { transform: scale(0.95); }
+        .drawer-body {
+            width: 100%; height: 35px;
+            background: linear-gradient(180deg, #C8C0B4 0%, #B8B0A4 100%);
+            border-radius: 4px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .drawer-handle {
+            width: 20px; height: 4px;
+            background: #A8A098;
+            border-radius: 2px;
+        }
+        .drawer-glow {
+            position: absolute; top: -5px; left: 50%; transform: translateX(-50%);
+            width: 40px; height: 6px;
+            background: radial-gradient(ellipse, rgba(255,215,0,0.3) 0%, transparent 70%);
+            animation: drawerGlow 4s ease-in-out infinite;
+        }
+        @keyframes drawerGlow {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        /* ===== 成长进度条 ===== */
+        .growth-bar {
+            position: absolute; bottom: 70px; left: 20px; right: 20px;
+            z-index: 50;
+        }
+        .growth-info {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 6px;
+        }
+        .growth-label { font-size: 10px; color: #8B8680; }
+        .growth-value { font-size: 11px; font-weight: 600; color: #4A9EB8; }
+        .growth-track {
+            height: 4px; background: rgba(0,0,0,0.06);
+            border-radius: 2px; overflow: hidden;
+        }
+        .growth-fill {
+            height: 100%; border-radius: 2px;
+            background: linear-gradient(90deg, #4A9EB8, #A0B87A);
+            transition: width 0.6s ease;
+        }
+        .growth-stage-label {
+            font-size: 9px; color: #A8A098; text-align: center; margin-top: 4px;
+        }
+
+        /* ===== 阶段切换按钮 ===== */
+        .stage-tabs {
+            position: absolute; bottom: 95px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 6px; z-index: 50;
+            background: rgba(245,240,232,0.9);
+            padding: 4px; border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+        .stage-tab {
+            padding: 5px 12px; border-radius: 16px;
+            font-size: 10px; color: #8B8680; cursor: pointer;
+            transition: all 0.3s; border: none; background: transparent;
+        }
+        .stage-tab.active {
+            background: #2C2824; color: #F5F0E8;
+        }
+
+        /* ===== 详情弹窗 ===== */
+        .detail-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 300; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .detail-overlay.show { opacity: 1; pointer-events: auto; }
+        .detail-panel {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            max-height: 70%; background: #F5F0E8;
+            border-radius: 24px 24px 0 0;
+            padding: 20px 20px 40px;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+        }
+        .detail-overlay.show .detail-panel { transform: translateY(0); }
+        .detail-panel::-webkit-scrollbar { width: 0; }
+        .detail-handle {
+            width: 36px; height: 4px; background: #C8C0B4;
+            border-radius: 2px; margin: 0 auto 16px;
+        }
+        .detail-title {
+            font-size: 17px; font-weight: 600; color: #2C2824; margin-bottom: 6px;
+        }
+        .detail-desc {
+            font-size: 13px; color: #8B8680; line-height: 1.6; margin-bottom: 16px;
+        }
+
+        /* 弹窗内容区 */
+        .detail-section { margin-bottom: 16px; }
+        .detail-section-title {
+            font-size: 12px; font-weight: 600; color: #2C2824; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        /* 访客痕迹 */
+        .visitor-item {
+            display: flex; gap: 10px; padding: 10px;
+            background: rgba(0,0,0,0.02); border-radius: 10px; margin-bottom: 8px;
+        }
+        .visitor-avatar {
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+        }
+        .visitor-info { flex: 1; }
+        .visitor-plate { font-size: 11px; font-weight: 600; color: #2C2824; }
+        .visitor-text { font-size: 12px; color: #8B8680; margin-top: 2px; font-style: italic; }
+        .visitor-gift { font-size: 10px; color: #A0B87A; margin-top: 2px; }
+        .visitor-time { font-size: 10px; color: #A8A098; margin-top: 2px; }
+
+        /* 笔记本弹窗内容 */
+        .soul-radar {
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .radar-row {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .radar-label { font-size: 11px; color: #8B8680; width: 50px; }
+        .radar-track {
+            flex: 1; height: 6px; background: rgba(0,0,0,0.04);
+            border-radius: 3px; overflow: hidden;
+        }
+        .radar-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+        .radar-val { font-size: 10px; color: #8B8680; width: 24px; text-align: right; }
+
+        /* 星空收藏夹 */
+        .star-collection {
+            display: flex; flex-wrap: wrap; gap: 10px; padding: 10px;
+        }
+        .star-item {
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 600; color: #fff;
+            position: relative;
+            animation: starTwinkle 3s ease-in-out infinite;
+        }
+        .star-item:nth-child(1) { background: rgba(74,158,184,0.3); animation-delay: 0s; }
+        .star-item:nth-child(2) { background: rgba(160,184,122,0.3); animation-delay: 0.5s; }
+        .star-item:nth-child(3) { background: rgba(232,180,76,0.3); animation-delay: 1s; }
+        .star-item:nth-child(4) { background: rgba(155,123,191,0.3); animation-delay: 1.5s; }
+        .star-item:nth-child(5) { background: rgba(217,107,107,0.3); animation-delay: 2s; }
+        @keyframes starTwinkle {
+            0%, 100% { box-shadow: 0 0 4px rgba(255,215,0,0.2); }
+            50% { box-shadow: 0 0 12px rgba(255,215,0,0.5); }
+        }
+        .star-hint {
+            font-size: 11px; color: #A8A098; text-align: center; margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* 布置面板 */
+        .arrange-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+        }
+        .arrange-option {
+            padding: 12px; border-radius: 10px;
+            background: rgba(0,0,0,0.02);
+            border: 1.5px solid rgba(0,0,0,0.04);
+            cursor: pointer; transition: all 0.2s; text-align: center;
+        }
+        .arrange-option:active, .arrange-option.selected {
+            border-color: #4A9EB8; background: rgba(74,158,184,0.06);
+        }
+        .arrange-option .arrange-icon { font-size: 22px; margin-bottom: 4px; }
+        .arrange-option .arrange-name { font-size: 11px; font-weight: 600; color: #2C2824; }
+        .arrange-option .arrange-desc { font-size: 9px; color: #8B8680; margin-top: 2px; }
+        .arrange-option.locked { opacity: 0.4; }
+        .arrange-option.locked .arrange-desc::after { content: ' 🔒'; }
+
+        /* ===== 阶段2：院子元素 ===== */
+        .yard-elements {
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        .yard-elements.show { opacity: 1; pointer-events: auto; }
+
+        .yard-floor {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 260px;
+            background: linear-gradient(180deg, #E8E2D8 0%, #D4CBC0 50%, #C8C0B4 100%);
+        }
+        .yard-floor::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 1px;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent, transparent 40px,
+                rgba(0,0,0,0.03) 40px, rgba(0,0,0,0.03) 41px
+            );
+        }
+
+        .yard-chair {
+            position: absolute; bottom: 160px; right: 40px;
+            font-size: 28px;
+            transform: rotate(-5deg);
+            cursor: pointer;
+        }
+        .yard-plant {
+            position: absolute; bottom: 150px; left: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            animation: sway 4s ease-in-out infinite;
+        }
+        @keyframes sway {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(3deg); }
+        }
+        .yard-lights {
+            position: absolute; top: 60px; left: 30px; right: 30px;
+            height: 2px;
+        }
+        .yard-light-bulb {
+            position: absolute; top: -4px;
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #FFD700;
+            box-shadow: 0 0 8px rgba(255,215,0,0.5);
+            animation: bulbGlow 2s ease-in-out infinite;
+        }
+        .yard-light-bulb:nth-child(1) { left: 10%; animation-delay: 0s; }
+        .yard-light-bulb:nth-child(2) { left: 30%; animation-delay: 0.3s; }
+        .yard-light-bulb:nth-child(3) { left: 50%; animation-delay: 0.6s; }
+        .yard-light-bulb:nth-child(4) { left: 70%; animation-delay: 0.9s; }
+        .yard-light-bulb:nth-child(5) { left: 90%; animation-delay: 1.2s; }
+        @keyframes bulbGlow {
+            0%, 100% { opacity: 0.6; } 50% { opacity: 1; }
+        }
+        .yard-string {
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 1px; background: #A8A098;
+        }
+
+        /* ===== 阶段3：小家 ===== */
+        .home-elements { opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+        .home-elements.show { opacity: 1; pointer-events: auto; }
+        .home-divider {
+            position: absolute; left: 0; right: 0; top: 50%;
+            height: 1px;
+            background: rgba(0,0,0,0.04);
+        }
+        .home-room-label {
+            position: absolute; font-size: 9px; color: #A8A098;
+            letter-spacing: 2px; padding: 3px 8px;
+            background: rgba(245,240,232,0.8); border-radius: 8px;
+        }
+        .home-studio { top: 48%; left: 60px; }
+        .home-gallery { top: 48%; right: 40px; }
+        .home-living { bottom: 260px; left: 50%; transform: translateX(-50%); }
+
+        /* ===== 阶段4：领地 ===== */
+        .territory-elements { opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+        .territory-elements.show { opacity: 1; pointer-events: auto; }
+
+        /* ===== 窗外飘过通知 ===== */
+        .float-notification {
+            position: absolute; top: 70px; left: -200px;
+            padding: 6px 12px; border-radius: 12px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            font-size: 10px; color: #2C2824;
+            white-space: nowrap;
+            z-index: 80;
+            animation: floatAcross 12s linear infinite;
+            opacity: 0;
+        }
+        @keyframes floatAcross {
+            0% { left: -200px; opacity: 0; }
+            5% { opacity: 0.9; }
+            90% { opacity: 0.9; }
+            100% { left: 400px; opacity: 0; }
+        }
+
+        /* ===== 入场动画·双开门 ===== */
+        .entrance-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            display: flex;
+            transition: opacity 0.6s ease 1.8s;
+        }
+        .entrance-overlay.fade-out { opacity: 0; pointer-events: none; }
+        .door {
+            position: relative;
+            width: 50%; height: 100%;
+            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+        .door-left {
+            background: linear-gradient(135deg, #3C3834 0%, #2C2824 50%, #1a1816 100%);
+            border-right: 1px solid rgba(255,255,255,0.05);
+            transform-origin: left center;
+        }
+        .door-right {
+            background: linear-gradient(225deg, #3C3834 0%, #2C2824 50%, #1a1816 100%);
+            border-left: 1px solid rgba(255,255,255,0.05);
+            transform-origin: right center;
+        }
+        .entrance-overlay.opened .door-left  { transform: perspective(800px) rotateY(105deg); }
+        .entrance-overlay.opened .door-right { transform: perspective(800px) rotateY(-105deg); }
+        .door-knob {
+            position: absolute;
+            width: 10px; height: 10px; border-radius: 50%;
+            background: radial-gradient(circle, #E8B44C 0%, #C8C0B4 100%);
+            box-shadow: 0 0 6px rgba(232,180,76,0.4);
+        }
+        .door-left .door-knob  { right: 20px; top: 50%; transform: translateY(-50%); }
+        .door-right .door-knob { left: 20px; top: 50%; transform: translateY(-50%); }
+        .door-plate {
+            font-size: 11px; color: rgba(232,180,76,0.6);
+            letter-spacing: 3px; text-align: center;
+            margin-top: -40px;
+        }
+        .door-hint {
+            position: absolute; bottom: 60px;
+            font-size: 12px; color: rgba(255,255,255,0.5);
+            letter-spacing: 2px;
+            animation: hintBlink 2s ease-in-out infinite;
+            text-align: center;
+            width: 100%;
+        }
+        @keyframes hintBlink {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        .entrance-overlay.opened .door-hint { display: none; }
+
+        /* ===== 底部提示 ===== */
+        .bottom-hint {
+            position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
+            font-size: 10px; color: #A8A098;
+            animation: hintPulse 3s ease-in-out infinite;
+            z-index: 50;
+        }
+        @keyframes hintPulse {
+            0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; }
+        }
+
+        /* ===== 座标装饰 ===== */
+        .area-tag {
+            position: absolute;
+            padding: 2px 8px; border-radius: 8px;
+            font-size: 8px; letter-spacing: 1px;
+            color: #A8A098; background: rgba(0,0,0,0.02);
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-shell">
+        <div class="phone-notch"></div>
+
+        <!-- 入场动画·双开门 -->
+        <div class="entrance-overlay" id="entrance" onclick="openDoor()">
+            <div class="door door-left">
+                <div class="door-knob"></div>
+                <div class="door-plate">T O P O O</div>
+            </div>
+            <div class="door door-right">
+                <div class="door-knob"></div>
+                <div class="door-plate">0 5 2 7</div>
+            </div>
+            <div class="door-hint">轻触门面 · 推门而入</div>
+        </div>
+
+        <!-- 顶部栏 -->
+        <div class="top-bar" id="topBar">
+            <div class="top-left">
+                <span class="back-arrow">←</span>
+            </div>
+            <div class="top-center">
+                <div class="space-title" id="spaceTitle">我的小家</div>
+                <div class="space-area" id="spaceArea">蛋生壹号街区 · 10㎡</div>
+            </div>
+            <div class="top-right">
+                <div class="icon-btn privacy-btn" id="privacyBtn" onclick="togglePrivacy()">
+                    <span id="privacyIcon">👁</span>
+                    <div class="privacy-dot open" id="privacyDot"></div>
+                </div>
+                <div class="icon-btn" onclick="openArrange()">🎨</div>
+            </div>
+        </div>
+
+        <!-- 空间容器 -->
+        <div class="space-container">
+
+            <!-- 飘过通知（窗外） -->
+            <div class="float-notification" id="floatNotif1" style="animation-delay: 2s;">💫 0523号在街区发布了新内容</div>
+            <div class="float-notification" id="floatNotif2" style="animation-delay: 14s;">✨ 你的门牌被一颗光点亮了</div>
+            <div class="float-notification" id="floatNotif3" style="animation-delay: 26s;">🌙 0541号正在举办线上分享会</div>
+
+            <!-- 窗户 -->
+            <div class="window-frame" id="windowFrame" onclick="openDetail('window')">
+                <div class="curtain open" id="curtain">
+                    <div class="curtain-curtain-rod"></div>
+                    <div class="curtain-left"></div>
+                    <div class="curtain-right"></div>
+                </div>
+                <div class="window-view">
+                    <canvas class="stars-canvas" id="starsCanvas" width="220" height="200"></canvas>
+                    <div class="window-buildings">
+                        <div class="window-building" style="width:25px;height:45px;background:#3a3a4a;"></div>
+                        <div class="window-building" style="width:35px;height:65px;background:#2a2a3a;"></div>
+                        <div class="window-building" style="width:20px;height:35px;background:#4a4a5a;"></div>
+                        <div class="window-building" style="width:30px;height:55px;background:#3a3a4a;"></div>
+                        <div class="window-building" style="width:22px;height:40px;background:#2a2a3a;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 窗台 + 光点 -->
+            <div class="windowsill"></div>
+            <div class="light-dots-area" id="lightDots">
+                <div class="light-dot"></div>
+                <div class="light-dot"></div>
+                <div class="light-dot"></div>
+                <div class="light-dot"></div>
+                <div class="light-dot"></div>
+            </div>
+
+            <!-- 身份卡 -->
+            <div class="id-card-wall" id="idCardWall" onclick="openDetail('idcard')">
+                <div class="card-mini-title">TOPOO</div>
+                <div class="card-mini-number">0527</div>
+                <div class="card-mini-role">
+                    <span class="role-dot"></span>
+                    探索者 Seeker
+                </div>
+            </div>
+
+            <!-- 展示架 -->
+            <div class="display-shelf" onclick="openDetail('shelf')">
+                <div class="shelf-items">
+                    <div class="shelf-item">🔥</div>
+                    <div class="shelf-item">💧</div>
+                    <div class="shelf-item">🌱</div>
+                </div>
+                <div class="shelf-board"></div>
+                <div class="shelf-label">收藏的角落</div>
+            </div>
+
+            <!-- 书桌 -->
+            <div class="desk" onclick="openDetail('desk')">
+                <div class="desk-items">
+                    <div class="desk-item notebook"></div>
+                    <div class="desk-item">✏️</div>
+                    <div class="desk-item">🕯️</div>
+                </div>
+                <div class="desk-top"></div>
+                <div class="desk-legs">
+                    <div class="desk-leg"></div>
+                    <div class="desk-leg"></div>
+                </div>
+            </div>
+
+            <!-- 照片墙 -->
+            <div class="photo-wall" onclick="openDetail('photowall')">
+                <div class="photo-wall-label">碰撞记忆</div>
+                <div class="photos-row">
+                    <div class="polaroid">
+                        <div class="polaroid-img">💫</div>
+                        <div class="polaroid-text">碰到了 0523</div>
+                    </div>
+                    <div class="polaroid">
+                        <div class="polaroid-img">⭐</div>
+                        <div class="polaroid-text">点亮了 0541</div>
+                    </div>
+                    <div class="polaroid">
+                        <div class="polaroid-img">🌟</div>
+                        <div class="polaroid-text">0523 点亮了你</div>
+                    </div>
+                    <div class="polaroid">
+                        <div class="polaroid-img">💫</div>
+                        <div class="polaroid-text">碰到了 0589</div>
+                    </div>
+                    <div class="polaroid">
+                        <div class="polaroid-img">⭐</div>
+                        <div class="polaroid-text">碰到了 0602</div>
+                    </div>
+                    <div class="polaroid">
+                        <div class="polaroid-img">🌟</div>
+                        <div class="polaroid-text">0515 路过了</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 抽屉 -->
+            <div class="drawer" onclick="openDetail('drawer')">
+                <div class="drawer-glow"></div>
+                <div class="drawer-body">
+                    <div class="drawer-handle"></div>
+                </div>
+            </div>
+
+            <!-- 墙面 -->
+            <div class="wall-bg"></div>
+            <!-- 地板 -->
+            <div class="floor"></div>
+
+            <!-- 院子（阶段2） -->
+            <div class="yard-elements" id="yardElements">
+                <div class="yard-floor"></div>
+                <div class="yard-lights">
+                    <div class="yard-string"></div>
+                    <div class="yard-light-bulb"></div>
+                    <div class="yard-light-bulb"></div>
+                    <div class="yard-light-bulb"></div>
+                    <div class="yard-light-bulb"></div>
+                    <div class="yard-light-bulb"></div>
+                </div>
+                <div class="yard-chair" onclick="openDetail('yard')">🪑</div>
+                <div class="yard-plant" onclick="openDetail('yard')">🌿</div>
+                <div class="area-tag" style="bottom:230px; left:20px;">院子</div>
+            </div>
+
+            <!-- 小家（阶段3） -->
+            <div class="home-elements" id="homeElements">
+                <div class="home-divider"></div>
+                <div class="home-room-label home-studio">工作室</div>
+                <div class="home-room-label home-gallery">展示区</div>
+                <div class="home-room-label home-living">会客区</div>
+            </div>
+
+            <!-- 领地（阶段4） -->
+            <div class="territory-elements" id="territoryElements">
+                <div class="area-tag" style="top:110px; right:20px;">活动区</div>
+            </div>
+
+            <!-- 阶段切换 -->
+            <div class="stage-tabs" id="stageTabs">
+                <div class="stage-tab active" onclick="switchStage(0)">小房间</div>
+                <div class="stage-tab" onclick="switchStage(1)">院子</div>
+                <div class="stage-tab" onclick="switchStage(2)">小家</div>
+                <div class="stage-tab" onclick="switchStage(3)">领地</div>
+            </div>
+
+            <!-- 成长进度 -->
+            <div class="growth-bar">
+                <div class="growth-info">
+                    <span class="growth-label">空间成长</span>
+                    <span class="growth-value" id="growthValue">10 / 30㎡</span>
+                </div>
+                <div class="growth-track">
+                    <div class="growth-fill" id="growthFill" style="width:33%;"></div>
+                </div>
+                <div class="growth-stage-label" id="stageLabel">下一阶段：院子 · 30㎡</div>
+            </div>
+
+            <div class="bottom-hint">点击空间里的物品探索你的小家</div>
+        </div>
+
+        <!-- 详情弹窗 -->
+        <div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
+            <div class="detail-panel" id="detailPanel" onclick="event.stopPropagation()">
+                <div class="detail-handle"></div>
+                <div id="detailContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== 状态 =====
+        let currentStage = 0;
+        let privacyState = 'open'; // open / peek / closed
+        const stages = [
+            { name: '小房间', min: 10, max: 30 },
+            { name: '院子', min: 30, max: 100 },
+            { name: '小家', min: 100, max: 500 },
+            { name: '领地', min: 500, max: 9999 }
+        ];
+
+        // ===== 开门音效（Web Audio API 生成） =====
+        let audioCtx = null;
+        function playDoorSound() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const now = audioCtx.currentTime;
+
+            // 第一层：木头摩擦声（带通滤波的噪声）
+            const dur1 = 1.3;
+            const buf1 = audioCtx.createBuffer(1, audioCtx.sampleRate * dur1, audioCtx.sampleRate);
+            const d1 = buf1.getChannelData(0);
+            for (let i = 0; i < d1.length; i++) {
+                const t = i / audioCtx.sampleRate;
+                const progress = t / dur1;
+                // 摩擦强度：开始轻→中间重→结束轻
+                const rub = Math.sin(Math.PI * progress);
+                // 木质噪声：低频随机+少量正弦
+                const woodNoise = (Math.random() * 2 - 1) * 0.4;
+                const woodTone = Math.sin(2 * Math.PI * 80 * t) * 0.3;
+                // 速度感：前面慢后面快
+                const speedCurve = 0.3 + 0.7 * progress;
+                d1[i] = (woodNoise * 0.6 + woodTone * 0.4) * rub * speedCurve;
+            }
+            const src1 = audioCtx.createBufferSource();
+            src1.buffer = buf1;
+            const bp1 = audioCtx.createBiquadFilter();
+            bp1.type = 'bandpass'; bp1.frequency.value = 300; bp1.Q.value = 0.8;
+            const g1 = audioCtx.createGain(); g1.gain.value = 0.8;
+            src1.connect(bp1); bp1.connect(g1); g1.connect(audioCtx.destination);
+            src1.start(now);
+
+            // 第二层：门轴金属吱嘎声
+            const dur2 = 1.5;
+            const osc = audioCtx.createOscillator();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(220, now);
+            osc.frequency.exponentialRampToValueAtTime(350, now + 0.3);
+            osc.frequency.exponentialRampToValueAtTime(180, now + 0.8);
+            osc.frequency.exponentialRampToValueAtTime(280, now + 1.2);
+            osc.frequency.exponentialRampToValueAtTime(150, now + dur2);
+            const bp2 = audioCtx.createBiquadFilter();
+            bp2.type = 'bandpass'; bp2.frequency.value = 600; bp2.Q.value = 3;
+            const g2 = audioCtx.createGain();
+            g2.gain.setValueAtTime(0.0, now);
+            g2.gain.linearRampToValueAtTime(0.12, now + 0.1);
+            g2.gain.setValueAtTime(0.12, now + 0.1);
+            g2.gain.linearRampToValueAtTime(0.08, now + 0.6);
+            g2.gain.linearRampToValueAtTime(0.15, now + 1.0);
+            g2.gain.linearRampToValueAtTime(0.0, now + dur2);
+            osc.connect(bp2); bp2.connect(g2); g2.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + dur2);
+
+            // 第三层：锁舌弹开的"咔"声（开门瞬间）
+            const buf3 = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.08, audioCtx.sampleRate);
+            const d3 = buf3.getChannelData(0);
+            for (let i = 0; i < d3.length; i++) {
+                const t3 = i / audioCtx.sampleRate;
+                // 快速衰减的冲击
+                const attack = Math.exp(-t3 * 80);
+                d3[i] = (Math.random() * 2 - 1) * attack * 0.6;
+            }
+            const src3 = audioCtx.createBufferSource();
+            src3.buffer = buf3;
+            const hp3 = audioCtx.createBiquadFilter();
+            hp3.type = 'highpass'; hp3.frequency.value = 2000;
+            const g3 = audioCtx.createGain(); g3.gain.value = 0.5;
+            src3.connect(hp3); hp3.connect(g3); g3.connect(audioCtx.destination);
+            src3.start(now);
+
+            // 第四层：门撞到墙的闷响（结束瞬间）
+            const buf4 = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.15, audioCtx.sampleRate);
+            const d4 = buf4.getChannelData(0);
+            for (let i = 0; i < d4.length; i++) {
+                const t4 = i / audioCtx.sampleRate;
+                const thud = Math.exp(-t4 * 30);
+                d4[i] = (Math.random() * 2 - 1) * thud * 0.7
+                       + Math.sin(2 * Math.PI * 60 * t4) * thud * 0.5;
+            }
+            const src4 = audioCtx.createBufferSource();
+            src4.buffer = buf4;
+            const lp4 = audioCtx.createBiquadFilter();
+            lp4.type = 'lowpass'; lp4.frequency.value = 400;
+            const g4 = audioCtx.createGain(); g4.gain.value = 0.6;
+            src4.connect(lp4); lp4.connect(g4); g4.connect(audioCtx.destination);
+            src4.start(now + 1.15);
+        }
+
+        // ===== 推门 =====
+        let doorOpened = false;
+        function openDoor() {
+            if (doorOpened) return;
+            doorOpened = true;
+            playDoorSound();
+            const el = document.getElementById('entrance');
+            el.classList.add('opened');
+            setTimeout(() => { el.classList.add('fade-out'); }, 1800);
+        }
+
+        // ===== 入场：不自动开，等用户点击 =====
+
+        // ===== 星星Canvas =====
+        function initStars() {
+            const canvas = document.getElementById('starsCanvas');
+            const ctx = canvas.getContext('2d');
+            const stars = [];
+            for (let i = 0; i < 30; i++) {
+                stars.push({
+                    x: Math.random() * 220,
+                    y: Math.random() * 140,
+                    r: Math.random() * 1.5 + 0.3,
+                    a: Math.random(),
+                    speed: Math.random() * 0.02 + 0.005
+                });
+            }
+            function draw() {
+                ctx.clearRect(0, 0, 220, 200);
+                stars.forEach(s => {
+                    s.a += s.speed;
+                    const alpha = (Math.sin(s.a) + 1) / 2 * 0.8 + 0.2;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 248, 220, ${alpha})`;
+                    ctx.fill();
+                });
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+        initStars();
+
+        // ===== 阶段切换 =====
+        function switchStage(idx) {
+            currentStage = idx;
+            const tabs = document.querySelectorAll('.stage-tab');
+            tabs.forEach((t, i) => t.classList.toggle('active', i === idx));
+
+            const s = stages[idx];
+            const area = Math.min(s.min + Math.floor(Math.random() * (s.max - s.min) * 0.3), s.max);
+            document.getElementById('spaceArea').textContent = `蛋生壹号街区 · ${area}㎡`;
+
+            const progress = Math.min(area / s.max * 100, 100);
+            document.getElementById('growthFill').style.width = progress + '%';
+            document.getElementById('growthValue').textContent = `${area} / ${s.max}㎡`;
+
+            if (idx < 3) {
+                const next = stages[idx + 1];
+                document.getElementById('stageLabel').textContent = `下一阶段：${next.name} · ${next.min}㎡`;
+            } else {
+                document.getElementById('stageLabel').textContent = '已达最大阶段';
+            }
+
+            // 显示/隐藏扩展元素
+            document.getElementById('yardElements').classList.toggle('show', idx >= 1);
+            document.getElementById('homeElements').classList.toggle('show', idx >= 2);
+            document.getElementById('territoryElements').classList.toggle('show', idx >= 3);
+
+            // 根据阶段调整背景和地板
+            const floor = document.querySelector('.floor');
+            if (idx === 0) {
+                floor.style.height = '180px';
+                floor.style.background = 'linear-gradient(180deg, #E8E2D8 0%, #DDD6CA 100%)';
+            } else if (idx === 1) {
+                floor.style.height = '260px';
+                floor.style.background = 'linear-gradient(180deg, #E8E2D8 0%, #D4CBC0 50%, #C8C0B4 100%)';
+            } else {
+                floor.style.height = '300px';
+                floor.style.background = 'linear-gradient(180deg, #E8E2D8 0%, #DDD6CA 60%, #C8C0B4 100%)';
+            }
+        }
+
+        // ===== 隐私控制 =====
+        function togglePrivacy() {
+            const states = ['open', 'peek', 'closed'];
+            const icons = ['👁', '👁‍🗨', '🚫'];
+            const labels = ['窗帘已拉开', '半掩着窗帘', '窗帘已拉上'];
+            const idx = (states.indexOf(privacyState) + 1) % 3;
+            privacyState = states[idx];
+
+            document.getElementById('privacyIcon').textContent = icons[idx];
+            const dot = document.getElementById('privacyDot');
+            dot.className = 'privacy-dot ' + privacyState;
+
+            const curtain = document.getElementById('curtain');
+            curtain.className = 'curtain ' + privacyState;
+        }
+
+        // ===== 详情弹窗 =====
+        const detailHTML = {
+            window: `
+                <div class="detail-title">窗外 · 蛋生壹号街区</div>
+                <div class="detail-desc">你的空间开在蛋生壹号街区的某个角落。窗外能看到街区的夜色——远处的门牌零星亮着光，偶尔有新的探索者路过。</div>
+                <div class="detail-section">
+                    <div class="detail-section-title">📰 街区动态</div>
+                    <div style="padding:10px;background:rgba(0,0,0,0.02);border-radius:10px;">
+                        <div style="font-size:12px;color:#2C2824;margin-bottom:6px;">💫 0523号 发布了一段关于手作的故事</div>
+                        <div style="font-size:12px;color:#2C2824;margin-bottom:6px;">✨ 0589号 刚刚入驻街区</div>
+                        <div style="font-size:12px;color:#2C2824;">🌙 0541号 正在举办线上分享会</div>
+                    </div>
+                </div>
+                <div style="font-size:10px;color:#A8A098;text-align:center;margin-top:12px;font-style:italic;">推门出去 → 进入街区地图</div>
+            `,
+            idcard: `
+                <div class="detail-title">身份卡</div>
+                <div class="detail-desc">你的身份卡自动挂在墙上。它记录着你在拓圈的编号和角色。</div>
+                <div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,0.06);margin-bottom:12px;">
+                    <div style="font-size:10px;color:#8B8680;letter-spacing:1px;">TOPOO · TOPSPACE</div>
+                    <div style="font-size:28px;font-weight:700;color:#2C2824;margin:8px 0;">0527</div>
+                    <div style="font-size:12px;color:#4A9EB8;display:flex;align-items:center;gap:4px;">
+                        <span style="width:6px;height:6px;border-radius:50%;background:#4A9EB8;display:inline-block;"></span>
+                        探索者 Seeker
+                    </div>
+                    <div style="font-size:11px;color:#A8A098;margin-top:12px;font-style:italic;">「你在找的，可能已经在找你」</div>
+                </div>
+                <div style="font-size:10px;color:#A8A098;text-align:center;">长按可分享身份卡</div>
+            `,
+            shelf: `
+                <div class="detail-title">收藏的角落</div>
+                <div class="detail-desc">展示架上放着你在拓圈里收集到的东西。每一件都是某个瞬间的触动。</div>
+                <div class="detail-section">
+                    <div class="detail-section-title">🔥 火之痕迹</div>
+                    <div style="font-size:12px;color:#8B8680;margin-bottom:12px;">在街区里路过了一家手冲咖啡店，被老板的创业故事打动。</div>
+                    <div class="detail-section-title">💧 水之碎片</div>
+                    <div style="font-size:12px;color:#8B8680;margin-bottom:12px;">第一次被陌生人的内容点亮时，掉落的水滴。</div>
+                    <div class="detail-section-title">🌱 木之种子</div>
+                    <div style="font-size:12px;color:#8B8680;">完成第一个任务后获得的种子。不知道会长成什么。</div>
+                </div>
+                <div style="font-size:10px;color:#A8A098;text-align:center;margin-top:8px;">更多收藏随着探索解锁</div>
+            `,
+            desk: `
+                <div class="detail-title">书桌 · 你的工作台</div>
+                <div class="detail-desc">笔记本放在桌上，随时可以翻开。笔和蜡烛是系统送的——前者记录，后者照明。</div>
+                <div class="detail-section">
+                    <div class="detail-section-title">📓 笔记本（点击打开）</div>
+                    <div style="background:#fff;border-radius:10px;padding:12px;box-shadow:0 1px 6px rgba(0,0,0,0.04);">
+                        <div class="soul-radar">
+                            <div class="radar-row">
+                                <span class="radar-label">🔥 火感</span>
+                                <div class="radar-track"><div class="radar-fill" style="width:65%;background:#D96B6B;"></div></div>
+                                <span class="radar-val">65</span>
+                            </div>
+                            <div class="radar-row">
+                                <span class="radar-label">💧 水感</span>
+                                <div class="radar-track"><div class="radar-fill" style="width:42%;background:#4A9EB8;"></div></div>
+                                <span class="radar-val">42</span>
+                            </div>
+                            <div class="radar-row">
+                                <span class="radar-label">🌱 木感</span>
+                                <div class="radar-track"><div class="radar-fill" style="width:78%;background:#A0B87A;"></div></div>
+                                <span class="radar-val">78</span>
+                            </div>
+                            <div class="radar-row">
+                                <span class="radar-label">⚙️ 金感</span>
+                                <div class="radar-track"><div class="radar-fill" style="width:35%;background:#E8B44C;"></div></div>
+                                <span class="radar-val">35</span>
+                            </div>
+                            <div class="radar-row">
+                                <span class="radar-label">🌍 土感</span>
+                                <div class="radar-track"><div class="radar-fill" style="width:55%;background:#9B7BBF;"></div></div>
+                                <span class="radar-val">55</span>
+                            </div>
+                        </div>
+                        <div style="font-size:10px;color:#A8A098;margin-top:8px;text-align:center;">灵魂画像 · 数据持续生成中</div>
+                    </div>
+                </div>
+            `,
+            photowall: `
+                <div class="detail-title">照片墙 · 碰撞记忆</div>
+                <div class="detail-desc">每一次碰撞都留下一张拍立得。你不用刻意记录——系统替你记着。</div>
+                <div class="detail-section">
+                    <div class="visitor-item">
+                        <div class="visitor-avatar" style="background:rgba(74,158,184,0.15);">💫</div>
+                        <div class="visitor-info">
+                            <div class="visitor-plate">碰到了 0523 号</div>
+                            <div class="visitor-text">「第一次路过TA的门牌」</div>
+                            <div class="visitor-time">3天前 · 消耗1注意力</div>
+                        </div>
+                    </div>
+                    <div class="visitor-item">
+                        <div class="visitor-avatar" style="background:rgba(160,184,122,0.15);">⭐</div>
+                        <div class="visitor-info">
+                            <div class="visitor-plate">点亮了 0541 号</div>
+                            <div class="visitor-text">「被TA的视频深深触动了」</div>
+                            <div class="visitor-time">2天前 · 对方空间 +1㎡</div>
+                        </div>
+                    </div>
+                    <div class="visitor-item">
+                        <div class="visitor-avatar" style="background:rgba(232,180,76,0.15);">🌟</div>
+                        <div class="visitor-info">
+                            <div class="visitor-plate">0523 号点亮了你</div>
+                            <div class="visitor-text">「你的门牌被光照亮了」</div>
+                            <div class="visitor-time">1天前 · 你的空间 +1㎡</div>
+                        </div>
+                    </div>
+                    <div class="visitor-item">
+                        <div class="visitor-avatar" style="background:rgba(155,123,191,0.15);">💫</div>
+                        <div class="visitor-info">
+                            <div class="visitor-plate">碰到了 0589 号</div>
+                            <div class="visitor-text">「在街区偶遇」</div>
+                            <div class="visitor-time">今天</div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            drawer: `
+                <div class="detail-title">抽屉 · 私密角落</div>
+                <div class="detail-desc">只有你能打开。里面放着最私密的收藏。</div>
+                <div class="detail-section">
+                    <div class="detail-section-title">🌌 我的星空</div>
+                    <div class="star-collection">
+                        <div class="star-item">0523</div>
+                        <div class="star-item">0541</div>
+                        <div class="star-item">0589</div>
+                        <div class="star-item">0602</div>
+                        <div class="star-item">0515</div>
+                    </div>
+                    <div class="star-hint">你收藏的人，会变成星星出现在这里<br>他们不知道</div>
+                </div>
+                <div class="detail-section" style="margin-top:16px;">
+                    <div class="detail-section-title">📝 未公开的草稿</div>
+                    <div style="padding:10px;background:rgba(0,0,0,0.02);border-radius:10px;">
+                        <div style="font-size:12px;color:#2C2824;padding:8px 0;border-bottom:1px dashed rgba(0,0,0,0.05);">「今天在街区碰到了一个做陶艺的人，TA的故事让我想起了…」</div>
+                        <div style="font-size:12px;color:#2C2824;padding:8px 0;">「如果有一天我的空间足够大，想办一场不收门票的展览。」</div>
+                    </div>
+                </div>
+                <div class="detail-section" style="margin-top:16px;">
+                    <div class="detail-section-title">📁 收起来的照片</div>
+                    <div style="font-size:11px;color:#8B8680;">已将 2 张拍立得收进抽屉</div>
+                </div>
+            `,
+            yard: `
+                <div class="detail-title">院子</div>
+                <div class="detail-desc">空间长大了一点，有了一个小院子。可以坐在椅子上发呆，可以种点什么，也可以把椅子摆成小摊位。</div>
+                <div class="detail-section">
+                    <div class="detail-section-title">🪑 椅子</div>
+                    <div style="font-size:12px;color:#8B8680;margin-bottom:8px;">访客来了可以在这里坐。创造者可以把椅子换成摊位——展示和出售作品。</div>
+                    <div class="detail-section-title">🌿 植物</div>
+                    <div style="font-size:12px;color:#8B8680;margin-bottom:8px;">随着你在拓圈的时间增长，植物会慢慢长大。没有人催它，它自己长。</div>
+                    <div class="detail-section-title">💡 灯串</div>
+                    <div style="font-size:12px;color:#8B8680;">院子里挂着小灯。每到晚上，灯会自动亮起来。每一盏灯代表一次「被点亮」。</div>
+                </div>
+            `
+        };
+
+        function openDetail(type) {
+            const overlay = document.getElementById('detailOverlay');
+            const content = document.getElementById('detailContent');
+            if (detailHTML[type]) {
+                content.innerHTML = detailHTML[type];
+                overlay.classList.add('show');
+            }
+        }
+
+        function closeDetail(e) {
+            if (e.target === document.getElementById('detailOverlay')) {
+                document.getElementById('detailOverlay').classList.remove('show');
+            }
+        }
+
+        // ===== 布置面板 =====
+        function openArrange() {
+            const content = document.getElementById('detailContent');
+            content.innerHTML = `
+                <div class="detail-title">布置你的空间</div>
+                <div class="detail-desc">选择氛围和功能，让你的小家更像你。不是花钱买装饰——有些选项需要你做过某些事才会解锁。</div>
+                <div class="detail-section">
+                    <div class="detail-section-title">🌅 窗户朝向</div>
+                    <div class="arrange-grid">
+                        <div class="arrange-option selected">
+                            <div class="arrange-icon">🌆</div>
+                            <div class="arrange-name">街区夜景</div>
+                            <div class="arrange-desc">看到蛋生壹号街区</div>
+                        </div>
+                        <div class="arrange-option locked">
+                            <div class="arrange-icon">🌅</div>
+                            <div class="arrange-name">金陵天际线</div>
+                            <div class="arrange-desc">达到100㎡解锁</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-title">💡 灯光氛围</div>
+                    <div class="arrange-grid">
+                        <div class="arrange-option selected">
+                            <div class="arrange-icon">🕯️</div>
+                            <div class="arrange-name">暖光烛台</div>
+                            <div class="arrange-desc">默认</div>
+                        </div>
+                        <div class="arrange-option locked">
+                            <div class="arrange-icon">🌙</div>
+                            <div class="arrange-name">月光氛围</div>
+                            <div class="arrange-desc">第一次被点亮解锁</div>
+                        </div>
+                        <div class="arrange-option locked">
+                            <div class="arrange-icon">⭐</div>
+                            <div class="arrange-name">星空顶</div>
+                            <div class="arrange-desc">被点亮10次解锁</div>
+                        </div>
+                        <div class="arrange-option locked">
+                            <div class="arrange-icon">🏮</div>
+                            <div class="arrange-name">暖灯串</div>
+                            <div class="arrange-desc">有访客做客解锁</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-title">🖼️ 墙面风格</div>
+                    <div class="arrange-grid">
+                        <div class="arrange-option selected">
+                            <div class="arrange-icon">📄</div>
+                            <div class="arrange-name">旧书页</div>
+                            <div class="arrange-desc">默认</div>
+                        </div>
+                        <div class="arrange-option locked">
+                            <div class="arrange-icon">🎨</div>
+                            <div class="arrange-name">手绘涂鸦墙</div>
+                            <div class="arrange-desc">碰撞20次解锁</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('detailOverlay').classList.add('show');
+        }
+
+    </script>
+</body>
+</html>

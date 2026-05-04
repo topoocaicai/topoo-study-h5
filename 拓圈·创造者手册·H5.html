@@ -1,0 +1,917 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拓圈·创造者手册</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#F5F0E8;--bg2:#EDE7DB;--bg3:#E5DFD3;
+--dark:#0B0F1E;--dark2:#1A1E2E;--dark3:#2A2E3E;
+--accent:#4A9EB8;--accent2:#3A8EA8;--accent-light:#B8DDE8;
+--fire:#D96B6B;--water:#4A9EB8;--wood:#A0B87A;--gold:#E8B44C;--earth:#9B7BBF;
+--text:#2C2824;--text2:#5C5752;--text3:#8A8580;
+--radius:12px;--radius-lg:16px;--radius-xl:24px;
+}
+body{
+font-family:'Noto Sans SC',sans-serif;
+background:var(--bg);
+color:var(--text);
+line-height:1.8;
+font-size:15px;
+-webkit-font-smoothing:antialiased;
+}
+.page{
+max-width:420px;
+margin:0 auto;
+min-height:100vh;
+background:var(--bg);
+overflow-x:hidden;
+}
+
+/* Hero */
+.hero{
+position:relative;
+padding:60px 28px 48px;
+background:linear-gradient(165deg,#1A2E1A 0%,#2A4A2A 50%,#1A3A2A 100%);
+color:#fff;
+overflow:hidden;
+}
+.hero::before{
+content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;
+background:radial-gradient(circle,rgba(160,184,122,0.15) 0%,transparent 70%);
+border-radius:50%;
+}
+.hero::after{
+content:'';position:absolute;bottom:-60px;left:-60px;width:250px;height:250px;
+background:radial-gradient(circle,rgba(232,180,76,0.12) 0%,transparent 70%);
+border-radius:50%;
+}
+.hero-badge{
+display:inline-block;
+padding:4px 14px;
+background:rgba(160,184,122,0.25);
+border:1px solid rgba(160,184,122,0.4);
+border-radius:20px;
+font-size:12px;color:var(--wood);
+letter-spacing:1px;
+margin-bottom:20px;
+}
+.hero h1{
+font-family:'Noto Serif SC',serif;
+font-size:32px;font-weight:700;
+line-height:1.3;margin-bottom:12px;
+letter-spacing:2px;
+}
+.hero h1 span{color:var(--wood)}
+.hero-sub{
+font-size:14px;color:rgba(255,255,255,0.6);
+line-height:1.7;
+font-weight:300;
+}
+.stars{
+position:absolute;top:20px;left:0;right:0;height:100%;
+pointer-events:none;
+}
+.star{
+position:absolute;
+background:#fff;
+border-radius:50%;
+animation:twinkle 3s ease-in-out infinite alternate;
+}
+@keyframes twinkle{0%{opacity:0.2}100%{opacity:0.8}}
+
+.content{padding:0 24px 200px;}
+
+/* Section */
+.section{margin-top:40px;}
+.section-title{
+font-family:'Noto Serif SC',serif;
+font-size:22px;font-weight:600;
+color:var(--dark);
+margin-bottom:24px;
+padding-left:16px;
+border-left:3px solid var(--wood);
+line-height:1.4;
+}
+
+/* 开场文案 Hero下引文 */
+.opening-quote{
+background:linear-gradient(135deg,#1A3A2A,#2A4A3A);
+color:#fff;
+padding:28px 24px;
+border-radius:var(--radius-lg);
+margin-top:32px;
+position:relative;
+overflow:hidden;
+}
+.opening-quote::before{
+content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,var(--wood),var(--fire),var(--gold));
+}
+.opening-quote p{
+font-size:15px;line-height:2;
+color:rgba(255,255,255,0.85);
+}
+.opening-quote p em{
+font-style:normal;
+color:#fff;
+font-weight:500;
+}
+
+/* Details/Summary 折叠 */
+.detail-block{
+margin-bottom:16px;
+background:#fff;
+border-radius:var(--radius-lg);
+border:1px solid rgba(0,0,0,0.04);
+overflow:hidden;
+}
+.detail-block summary{
+padding:16px 20px;
+font-size:16px;font-weight:600;
+color:var(--dark);
+cursor:pointer;
+list-style:none;
+position:relative;
+user-select:none;
+}
+.detail-block summary::-webkit-details-marker{display:none}
+.detail-block summary::before{
+content:'▶';
+display:inline-block;
+margin-right:10px;
+font-size:11px;
+transition:transform 0.2s;
+color:var(--wood);
+}
+.detail-block[open] summary::before{
+transform:rotate(90deg);
+}
+.detail-body{
+padding:4px 20px 20px;
+font-size:14px;color:var(--text2);
+line-height:2;
+}
+
+/* 通用文字样式 */
+.highlight{
+background:linear-gradient(to bottom,transparent 60%,rgba(160,184,122,0.18) 60%);
+padding:0 2px;
+}
+.highlight-fire{
+background:linear-gradient(to bottom,transparent 60%,rgba(217,107,107,0.15) 60%);
+}
+.quote-box{
+background:var(--dark);
+color:#fff;
+padding:24px;
+border-radius:var(--radius-lg);
+margin:20px 0;
+position:relative;
+overflow:hidden;
+}
+.quote-box::before{
+content:'';position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,var(--accent),var(--earth),var(--gold));
+}
+.quote-text{
+font-family:'Noto Serif SC',serif;
+font-size:16px;font-weight:600;
+line-height:1.8;
+text-align:center;
+letter-spacing:1px;
+}
+.card{
+background:var(--bg);
+border-radius:var(--radius);
+padding:16px;
+margin-bottom:12px;
+}
+.card-title{
+font-size:15px;font-weight:600;
+color:var(--dark);
+margin-bottom:8px;
+}
+.card-desc{
+font-size:13.5px;color:var(--text2);
+line-height:2;
+}
+.card-desc b{color:var(--text);font-weight:500}
+
+/* 表格 */
+.table-wrap{
+overflow-x:auto;
+margin:12px 0;
+}
+table{
+width:100%;
+border-collapse:collapse;
+font-size:13px;
+}
+th{
+background:var(--dark);
+color:#fff;
+padding:8px 12px;
+text-align:left;
+font-weight:500;
+font-size:12px;
+}
+th:first-child{border-radius:8px 0 0 0}
+th:last-child{border-radius:0 8px 0 0}
+td{
+padding:8px 12px;
+border-bottom:1px solid var(--bg3);
+vertical-align:top;
+}
+tr:last-child td{border-bottom:none}
+tr:last-child td:first-child{border-radius:0 0 0 8px}
+tr:last-child td:last-child{border-radius:0 0 8px 0}
+
+/* Tags */
+.tag{
+display:inline-block;
+padding:2px 10px;
+border-radius:10px;
+font-size:11px;font-weight:500;
+margin-right:6px;margin-bottom:4px;
+}
+.tag.water{background:rgba(74,158,184,0.1);color:var(--water)}
+.tag.fire{background:rgba(217,107,107,0.1);color:var(--fire)}
+.tag.wood{background:rgba(160,184,122,0.1);color:var(--wood)}
+.tag.gold{background:rgba(232,180,76,0.1);color:var(--gold)}
+.tag.earth{background:rgba(155,123,191,0.1);color:var(--earth)}
+
+/* 五行属性块 */
+.wx-block{
+display:flex;gap:12px;
+padding:14px 16px;
+background:#fff;
+border-radius:var(--radius);
+margin-bottom:10px;
+border-left:3px solid var(--wood);
+}
+.wx-icon{
+width:40px;height:40px;
+border-radius:var(--radius);
+display:flex;align-items:center;justify-content:center;
+font-size:20px;flex-shrink:0;
+}
+.wx-icon.fire{background:rgba(217,107,107,0.12)}
+.wx-icon.water{background:rgba(74,158,184,0.12)}
+.wx-icon.wood{background:rgba(160,184,122,0.12)}
+.wx-icon.gold{background:rgba(232,180,76,0.12)}
+.wx-icon.earth{background:rgba(155,123,191,0.12)}
+.wx-body{font-size:13px;color:var(--text2);line-height:1.9}
+.wx-body strong{color:var(--text);font-weight:500}
+
+/* 保证金 / 种子期 */
+.seed-box{
+background:linear-gradient(135deg,var(--dark) 0%,#1A2E1A 100%);
+color:#fff;
+border-radius:var(--radius-lg);
+padding:20px;
+margin:16px 0;
+position:relative;
+overflow:hidden;
+}
+.seed-box::before{
+content:'CREATOR';
+position:absolute;top:-1px;right:16px;
+background:var(--wood);
+color:#fff;
+font-size:10px;
+padding:2px 10px;
+border-radius:0 0 8px 8px;
+font-weight:500;
+}
+.seed-box .label{font-size:12px;opacity:0.7;margin-bottom:6px}
+.seed-box .amount{font-size:30px;font-weight:700;margin-bottom:4px}
+.seed-box .period{font-size:12px;opacity:0.6;margin-bottom:12px}
+.seed-features{font-size:12.5px;line-height:2;opacity:0.85}
+
+/* 分割线 */
+.divider{
+height:1px;
+background:linear-gradient(90deg,transparent,var(--bg3),transparent);
+margin:32px 0;
+}
+.section-sep{
+height:6px;
+background:var(--dark);
+margin:40px -24px;
+}
+
+/* 五瓣花 */
+.flower-diagram{
+display:flex;justify-content:center;
+margin:20px 0;
+}
+.flower{
+width:120px;height:120px;
+position:relative;
+}
+.petal{
+position:absolute;
+width:40px;height:40px;
+border-radius:50%;
+display:flex;align-items:center;justify-content:center;
+font-size:11px;color:#fff;font-weight:600;
+}
+.petal.fire{background:var(--fire);top:0;left:50%;transform:translateX(-50%)}
+.petal.water{background:var(--water);bottom:0;left:10%}
+.petal.wood{background:var(--wood);bottom:0;right:10%}
+.petal.gold{background:var(--gold);top:50%;left:0;transform:translateY(-50%)}
+.petal.earth{background:var(--earth);top:50%;right:0;transform:translateY(-50%)}
+.flower-center{
+position:absolute;
+top:50%;left:50%;
+transform:translate(-50%,-50%);
+width:28px;height:28px;
+background:var(--dark);
+border-radius:50%;
+}
+/* FAQues */
+.faq-list{display:flex;flex-direction:column;gap:8px}
+.faq-item{
+background:#fff;
+border-radius:var(--radius);
+border:1px solid rgba(0,0,0,0.04);
+overflow:hidden;
+padding:14px 16px;
+}
+.faq-q{
+font-size:13.5px;
+font-weight:500;
+color:var(--dark);
+line-height:1.5;
+margin-bottom:6px;
+}
+.faq-a{
+font-size:13px;
+color:var(--text2);
+line-height:1.9;
+}
+/* Closing */
+.closing{
+text-align:center;
+padding:40px 0 20px;
+}
+.closing-text{
+font-family:'Noto Serif SC',serif;
+font-size:16px;
+color:var(--text2);
+line-height:2;
+}
+
+/* 号段资产强调框 */
+.asset-box{
+margin:16px 0;
+padding:16px;
+background:rgba(160,184,122,0.08);
+border:1px solid rgba(160,184,122,0.2);
+border-radius:var(--radius);
+font-size:13.5px;
+color:var(--text2);
+line-height:2;
+}
+.asset-box strong{color:var(--wood);font-weight:600;font-size:14px}
+
+/* 底部导航 */
+.bottom-nav{
+position:fixed;
+bottom:0;left:50%;
+transform:translateX(-50%);
+width:100%;max-width:420px;
+background:rgba(245,240,232,0.95);
+backdrop-filter:blur(12px);
+border-top:1px solid var(--bg3);
+padding:8px 16px 12px;
+z-index:100;
+display:flex;
+justify-content:space-around;
+}
+.nav-item{
+text-align:center;
+padding:4px 8px;
+cursor:pointer;
+font-size:10px;
+color:var(--text3);
+transition:all 0.2s;
+}
+.nav-item.active{color:var(--wood)}
+.nav-dot{
+width:4px;height:4px;
+background:var(--wood);
+border-radius:50%;
+margin:4px auto 0;
+}
+.nav-dot.hidden{opacity:0}
+
+/* 动画 */
+@keyframes fadeInUp{
+from{opacity:0;transform:translateY(12px)}
+to{opacity:1;transform:translateY(0)}
+}
+.fade-in{animation:fadeInUp 0.5s ease forwards}
+
+/* 响应式 */
+@media(max-width:420px){
+.hero h1{font-size:26px}
+.section-title{font-size:19px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- Hero -->
+<div class="hero">
+<div class="stars">
+<div class="star" style="top:30px;left:15%;width:2px;height:2px;animation-delay:0s"></div>
+<div class="star" style="top:60px;left:45%;width:1.5px;height:1.5px;animation-delay:0.8s"></div>
+<div class="star" style="top:25px;left:70%;width:2px;height:2px;animation-delay:1.5s"></div>
+<div class="star" style="top:80px;left:25%;width:1px;height:1px;animation-delay:2s"></div>
+<div class="star" style="top:50px;left:85%;width:1.5px;height:1.5px;animation-delay:0.5s"></div>
+<div class="star" style="top:100px;left:55%;width:1px;height:1px;animation-delay:1.2s"></div>
+<div class="star" style="top:40px;left:90%;width:2px;height:2px;animation-delay:2.5s"></div>
+<div class="star" style="top:90px;left:10%;width:1px;height:1px;animation-delay:1.8s"></div>
+</div>
+<div class="hero-badge">CREATOR</div>
+<h1>创造者<span>手册</span></h1>
+<p class="hero-sub">让小而美被世界看见</p>
+</div>
+
+<!-- 开场文案 -->
+<div class="content">
+
+<div class="opening-quote">
+<p>
+<em>你做了东西，但没人看见。</em><br>
+<em>或者有人看见，但只是被刷过去。</em><br><br>
+你不是没有能力，是没有一个地方让你的东西被认真看见。<br><br>
+拓圈就是这个地方。<br><br>
+<strong style="color:var(--wood);font-size:17px">让小而美被世界看见。</strong>
+</p>
+</div>
+
+<div class="divider"></div>
+
+<!-- 第一章：为什么要成为创造者 -->
+<details class="detail-block" open>
+<summary><strong>一、为什么要成为创造者？</strong></summary>
+<div class="detail-body">
+
+<div style="font-size:14px;color:var(--text);line-height:2">
+你做了产品，拍了图，写了文案，上了架。然后——<br><br>
+你发现流量是买来的，客户是算出来的，复购是靠打折换来的。你不停地产出，但越来越觉得：<strong>这不是我想要的状态。</strong><br><br>
+核心问题不是你做得不够好，是<strong>你的东西没有遇到"对的人"</strong>。<br><br>
+算法给你流量，但算法不了解你。它把你的产品推给1000个人，其中可能只有3个真的需要。剩下997个划走，你的内容就"表现不好"，算法就不推了。<br><br>
+这是<strong>喂养逻辑</strong>——你在被喂养流量，同时你也在喂养算法。
+</div>
+
+<div class="quote-box">
+<div class="quote-text">创造者，是在拓圈里认真做东西、<br>并把东西拿出来和人碰撞的人。</div>
+</div>
+
+<div style="font-size:14px;color:var(--text2);line-height:2;margin-top:16px;">
+不是"商家"，不是"博主"，不是"供应商"。<br><br>
+你有一个产品、一项服务、一个内容方向——你把它放进拓圈，让人碰撞到它。有人路过你的门牌，有人被你的故事打动，有人点亮你，有人把你的东西放进他的星空。<br><br>
+这些不是"转化"，是<strong>碰撞</strong>。<br>
+碰撞产生的不是一笔订单，是一个<strong>真实的关系</strong>。
+</div>
+
+<div class="table-wrap" style="margin-top:16px">
+<table>
+<tr><th></th><th>探索者</th><th>创造者</th></tr>
+<tr><td><strong>核心行为</strong></td><td>主动探索，碰撞别人</td><td>做出东西，被别人碰撞</td></tr>
+<tr><td><strong>空间功能</strong></td><td>个人成长记录</td><td>产品展示 + 委托接单</td></tr>
+<tr><td><strong>收益来源</strong></td><td>分配 + 号段交易</td><td>产品销售 + 服务委托 + 分配</td></tr>
+<tr><td><strong>入场门槛</strong></td><td>¥365终身 / ¥599年</td><td>申请制 + 保证金</td></tr>
+</table>
+</div>
+<div style="font-size:13px;color:var(--text2);margin-top:8px;">创造者不是"升级版探索者"——是<strong>另一种角色</strong>，做的事不一样，收益方式不一样，在拓圈里的位置也不一样。</div>
+
+</div>
+</details>
+
+<div class="divider"></div>
+
+<!-- 第二章：创造者能做什么 -->
+<details class="detail-block">
+<summary><strong>二、创造者能做什么？</strong></summary>
+<div class="detail-body">
+
+<!-- 空间 -->
+<div class="card" style="background:#fff;border:1px solid rgba(0,0,0,0.04)">
+<div class="card-title" style="color:var(--water)">&#x1F3E0; 你的空间（创造者的"小家"升级版）</div>
+<div class="card-desc">
+<strong>空间分层：</strong><br>
+第1层：门牌（别人路过就能看到）<br>
+第2层：展示区（别人进入空间后看到的产品/服务列表）<br>
+第3层：故事区（你为什么做这个东西）<br>
+第4层：委托区（别人可以直接在这里给你发委托）<br><br>
+<strong>门牌</strong>（外部门牌）：创造者的门牌上多了一行字——<br>
+<span style="display:inline-block;background:var(--bg);padding:6px 12px;border-radius:8px;margin:8px 0;font-size:13px">"此人可以做：[你的服务类型]"</span><br>
+别人路过看到，就知道可以给你发委托。<br><br>
+<strong>展示区</strong>（空间内部）：最多展示12个产品/服务，每个有封面图、名称、一句话描述、价格、"被点亮次数"。<br><br>
+<strong>故事区</strong>：你为什么做这个产品？这不是"品牌故事"那种包装文案，是你<strong>真实的思考过程</strong>。<br><br>
+<strong>委托区</strong>：别人可以直接发委托，你选择接或不接。接了之后系统生成"铸造成果"，积累进你的专业档案。
+</div>
+</div>
+
+<!-- 前期扶持 -->
+<div class="card" style="background:#fff;border:1px solid rgba(0,0,0,0.04)">
+<div class="card-title" style="color:var(--gold)">&#x1F4AA; 拓圈前期扶持计划</div>
+<div class="card-desc">
+创造者最难的是<strong>刚开始没人看见、不知道怎么展示、不知道有什么玩法</strong>。<br><br>
+拓圈提供三项扶持——<br><br>
+<strong>① 空间搭建 1对1指导</strong><br>
+不知道门牌上写什么、展示区放什么图？拓圈团队和你一起打磨——不是帮你"包装"，是帮你把<strong>真实的东西整理得让人能碰撞到</strong>。<br><br>
+<strong>② 新玩法共创</strong><br>
+你有一个新想法，但不知道怎么实现？拓圈产品团队可以和你一起把它做出来——<strong>你的玩法，可能变成拓圈所有创造者都能用的功能</strong>。<br><br>
+<strong>③ 你的空间，也可以有"拓圈同款"</strong><br>
+你的空间和橱窗里，可以应用拓圈同一套机制——碰撞、点亮、灵魂画像、五行场域……
+</div>
+</div>
+
+<!-- 产品展示与销售 -->
+<div class="card" style="background:#fff;border:1px solid rgba(0,0,0,0.04)">
+<div class="card-title" style="color:var(--fire)">&#x1F4B0; 产品展示与销售</div>
+<div class="card-desc">
+<strong>创造者在拓圈里可以卖东西吗？</strong><br>
+可以。这是创造者最重要的功能之一。<br><br>
+<strong>产品上架：</strong>最多同时展示12个产品，每个有独立页面（图、描述、价格、库存、"被点亮次数"），支持"私密上架"——只让碰撞到你的人看到。<br><br>
+<strong>交易方式：</strong>拓圈不收交易佣金（种子期政策），交易通过微信小程序完成。<br><br>
+<strong>产品被点亮：</strong>别人买了你的产品、或深度被你的产品故事打动，可以"点亮"你的产品。点亮后：产品页面显示"已被XX人点亮"，在主搜索/推荐里的权重上升，你获得一个"产品光点"累积进灵魂画像。
+</div>
+</div>
+
+<!-- 委托接单 -->
+<div class="card" style="background:#fff;border:1px solid rgba(0,0,0,0.04)">
+<div class="card-title" style="color:var(--earth)">&#x1F4DE; 委托接单系统</div>
+<div class="card-desc">
+<strong>什么是委托？</strong>别人需要你的专业能力，通过你的门牌/空间直接给你发任务。<br><br>
+<strong>委托流程：</strong><br>
+1. 对方在你的空间里点击"发委托"<br>
+2. 填写需求描述、预算范围、时间要求<br>
+3. 你收到通知，选择"接"或"不接"<br>
+4. 接了之后，系统生成"铸造中"状态<br>
+5. 完成后，对方确认，系统生成"铸造成果"归档<br><br>
+<strong>委托的专业档案：</strong>每次完成委托，系统自动生成一条记录："20XX年X月，完成了[委托人]的[项目类型]，耗时X天"。这些累积起来就是你的<strong>专业能力档案</strong>。<br><br>
+<strong>金型创造者的特权：</strong>门牌上自带"可委托"标记，系统会优先把委托需求推荐给你。
+</div>
+</div>
+
+<!-- 收益模式 -->
+<div class="card" style="background:#fff;border:1px solid rgba(0,0,0,0.04)">
+<div class="card-title" style="color:var(--gold)">&#x1F4B0; 收益模式（创造者怎么赚钱）</div>
+<div class="card-desc">
+创造者有三个收益来源——<br><br>
+<strong>① 产品销售</strong><br>
+直接卖产品，收入归你。拓圈种子期不收交易佣金。<br><br>
+<strong>② 服务委托</strong><br>
+别人给你发委托，你接单完成后收费。定价你自己定，平台不干预。<br><br>
+<strong>③ 收益分配</strong><br>
+拓圈整体有收益后，会拿出一部分分配给所有角色。<strong>创造者的分配权重比探索者高</strong>。<br>
+分配权重 = 基础权重（等级档位）+ 产品被点亮次数 + 完成的委托数 + 相生合作次数。<br><br>
+<strong>④ 号段交易（重点！）</strong><br>
+你的号段是<strong>资产，不是消费</strong>。<br>
+创造者号段的价值 = 等级积累 + 产品资产 + 专业档案 + 灵魂画像完整度 + 五行属性成长记录。<br>
+<strong>这个号未来可以交易</strong>——越早入场，积累越多，号段价值越高。你不是"买了一个创造者资格"，是"在拓圈里经营了一个会增值的资产"。
+</div>
+</div>
+
+</div>
+</details>
+
+<div class="divider"></div>
+
+<!-- 第三章：产品类目体系 -->
+<details class="detail-block">
+<summary><strong>三、产品类目体系</strong></summary>
+<div class="detail-body">
+
+<div style="font-size:13px;color:var(--text3);margin-bottom:12px;">创造者分为五大类型，对应五行——</div>
+
+<!-- 产品型 -->
+<div style="margin-bottom:16px;">
+<div style="font-size:15px;font-weight:600;color:var(--wood);margin-bottom:8px;">&#x1F331; 产品型创造者（木·生长力）</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;">
+有实体/虚拟产品，核心诉求是<strong>把产品卖出去、卖得更好、品牌更值钱</strong>。<br><br>
+<span class="tag wood">食品饮料</span>休闲零食、冲饮代餐、地方特产、烘焙甜品、预制菜、健康轻食、酒水饮品、宠物食品<br>
+<span class="tag wood">美妆个护</span>护肤品、彩妆、香氛、个护清洁、美容仪器、男士理容<br>
+<span class="tag wood">服装配饰</span>女装、男装、童装、内衣家居服、运动户外服饰、鞋靴、包袋箱包、珠宝首饰<br>
+<span class="tag wood">家居生活</span>家纺床品、厨房用品、家居收纳、家装饰品、香薰蜡烛、智能家居<br>
+<span class="tag wood">数码科技</span>手机配件、数码外设、影音设备、智能穿戴、桌面好物<br>
+<span class="tag wood">母婴育儿</span>婴幼儿食品、婴幼儿洗护、玩具早教、孕产护理<br>
+<span class="tag wood">文创潮玩</span>潮玩盲盒、文具手帐、IP周边、艺术版画/插画、独立出版物<br>
+<span class="tag wood">运动健康</span>运动营养、瑜伽健身器材、户外装备、骑行装备<br>
+<span class="tag wood">宠物用品</span>宠物用品、宠物智能硬件、宠物服饰<br>
+<span class="tag wood">花卉绿植</span>鲜花订阅、绿植盆栽、花器花艺工具<br>
+<span class="tag wood">虚拟产品</span>知识付费课程、数字模板、SaaS工具、游戏产品、数字藏品
+</div>
+</div>
+
+<!-- 内容型 -->
+<div style="margin-bottom:16px;">
+<div style="font-size:15px;font-weight:600;color:var(--water);margin-bottom:8px;">&#x1F4A7; 内容型创造者（水·渗透力）</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;">
+核心资产是<strong>内容能力和影响力</strong>，通过内容触达陌生人。<br><br>
+<span class="tag water">短视频</span>美食探店、美妆穿搭、知识科普、生活vlog、搞笑段子、情感文案、萌宠、数码测评<br>
+<span class="tag water">图文</span>自媒体/公众号、小红书博主、摄影师、插画师<br>
+<span class="tag water">直播</span>带货主播、知识直播、娱乐直播、游戏直播<br>
+<span class="tag water">音频/播客</span>播客、有声书/电台、音乐创作
+</div>
+</div>
+
+<!-- 服务型 -->
+<div style="margin-bottom:16px;">
+<div style="font-size:15px;font-weight:600;color:var(--gold);margin-bottom:8px;">&#x2699; 服务型创造者（金·打磨力）</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;">
+以<strong>专业技能和创意能力</strong>为核心，提供服务和解决方案。<br><br>
+<span class="tag gold">品牌设计</span>VI/品牌全案、包装设计、UI/UX设计、空间设计、工业设计<br>
+<span class="tag gold">营销策划</span>品牌策划、活动策划、社媒运营、私域运营、广告创意<br>
+<span class="tag gold">内容制作</span>短视频制作、直播操盘、文案撰稿、摄影服务、动画/动效<br>
+<span class="tag gold">商业咨询</span>电商咨询、法律财税、股权/融资、知识产权<br>
+<span class="tag gold">技术开发</span>小程序开发、网站建设、AI应用开发、SaaS定制
+</div>
+</div>
+
+<!-- 门店型 -->
+<div style="margin-bottom:16px;">
+<div style="font-size:15px;font-weight:600;color:var(--fire);margin-bottom:8px;">&#x1F525; 门店/空间型创造者（火·聚集力）</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;">
+有实体空间，核心诉求是<strong>让人聚过来，产生在场感</strong>。<br>
+咖啡店、茶饮店、手作店、买手店、独立书店、工作室……
+</div>
+</div>
+
+<!-- 活动型 -->
+<div>
+<div style="font-size:15px;font-weight:600;color:var(--earth);margin-bottom:8px;">&#x1F5D5; 活动型创造者（土·承载力）</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;">
+核心诉求是<strong>让所有人有地方待，制造归属感</strong>。<br>
+展览、市集、沙龙、工作坊、快闪活动……
+</div>
+</div>
+
+</div>
+</details>
+
+<div class="divider"></div>
+
+<!-- 第四章：如何成为创造者 -->
+<details class="detail-block">
+<summary><strong>四、如何成为创造者？</strong></summary>
+<div class="detail-body">
+
+<div style="font-size:14px;color:var(--text);line-height:2;margin-bottom:12px;">
+创造者不是买个会员就自动获得的身份。你需要<strong>申请</strong>，拓圈审核通过后才能真正成为创造者。<br><br>
+<strong>为什么？</strong><br>
+因为创造者的门牌会出现在街区地图上，别人会看到你、委托你、买你的产品。如果随便什么人都能成为创造者，拓圈的信任基础就没了。
+</div>
+
+<div style="background:var(--bg);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;">
+<div style="font-size:13px;font-weight:600;color:var(--dark);margin-bottom:8px;">申请条件</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;">
+1. 已经有成型的产品/服务/内容方向（不是"我想做"，是"我已经在做"）<br>
+2. 愿意接受平台的碰撞机制（被点亮、被留光点、被写进别人的笔记本）<br>
+3. 同意不造假、不包装、不造神（违反直接清退，保证金不退）
+</div>
+</div>
+
+<!-- 类目保护 -->
+<div style="background:rgba(160,184,122,0.08);border:1px solid rgba(160,184,122,0.2);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;">
+<div style="font-size:13px;font-weight:600;color:var(--wood);margin-bottom:8px;">&#x1F6E1; 种子期类目保护机制</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;">
+原则上，<strong>种子期一个细分类目只选1-3家</strong>。<br><br>
+为什么？因为拓圈不想做成"万物商城"，我们想让早期进来的创造者有足够的空间慢慢生长，而不是一进来就和竞品卷价格。<br><br>
+如果你做的类目已经满额了，可以选择：<br>
+1. 等待下一批次开放<br>
+2. 换成另一个你也在做的类目<br>
+3. 先以探索者身份入场，碰撞一段时间再申请
+</div>
+</div>
+
+<!-- 保证金制度 -->
+<div class="seed-box">
+<div class="label">保证金制度</div>
+<div class="amount">¥2000<span style="font-size:14px;font-weight:400;opacity:0.7"> 种子期（可退）</span></div>
+<div class="period">正式期：¥2999 + ¥5000保证金</div>
+<div class="seed-features">
+&#x2713; 种子期前100个创造者专享<br>
+&#x2713; 不想做了可以随时申请退保证金<br>
+&#x2713; <strong>有未交付订单需完成后再退出</strong><br>
+&#x2713; 无投诉、无违规，7个工作日内退回
+</div>
+</div>
+
+<div style="background:rgba(232,180,76,0.08);border-left:3px solid var(--gold);border-radius:0 var(--radius) var(--radius) 0;padding:14px 16px;margin:16px 0;font-size:13px;color:var(--text2);line-height:2;">
+<strong style="color:var(--dark)">为什么要保证金？</strong><br>
+不是割韭菜，是<strong>建立信任门槛</strong>。创造者是要被别人委托、被别人买产品的人，如果没有任何门槛，拓圈就变成了一个"人人都可以来卖东西"的平台，信任就没了。
+</div>
+
+<div class="asset-box">
+<strong>&#x2B50; 你的号，是很值钱的资产</strong><br><br>
+创造者的号段 = 等级积累 + 产品资产 + 专业档案 + 灵魂画像完整度 + 五行属性成长记录。<br><br>
+<strong>这个号未来可以交易</strong>——越早入场，积累越高，号段价值越高。<br>
+不是消费，是资产。
+</div>
+
+<!-- 申请流程 -->
+<div style="background:var(--bg);border-radius:var(--radius);padding:14px 16px;margin-top:16px;">
+<div style="font-size:13px;font-weight:600;color:var(--dark);margin-bottom:8px;">申请流程</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;font-family:monospace;">
+提交申请<br>
+↓ 平台审核（3个工作日）<br>
+↓ 通过 → 缴保证金<br>
+↓ 开通创造者权限
+</div>
+<div style="font-size:12px;color:var(--text3);margin-top:10px;line-height:1.8;">
+审核标准：<br>
+- 你有真实的产品/服务/内容，不是空壳<br>
+- 你的东西和拓圈的价值观对齐（小而美，不造神）<br>
+- 你的表达方式是真实的，不是包装出来的
+</div>
+</div>
+
+</div>
+</details>
+
+
+<div class="divider"></div>
+<!-- 第五章：五行力量体系 -->
+<details class="detail-block">
+<summary><strong>五、五行力量体系（创造者的"天赋树"）</strong></summary>
+<div class="detail-body">
+
+<div style="font-size:13px;color:var(--text3);margin-bottom:16px;font-style:italic;">这是一套完整的系统，不是装饰。你可以慢慢看，不着急一开始全懂。</div>
+
+<!-- 核心概念 -->
+<div style="margin-bottom:16px;">
+<div style="font-size:14px;font-weight:600;color:var(--dark);margin-bottom:8px;">核心概念：五行不是你选的，是你<strong>长出来</strong>的</div>
+<div style="font-size:13.5px;color:var(--text2);line-height:2;">
+你注册时不用勾选"我是火型还是水型"。系统观察你做了什么，自动判断你的主导力量。<br><br>
+<div class="table-wrap">
+<table>
+<tr><th>五行</th><th>名字</th><th>本质</th><th>天赋倾向</th></tr>
+<tr><td style="font-size:16px">&#x1F525;</td><td><strong>聚集力</strong></td><td>让人聚过来</td><td>擅长做空间/门店，人在你这里愿意停留</td></tr>
+<tr><td style="font-size:16px">&#x1F4A7;</td><td><strong>渗透力</strong></td><td>内容流到远处</td><td>擅长做内容，陌生人会因为你的内容走进来</td></tr>
+<tr><td style="font-size:16px">&#x1F331;</td><td><strong>生长力</strong></td><td>想法变实体</td><td>擅长做产品，从0到1把东西做出来</td></tr>
+<tr><td style="font-size:16px">&#x2699;</td><td><strong>打磨力</strong></td><td>混乱变秩序</td><td>擅长做服务，别人有问题你就能解决</td></tr>
+<tr><td style="font-size:16px">&#x1F5D5;</td><td><strong>承载力</strong></td><td>让所有人有地方待</td><td>擅长做活动/空间，把人聚在一起</td></tr>
+</table>
+</div>
+</div>
+</div>
+
+<!-- 五行场域效应 -->
+<div style="margin-bottom:16px;">
+<div style="font-size:14px;font-weight:600;color:var(--dark);margin-bottom:12px;">五行场域效应（系统加成）</div>
+
+<div class="wx-block"><div class="wx-icon fire">&#x1F525;</div><div class="wx-body"><strong>火（聚集力）</strong><br>1. 路过加成：门牌微微"暖"一点，更容易被注意到<br>2. 停留buff：进入空间后停留时间统计权重×1.5<br>3. 转化加成：碰撞转化为"深度连接"的概率更高</div></div>
+<div class="wx-block"><div class="wx-icon water">&#x1F4A7;</div><div class="wx-body"><strong>水（渗透力）</strong><br>1. 流动加成：内容出现在"碰撞推荐"里的权重更高<br>2. 共鸣加速：被人点亮后，对方获得额外光点×1<br>3. 广度标记：灵魂画像标注"此人擅长广度连接"</div></div>
+<div class="wx-block"><div class="wx-icon wood">&#x1F331;</div><div class="wx-body"><strong>木（生长力）</strong><br>1. 实物锚点：门牌上可以挂"产品预览"<br>2. 生长追踪：系统记录"从种子到果实"全过程<br>3. 交易溢价：号段交易时产品资产折算额外溢价系数</div></div>
+<div class="wx-block"><div class="wx-icon gold">&#x2699;</div><div class="wx-body"><strong>金（打磨力）</strong><br>1. 信赖标记：门牌上有"可委托"标记<br>2. 案例沉淀：每次完成委托，自动生成"铸造成果"<br>3. 定价自由：服务定价不被平台限价</div></div>
+<div class="wx-block"><div class="wx-icon earth">&#x1F5D5;</div><div class="wx-body"><strong>土（承载力）</strong><br>1. 场地优先：发起活动时系统优先推荐你的空间<br>2. 人数buff：发起的活动初始曝光权重×2<br>3. 跨属性桥梁：参与创造者无论什么属性，合作权重都+0.5</div></div>
+</div>
+
+<!-- 五行相生 -->
+<div style="margin-bottom:16px;">
+<div style="font-size:14px;font-weight:600;color:var(--dark);margin-bottom:8px;">五行相生（合作加成机制）</div>
+<div style="font-size:13.5px;color:var(--text2);line-height:2;">
+相生不是玄学，是<strong>鼓励跨类型合作的系统机制</strong>。<br><br>
+相生方向：水→木→火→土→金→水<br><br>
+<strong>具体怎么触发？</strong><br>
+- 木型创造者做了新产品<br>
+- 水型创造者的内容帮它传播了<br>
+- → 系统检测到"相生行为"<br>
+- → 双方都获得相生加成：木的生长速度+20%，水的共鸣加速+20%<br>
+- → 加成持续7天，需要持续"接"才能维持<br><br>
+<span style="color:var(--wood);font-size:12.5px;">设计意图：让不同属性的创造者<strong>有动力主动找彼此合作</strong>，而不是各做各的。</span>
+</div>
+</div>
+
+<!-- 五行怎么长出来 -->
+<div>
+<div style="font-size:14px;font-weight:600;color:var(--dark);margin-bottom:8px;">五行怎么"长出来"？</div>
+<div style="font-size:13.5px;color:var(--text2);line-height:2;margin-bottom:16px;">
+系统通过三个维度判断你的主导力量——<br>
+1. <strong>你发布了什么类型的内容</strong>（产品/内容/服务/活动）<br>
+2. <strong>别人因为什么和你产生碰撞</strong>（买了你的产品/被你的内容打动/委托你做了服务）<br>
+3. <strong>你的收益主要来自哪个方向</strong>（产品销售/内容传播/服务委托/活动组织）<br><br>
+三个月后，你的灵魂画像里会有一朵<strong>五瓣花</strong>，每片花瓣的大小代表你和那种力量的共振强度。<br><br>
+<strong>你不是"火型创造者"，你是"与火共振的创造者"。</strong>
+</div>
+<div class="flower-diagram">
+<div class="flower">
+<div class="petal fire">火</div>
+<div class="petal water">水</div>
+<div class="petal wood">木</div>
+<div class="petal gold">金</div>
+<div class="petal earth">土</div>
+<div class="flower-center"></div>
+</div>
+</div>
+</div>
+
+</div>
+</details>
+
+<div class="divider"></div>
+
+<!-- 第六章：如何成为开拓者 -->
+<details class="detail-block">
+<summary><strong>六、如何成为开拓者？</strong></summary>
+<div class="detail-body">
+
+<div style="font-size:14px;color:var(--text);line-height:2;margin-bottom:16px;">
+开拓者是拓圈里的"老玩家"——你在拓圈里积累了足够的等级、完成了足够多的碰撞和创作，你觉得这个平台不只是"用来卖东西的"，而是值得你花额外精力去经营的一个地方。<br><br>
+开拓者不是"管理员"，不是"版主"，是<strong>认领了一块责任田的人</strong>。
+</div>
+
+<!-- 申请条件 -->
+<div style="background:var(--bg);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;">
+<div style="font-size:13px;font-weight:600;color:var(--dark);margin-bottom:8px;">如何申请成为开拓者？</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;">
+1. 你的创造者等级达到 <strong>Lv.5 以上</strong><br>
+2. 在拓圈内完成了至少 <strong>5 笔有效交易或委托</strong><br>
+3. 你的灵魂画像五瓣花里，至少有一瓣达到 <strong>"熟练"级别</strong><br>
+4. 向拓圈提交"开拓者申请"——写一段你想为这个空间做什么<br>
+5. <strong>开荒者（菜菜）审批通过</strong>
+</div>
+</div>
+
+<!-- 可以做什么 -->
+<div style="background:rgba(160,184,122,0.08);border:1px solid rgba(160,184,122,0.2);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;">
+<div style="font-size:13px;font-weight:600;color:var(--wood);margin-bottom:8px;">&#x1F3C6; 开拓者可以做什么？</div>
+<div style="font-size:13px;color:var(--text2);line-height:2;">
+<strong>1. 建立运营星球</strong><br>
+你可以在拓圈里建立自己的运营星球（部落升级版），聚集一批和你同频的人，你是这个空间的主理人。<br><br>
+<strong>2. 发起活动</strong><br>
+你可以发起拓圈官方认证的活动（市集/沙龙/工作坊），吸引更多人进来碰撞。<br><br>
+<strong>3. 参与平台共建</strong><br>
+拓圈的新功能，开拓者可以优先参与测试和共创，你的建议会直接影响产品方向。<br><br>
+<strong>4. 收益分配加成</strong><br>
+开拓者的收益分配权重比普通创造者高 <strong>+20%</strong>。
+</div>
+</div>
+
+<!-- 责任 -->
+<div style="font-size:13.5px;color:var(--text2);line-height:2;">
+<strong>开拓者的责任</strong><br>
+开拓者不是"官职"，是<strong>一种选择</strong>。<br><br>
+你选择了为这个空间多付出一些，相应地，你也获得更多的机会和回报。<br><br>
+如果你不想做了，可以随时退出开拓者身份——<strong>不影响你的创造者身份，不影响你的号段资产，保证金照退</strong>。<br><br>
+<span style="color:var(--text3);font-size:12.5px;">拓圈不是"平台雇佣你"，是"你愿意的话，一起把这个地方做得更好"。</span>
+</div>
+
+</div>
+</details>
+
+<div class="divider"></div>
+
+<!-- 第七章：FAQ -->
+<details class="detail-block">
+<summary><strong>七、你可能想问的（FAQ）</strong></summary>
+<div class="detail-body">
+
+<div class="faq-list">
+<div class="faq-item"><div class="faq-q">Q1：创造者和探索者可以同时是吗？</div><div class="faq-a">可以。很多人是先成为探索者，在拓圈里碰撞了一段时间、做了一些东西之后，再申请成为创造者的。你的探索者等级、号段、灵魂画像，全部保留，带入创造者身份。</div></div>
+<div class="faq-item"><div class="faq-q">Q2：保证金什么时候退？</div><div class="faq-a">如果不想继续做了，可以随时申请退保证金。<br><br><strong>如果有用户已经购买你的产品或委托你服务，需要完成所有已产生的交付后再退出。</strong><br><br>没有投诉记录、账号无违规，审核通过后7个工作日内退回。</div></div>
+<div class="faq-item"><div class="faq-q">Q2补充：我的号段值钱吗？</div><div class="faq-a">非常值钱。你的号段 = 等级积累 + 产品资产 + 专业档案 + 灵魂画像完整度 + 五行属性成长记录。<br><br><strong>这个号未来可以交易</strong>——越早入场，积累越多，号段价值越高。你经营的不只是一个创造者资格，是一个会增值的资产。</div></div>
+<div class="faq-item"><div class="faq-q">Q3：我的产品要在哪里上架？</div><div class="faq-a">产品在拓圈H5里展示，交易在微信小程序里完成。两个地方互相跳转，用户体验是连贯的。</div></div>
+<div class="faq-item"><div class="faq-q">Q4：我不是"小而美"，我是大品牌，能进来吗？</div><div class="faq-a">拓圈的核心是为"小而美"服务的。大品牌如果想进来，需要接受一个条件：不以"大品牌"的身份出现，而是以"在这个平台上的一个小角色"的身份出现。不造神，不论大小。</div></div>
+<div class="faq-item"><div class="faq-q">Q5：五行属性会影响我的曝光吗？</div><div class="faq-a">会，但不是"火型一定比水型曝光多"这种简单逻辑。五行影响的是<strong>你被什么类型的人碰撞到的概率</strong>。比如水型创造者的内容更容易被"看重内容质量"的探索者看到。本质上，五行是让"对的人"更容易碰到一起。</div></div>
+<div class="faq-item"><div class="faq-q">Q6：收益分配大概能拿多少？</div><div class="faq-a">和探索者一样，取决于两个东西：你的等级档位，以及这个档位里有多少人。创造者因为多一个"产品/服务被点亮"的维度，分配权重通常比同等级探索者高。但具体金额没办法承诺，因为拓圈整体的收益本身也在成长中。</div></div>
+<div class="faq-item"><div class="faq-q">Q7：我可以不做产品，只做内容吗？</div><div class="faq-a">可以。内容型创造者就是专门做内容的，不需要有实体产品。你的"产品"就是你的内容，别人点亮你的内容，你获得影响力，也可以接委托（比如品牌找你合作）。</div></div>
+<div class="faq-item"><div class="faq-q">Q8：委托接单会不会很多，忙不过来？</div><div class="faq-a">系统不会给你强推委托。你自己的空间你做主，接不接你自己选。你也可以设置"暂停接单"，这段时间就不会收到新的委托通知。</div></div>
+<div class="faq-item"><div class="faq-q">Q9：种子期类目保护是什么意思？</div><div class="faq-a">原则上种子期一个细分类目只选1-3家。目的是让早期进来的创造者有足够的空间慢慢生长，而不是一进来就和竞品卷价格。如果你做的类目满额了，可以等待下一批次、换类目，或先以探索者身份入场。</div></div>
+<div class="faq-item"><div class="faq-q">Q10：开拓者是不是要收钱？</div><div class="faq-a">不需要额外交钱。开拓者是从已有的创造者里选拔的，不收"晋升费"。你的保证金和创造者身份保持不变，只是多了运营权限和分配加成。</div></div>
+</div>
+
+</div>
+</details>
+
+<!-- Closing -->
+<div class="closing">
+<div style="width:40px;height:1px;background:var(--bg3);margin:0 auto 24px"></div>
+<div class="closing-text">
+拓圈不是"平台"。不是你来开店、我们来导流。<br>
+是你认真做东西，我们帮你让对的人碰撞到它。<br><br>
+碰撞不是转化。<br>
+是有人因为你的东西，产生了变化。<br><br>
+<strong style="color:var(--wood)">那个变化，才是你真正做出来的东西。</strong>
+</div>
+</div>
+
+</div><!-- end content -->
+
+<!-- 底部留白 -->
+<div style="height:40px"></div>
+
+</body>
+</html>

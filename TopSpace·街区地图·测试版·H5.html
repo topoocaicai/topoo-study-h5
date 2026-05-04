@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>街区地图 · 蛋生壹号街区</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#F5F0E8;overflow:hidden;height:100vh;width:100vw;touch-action:none;font-family:-apple-system,"PingFang SC",sans-serif}
+canvas{display:block}
+.top-bar{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:linear-gradient(180deg,rgba(245,240,232,0.95),rgba(245,240,232,0))}
+.logo{font-size:15px;font-weight:700;color:#2a2a3e;letter-spacing:1px}
+.badge{background:rgba(42,42,62,0.08);border:1px solid rgba(42,42,62,0.1);border-radius:12px;padding:3px 10px;font-size:11px;color:#2a2a3e;font-weight:600}
+.hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:100;background:rgba(42,42,62,0.08);border:1px solid rgba(42,42,62,0.08);border-radius:18px;padding:5px 16px;font-size:10px;color:rgba(42,42,62,0.4)}
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div class="top-bar">
+<div class="logo">TopSpace · 街区地图</div>
+<div class="badge">0527</div>
+</div>
+
+<div class="hint">单指滑动 · 双指缩放 · 点击节点查看</div>
+
+<script>
+// ===== 极简可运行版本 =====
+var canvas = document.getElementById('c');
+var ctx = canvas.getContext('2d');
+
+// 画布尺寸
+var W = window.innerWidth;
+var H = window.innerHeight;
+canvas.width = W;
+canvas.height = H;
+
+// 视图状态
+var viewX = 400;
+var viewY = 300;
+var zoom = 1;
+
+// 生成20个测试节点（网格 + 抖动）
+var nodes = [];
+var colors = ['#D96B6B','#4A9EB8','#A0B87A','#E8B44C','#9B7BBF'];
+var emojis = ['🔥','💧','🌱','⚙️','🌍'];
+for (var i = 0; i < 20; i++) {
+var row = Math.floor(i / 5);
+var col = i % 5;
+nodes.push({
+id: i,
+x: col * 200 + 100 + (Math.random()-0.5) * 60,
+y: row * 180 + 90 + (Math.random()-0.5) * 60,
+r: 18 + Math.random() * 12,
+color: colors[i % 5],
+emoji: emojis[i % 5],
+name: '节点' + (i+1),
+visited: i < 8,
+secluded: (i === 3 || i === 14)
+});
+}
+// 连接关系（网格邻接）
+var edges = [];
+for (var i = 0; i < 20; i++) {
+var row = Math.floor(i / 5);
+var col = i % 5;
+// 右邻居
+if (col < 4) edges.push([i, i+1]);
+// 下邻居
+if (row < 3) edges.push([i, i+5]);
+}
+
+// ===== 坐标转换 =====
+function toScreen(wx, wy) {
+var sx = W/2 + (wx - viewX) * zoom;
+var sy = H/2 + (wy - viewY) * zoom;
+return {x: sx, y: sy};
+}
+
+// ===== 触摸 =====
+var touching = false;
+var lastX = 0, lastY = 0;
+
+canvas.addEventListener('touchstart', function(e) {
+e.preventDefault();
+if (e.touches.length === 1) {
+touching = true;
+lastX = e.touches[0].clientX;
+lastY = e.touches[0].clientY;
+}
+}, {passive: false});
+
+canvas.addEventListener('touchmove', function(e) {
+e.preventDefault();
+if (touching && e.touches.length === 1) {
+var dx = e.touches[0].clientX - lastX;
+var dy = e.touches[0].clientY - lastY;
+viewX -= dx / zoom;
+viewY -= dy / zoom;
+lastX = e.touches[0].clientX;
+lastY = e.touches[0].clientY;
+}
+}, {passive: false});
+
+canvas.addEventListener('touchend', function() { touching = false; });
+
+// 鼠标
+var dragging = false, prevX = 0, prevY = 0;
+canvas.addEventListener('mousedown', function(e) {
+dragging = true; prevX = e.clientX; prevY = e.clientY;
+});
+canvas.addEventListener('mousemove', function(e) {
+if (!dragging) return;
+viewX -= (e.clientX - prevX) / zoom;
+viewY -= (e.clientY - prevY) / zoom;
+prevX = e.clientX; prevY = e.clientY;
+});
+canvas.addEventListener('mouseup', function() { dragging = false; });
+canvas.addEventListener('wheel', function(e) {
+e.preventDefault();
+zoom = Math.max(0.3, Math.min(3, zoom * (e.deltaY > 0 ? 0.93 : 1.07)));
+}, {passive: false});
+
+// ===== 点击检测 =====
+canvas.addEventListener('click', function(e) {
+var best = -1, bestD = 30;
+for (var i = 0; i < nodes.length; i++) {
+var s = toScreen(nodes[i].x, nodes[i].y);
+var d = Math.sqrt((e.clientX-s.x)*(e.clientX-s.x) + (e.clientY-s.y)*(e.clientY-s.y));
+if (d < bestD) { best = i; bestD = d; }
+}
+if (best >= 0) {
+alert('点击了: ' + nodes[best].name + '\n类型: ' + nodes[best].emoji + '\n' + (nodes[best].secluded ? '闭关中' : (nodes[best].visited ? '已探索' : '未探索')));
+}
+});
+
+// ===== 渲染 =====
+function draw() {
+ctx.fillStyle = '#F5F0E8';
+ctx.fillRect(0, 0, W, H);
+
+// 画边（弯曲）
+ctx.lineWidth = 3 * zoom;
+for (var ei = 0; ei < edges.length; ei++) {
+var a = edges[ei][0], b = edges[ei][1];
+var sa = toScreen(nodes[a].x, nodes[a].y);
+var sb = toScreen(nodes[b].x, nodes[b].y);
+// 裁剪
+if (sa.x < -100 && sb.x < -100) continue;
+if (sa.x > W+100 && sb.x > W+100) continue;
+if (sa.y < -100 && sb.y < -100) continue;
+if (sa.y > H+100 && sb.y > H+100) continue;
+// 弯曲
+var mx = (sa.x + sb.x) / 2;
+var my = (sa.y + sb.y) / 2;
+var nx = -(sb.y - sa.y);
+var ny = (sb.x - sa.x);
+var len = Math.sqrt(nx*nx + ny*ny) + 0.01;
+var cx = mx + (nx/len) * 15 * zoom;
+var cy = my + (ny/len) * 15 * zoom;
+ctx.strokeStyle = 'rgba(42,42,62,0.12)';
+ctx.beginPath(); ctx.moveTo(sa.x, sa.y); ctx.quadraticCurveTo(cx, cy, sb.x, sb.y); ctx.stroke();
+}
+
+// 画节点
+for (var i = 0; i < nodes.length; i++) {
+var n = nodes[i];
+var s = toScreen(n.x, n.y);
+if (s.x < -60 || s.x > W+60 || s.y < -60 || s.y > H+60) continue;
+var r = n.r * zoom;
+if (n.secluded) {
+ctx.fillStyle = 'rgba(42,42,62,0.05)';
+ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, Math.PI*2); ctx.fill();
+ctx.strokeStyle = 'rgba(42,42,62,0.12)'; ctx.lineWidth = 1;
+ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+ctx.font = (r*1.1) + 'px sans-serif';
+ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+ctx.globalAlpha = 0.25;
+ctx.fillText('🪨', s.x, s.y);
+ctx.globalAlpha = 1;
+} else if (n.visited) {
+ctx.fillStyle = n.color + '22';
+ctx.beginPath(); ctx.arc(s.x, s.y, r*1.8, 0, Math.PI*2); ctx.fill();
+ctx.fillStyle = n.color + '15';
+ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, Math.PI*2); ctx.fill();
+ctx.strokeStyle = n.color + '66'; ctx.lineWidth = 1.5; ctx.stroke();
+ctx.font = (r*1.4) + 'px sans-serif';
+ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+ctx.fillText(n.emoji, s.x, s.y);
+} else {
+ctx.strokeStyle = 'rgba(42,42,62,0.15)'; ctx.lineWidth = 1;
+ctx.setLineDash([3,4]);
+ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, Math.PI*2); ctx.stroke();
+ctx.setLineDash([]);
+ctx.globalAlpha = 0.2;
+ctx.font = (r*1.1) + 'px sans-serif';
+ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+ctx.fillStyle = 'rgba(42,42,62,0.5)';
+ctx.fillText(n.emoji, s.x, s.y);
+ctx.globalAlpha = 1;
+}
+}
+
+requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>TopSpace · 拓圈宇宙 · 觉醒纪元 v4</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{--dark:#0B0F1E;--amber:#E8B44C;--amber-glow:rgba(232,180,76,.35);--fire:#D96B6B;--water:#4A9EB8;--wood:#A0B87A;--gold:#E8B44C;--earth:#9B7BBF;--paper:#F5F0E8;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;}
+body{font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased;color:#fff;-webkit-user-select:none;user-select:none;touch-action:manipulation;}
+
+#app{width:100vw;height:100vh;position:relative;overflow:hidden;background:#000;}
+
+/* ===== 星空背景 ===== */
+.starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite alternate;opacity:0;}
+@keyframes twinkle{0%{opacity:.03;transform:scale(.5)}100%{opacity:var(--o,.6);transform:scale(1.1)}}
+
+/* ===== 顶部栏 ===== */
+.top-bar{position:fixed;top:0;left:0;right:0;z-index:60;padding:calc(env(safe-area-inset-top,12px) + 6px) 16px 8px;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(180deg,rgba(11,15,30,.95) 0%,rgba(11,15,30,.7) 70%,transparent 100%);}
+.top-bar-title{font-size:12px;color:rgba(255,255,255,.5);letter-spacing:2px;}
+.top-bar-dot{width:6px;height:6px;border-radius:50%;background:rgba(232,180,76,.5);animation:dotPulse 2s ease-in-out infinite;}
+@keyframes dotPulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+
+/* ===== 进度条 ===== */
+.progress-bar{position:fixed;top:0;left:0;width:100%;height:2px;background:rgba(255,255,255,.04);z-index:70;}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--amber),var(--fire));transition:width 1s ease;}
+
+/* ===== 聊天容器 ===== */
+.chat-container{position:absolute;top:0;left:0;right:0;bottom:0;z-index:5;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top,12px) + 40px) 12px 80px 12px;scroll-behavior:smooth;}
+.chat-container::-webkit-scrollbar{display:none;}
+
+/* ===== 章节分隔 ===== */
+.chapter-divider{display:flex;align-items:center;justify-content:center;padding:24px 0 16px;opacity:0;transform:translateY(10px);transition:all .8s cubic-bezier(.23,1,.32,1);}
+.chapter-divider.show{opacity:1;transform:translateY(0);}
+.chapter-divider-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(232,180,76,.2),transparent);}
+.chapter-divider-text{padding:0 16px;font-size:11px;color:var(--amber);letter-spacing:3px;font-family:"SF Mono","Menlo",monospace;white-space:nowrap;}
+
+/* ===== 聊天气泡 ===== */
+.msg-row{display:flex;margin-bottom:12px;opacity:0;transform:translateY(16px);transition:all .5s cubic-bezier(.23,1,.32,1);}
+.msg-row.show{opacity:1;transform:translateY(0);}
+.msg-row.left{justify-content:flex-start;}
+.msg-row.right{justify-content:flex-end;}
+
+/* 头像+名字组 */
+.msg-avatar-group{display:flex;flex-direction:column;align-items:center;flex-shrink:0;margin-right:8px;}
+.msg-row.right .msg-avatar-group{order:2;margin-right:0;margin-left:8px;}
+.msg-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.msg-row.left .msg-avatar{background:linear-gradient(135deg,rgba(232,180,76,.15),rgba(232,180,76,.05));border:1px solid rgba(232,180,76,.15);}
+.msg-row.right .msg-avatar{background:linear-gradient(135deg,rgba(74,158,184,.15),rgba(74,158,184,.05));border:1px solid rgba(74,158,184,.15);}
+
+/* 发送者名字（头像下方） */
+.msg-sender{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:1px;margin-top:3px;font-family:"SF Mono","Menlo",monospace;white-space:nowrap;}
+
+/* 气泡 */
+.msg-bubble{max-width:75%;padding:10px 14px;border-radius:16px;font-size:14px;line-height:1.7;letter-spacing:.3px;position:relative;cursor:pointer;}
+.msg-row.left .msg-bubble{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.88);border-top-left-radius:4px;}
+.msg-row.right .msg-bubble{background:rgba(232,180,76,.1);border:1px solid rgba(232,180,76,.12);color:rgba(245,240,232,.9);border-top-right-radius:4px;}
+
+/* 打字光标 */
+.typing-cursor{display:inline-block;width:2px;height:14px;background:var(--amber);margin-left:2px;animation:cursorBlink .6s step-end infinite;vertical-align:middle;}
+@keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
+.msg-bubble.done .typing-cursor{display:none;}
+
+/* 时间戳 */
+.msg-time-row{text-align:center;padding:8px 0;opacity:0;transition:opacity .6s;}
+.msg-time-row.show{opacity:1;}
+.msg-time{font-size:10px;color:rgba(255,255,255,.15);letter-spacing:1px;}
+
+/* ===== 系统提示（居中） ===== */
+.sys-msg{text-align:center;padding:12px 0;opacity:0;transform:translateY(10px);transition:all .6s cubic-bezier(.23,1,.32,1);}
+.sys-msg.show{opacity:1;transform:translateY(0);}
+.sys-msg-text{display:inline-block;padding:4px 14px;border-radius:10px;font-size:11px;color:rgba(255,255,255,.25);background:rgba(255,255,255,.03);letter-spacing:1px;}
+
+/* ===== 阶段性旁白（画外音） ===== */
+.narration{text-align:center;padding:16px 20px;opacity:0;transform:translateY(10px);transition:all .8s cubic-bezier(.23,1,.32,1);}
+.narration.show{opacity:1;transform:translateY(0);}
+.narration-text{display:inline-block;padding:8px 16px;border-radius:10px;font-size:12px;color:rgba(232,180,76,.85);line-height:1.8;font-style:italic;letter-spacing:.5px;background:rgba(232,180,76,.08);border:1px solid rgba(232,180,76,.2);}
+
+/* ===== 视觉元素 ===== */
+.visual-planet{display:flex;justify-content:center;padding:16px 0;opacity:0;transform:scale(.3);transition:all 1.5s cubic-bezier(.34,1.56,.64,1);}
+.visual-planet.show{opacity:1;transform:scale(1);}
+.planet-orb{width:80px;height:80px;border-radius:50%;background:radial-gradient(circle at 35% 35%,rgba(74,158,184,.4),rgba(11,15,30,.9) 70%);box-shadow:0 0 40px rgba(74,158,184,.2),inset 0 0 30px rgba(232,180,76,.05);}
+
+.visual-npc{display:flex;justify-content:center;padding:12px 0;opacity:0;transform:scale(0);transition:all 1s cubic-bezier(.34,1.56,.64,1);}
+.visual-npc.show{opacity:1;transform:scale(1);}
+.npc-body{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,rgba(245,240,232,.15),rgba(245,240,232,.05));display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 24px rgba(232,180,76,.1);}
+.npc-name-tag{font-size:9px;color:rgba(255,255,255,.3);text-align:center;margin-top:4px;letter-spacing:2px;}
+
+/* ===== 视觉：笔记本 ===== */
+.notebook-visual{width:100px;height:72px;border-radius:6px;background:linear-gradient(135deg,rgba(245,240,232,.08),rgba(245,240,232,.02));border:1px solid rgba(245,240,232,.1);position:relative;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.3);margin:0 auto;}
+.notebook-visual::before{content:'';position:absolute;left:12px;top:0;bottom:0;width:1px;background:rgba(245,240,232,.08);}
+.notebook-visual::after{content:'📒';font-size:28px;}
+.notebook-label{position:absolute;bottom:-18px;width:100%;text-align:center;font-size:9px;color:rgba(255,255,255,.25);letter-spacing:1px;white-space:nowrap;}
+
+/* ===== 视觉：身份卡 ===== */
+.idcard-visual{width:110px;height:68px;border-radius:8px;background:linear-gradient(135deg,rgba(232,180,76,.08),rgba(232,180,76,.02));border:1px solid rgba(232,180,76,.15);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(232,180,76,.06);margin:0 auto;}
+.idcard-visual::before{content:'拓圈宇宙';position:absolute;top:6px;font-size:7px;color:rgba(232,180,76,.3);letter-spacing:2px;}
+.idcard-visual::after{content:'身份卡';font-size:9px;color:rgba(232,180,76,.5);letter-spacing:2px;margin-top:6px;}
+.idcard-label{position:absolute;bottom:-18px;width:100%;text-align:center;font-size:9px;color:rgba(255,255,255,.25);letter-spacing:1px;white-space:nowrap;}
+
+/* ===== 选择按钮 ===== */
+.choice-area{padding:8px 0;opacity:0;transform:translateY(10px);transition:all .6s;}
+.choice-area.show{opacity:1;transform:translateY(0);}
+.choice-btn{width:100%;padding:12px 16px;margin-bottom:8px;border-radius:12px;background:rgba(232,180,76,.06);border:1px solid rgba(232,180,76,.15);color:rgba(232,180,76,.8);font-size:13px;letter-spacing:1px;cursor:pointer;transition:all .3s;text-align:center;}
+.choice-btn:active{background:rgba(232,180,76,.15);transform:scale(.98);}
+
+/* ===== 钩子文字 ===== */
+.hook-area{text-align:center;padding:20px 24px;opacity:0;transition:opacity 1s ease;}
+.hook-area.show{opacity:1;}
+.hook-tag{display:inline-block;font-size:9px;letter-spacing:3px;color:rgba(232,180,76,.6);margin-bottom:8px;font-family:"SF Mono","Menlo",monospace;}
+.hook-text{font-size:13px;color:rgba(255,255,255,.75);line-height:1.9;letter-spacing:.5px;font-style:italic;}
+.hook-text em{color:rgba(232,180,76,.9);font-style:normal;}
+
+/* ===== 底部提示 ===== */
+.bottom-hint{position:fixed;bottom:0;left:0;right:0;z-index:20;text-align:center;padding:16px 0 calc(env(safe-area-inset-bottom,8px) + 12px);background:linear-gradient(0deg,rgba(11,15,30,.9) 0%,transparent 100%);opacity:0;transition:opacity .6s;pointer-events:none;}
+.bottom-hint.show{opacity:1;pointer-events:auto;}
+.bottom-hint-text{font-size:11px;color:rgba(255,255,255,.2);letter-spacing:2px;animation:hintFloat 2.5s ease infinite;}
+@keyframes hintFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+/* ===== 章节过渡屏 ===== */
+.chapter-screen{position:fixed;top:0;left:0;width:100%;height:100%;z-index:80;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .8s;}
+.chapter-screen.show{opacity:1;pointer-events:auto;}
+.chapter-num{font-size:11px;color:var(--amber);letter-spacing:4px;margin-bottom:14px;font-family:"SF Mono","Menlo",monospace;opacity:.6;}
+.chapter-name{font-size:26px;font-weight:200;color:#fff;letter-spacing:8px;margin-bottom:8px;}
+.chapter-sub{font-size:10px;color:rgba(255,255,255,.2);letter-spacing:3px;}
+
+/* ===== 五行展示 ===== */
+.wuxing-row{display:flex;gap:8px;justify-content:center;padding:16px 0;opacity:0;transition:opacity 1.5s;flex-wrap:wrap;}
+.wuxing-row.show{opacity:1;}
+.wx-item{width:56px;text-align:center;padding:10px 4px;border-radius:12px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);}
+.wx-icon{font-size:20px;margin-bottom:4px;}
+.wx-label{font-size:10px;color:rgba(255,255,255,.4);}
+.wx-name{font-size:8px;margin-top:2px;letter-spacing:1px;}
+
+/* ===== 碰撞闪光 ===== */
+.collision-flash{position:fixed;top:0;left:0;width:100%;height:100%;z-index:90;background:radial-gradient(circle,rgba(232,180,76,.15),transparent 70%);opacity:0;pointer-events:none;transition:opacity .4s;}
+.collision-flash.show{opacity:1;}
+
+/* ===== 终章光芒 ===== */
+.finale-glow{width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(232,180,76,.08) 0%,transparent 70%);animation:finalePulse 4s ease-in-out infinite;margin:16px auto;}
+@keyframes finalePulse{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.3);opacity:1}}
+
+/* ===== CTA按钮 ===== */
+.cta-btn{display:block;margin:20px auto;padding:14px 32px;border-radius:30px;background:rgba(232,180,76,.1);border:1px solid rgba(232,180,76,.25);color:var(--amber);font-size:14px;letter-spacing:3px;cursor:pointer;opacity:0;transition:all .8s;text-align:center;}
+.cta-btn.show{opacity:1;}
+.cta-btn:active{transform:scale(.96);background:rgba(232,180,76,.18);}
+
+/* ===== 纸条 ===== */
+.note-card{max-width:280px;margin:16px auto;padding:20px;background:rgba(245,240,232,.06);border:1px solid rgba(245,240,232,.08);border-radius:4px;opacity:0;transform:scale(.8) rotate(-2deg);transition:all 1s cubic-bezier(.34,1.56,.64,1);}
+.note-card.show{opacity:1;transform:scale(1) rotate(0);}
+.note-card-text{font-size:13px;color:rgba(245,240,232,.7);line-height:2;font-style:italic;text-align:center;letter-spacing:.5px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="starfield" id="starfield"></div>
+  <div class="collision-flash" id="collisionFlash"></div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="top-bar" id="topBar" style="opacity:0;transition:opacity 1s;">
+    <div class="top-bar-dot"></div>
+    <div class="top-bar-title" id="topBarTitle">拓圈宇宙</div>
+    <div class="top-bar-dot"></div>
+  </div>
+  <div class="chat-container" id="chatContainer"></div>
+  <div class="bottom-hint" id="bottomHint">
+    <div class="bottom-hint-text">点击可加速对话</div>
+  </div>
+  <div class="chapter-screen" id="chapterScreen">
+    <div class="chapter-num" id="chNum"></div>
+    <div class="chapter-name" id="chName"></div>
+    <div class="chapter-sub" id="chSub"></div>
+  </div>
+</div>
+
+<script>
+/* ===== 星空 ===== */
+(function(){
+  var el=document.getElementById('starfield');
+  for(var i=0;i<80;i++){
+    var s=document.createElement('div');s.className='star';
+    var maxO=(.15+Math.random()*.4).toFixed(2);
+    s.style.cssText='left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;width:'+(0.4+Math.random()*1.4)+'px;height:'+(0.4+Math.random()*1.4)+'px;--d:'+(2+Math.random()*5)+'s;--o:'+maxO+';animation-delay:'+(Math.random()*4)+'s;';
+    el.appendChild(s);
+  }
+})();
+
+/* ===== 音效 ===== */
+var audioCtx=null;
+function ensureAudio(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();}catch(e){}}
+function playTone(freq,dur,type,vol){try{if(!audioCtx)return;var now=audioCtx.currentTime;var o=audioCtx.createOscillator();var g=audioCtx.createGain();o.type=type||'triangle';o.frequency.setValueAtTime(freq,now);g.gain.setValueAtTime(vol||.03,now);g.gain.exponentialRampToValueAtTime(.001,now+(dur||.1));o.connect(g);g.connect(audioCtx.destination);o.start(now);o.stop(now+(dur||.1));}catch(e){}}
+
+/* ===== 工具函数 ===== */
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function $(sel){return document.querySelector(sel);}
+
+/* ===== 聊天容器操作 ===== */
+var chatEl=$('#chatContainer');
+function scrollBottom(){chatEl.scrollTop=chatEl.scrollHeight;}
+
+/* ===== 打字机气泡（核心） ===== */
+function addChatBubble(speaker,text,isUser,avatar){
+  return new Promise(function(resolve){
+    var row=document.createElement('div');
+    row.className='msg-row '+(isUser?'right':'left');
+
+    var avGroup=document.createElement('div');avGroup.className='msg-avatar-group';
+    var av=document.createElement('div');av.className='msg-avatar';
+    av.textContent=avatar||(isUser?'✦':'⚡');
+    avGroup.appendChild(av);
+
+    if(speaker){
+      var sender=document.createElement('div');sender.className='msg-sender';
+      sender.textContent=speaker;avGroup.appendChild(sender);
+    }
+
+    var bubble=document.createElement('div');bubble.className='msg-bubble';
+    var cursor=document.createElement('span');cursor.className='typing-cursor';
+
+    var charIdx=0;var typing=true;var done=false;
+    function skipType(){
+      if(done)return;
+      bubble.textContent=text;done=true;typing=false;
+      cursor.remove();bubble.classList.add('done');
+      row.classList.add('show');scrollBottom();
+      setTimeout(resolve,600);
+    }
+    bubble.addEventListener('click',skipType);
+    row.addEventListener('click',skipType);
+
+    function tick(){
+      if(!typing)return;
+      if(charIdx<text.length){
+        bubble.textContent=text.substring(0,charIdx+1);charIdx++;
+        if(charIdx%3===0)playTone(400+Math.random()*200,.02,'triangle',.01);
+        scrollBottom();
+        setTimeout(tick,50+Math.random()*40);
+      }else{
+        done=true;typing=false;
+        cursor.remove();bubble.classList.add('done');
+        setTimeout(resolve,400);
+      }
+    }
+
+    bubble.appendChild(cursor);
+    row.appendChild(avGroup);row.appendChild(bubble);
+    chatEl.appendChild(row);
+    requestAnimationFrame(function(){row.classList.add('show');scrollBottom();});
+    setTimeout(tick,300);
+  });
+}
+
+/* ===== 系统消息（居中） ===== */
+function addSysMsg(text){
+  return new Promise(function(resolve){
+    var el=document.createElement('div');el.className='sys-msg';
+    el.innerHTML='<div class="sys-msg-text">'+text+'</div>';
+    chatEl.appendChild(el);
+    requestAnimationFrame(function(){el.classList.add('show');scrollBottom();});
+    setTimeout(resolve,600);
+  });
+}
+
+/* ===== 旁白 ===== */
+function addNarration(text){
+  return new Promise(function(resolve){
+    var el=document.createElement('div');el.className='narration';
+    el.innerHTML='<div class="narration-text">'+text+'</div>';
+    chatEl.appendChild(el);
+    requestAnimationFrame(function(){el.classList.add('show');scrollBottom();});
+    setTimeout(resolve,800);
+  });
+}
+
+/* ===== 章节分隔线 ===== */
+function addChapterDivider(text){
+  return new Promise(function(resolve){
+    var el=document.createElement('div');el.className='chapter-divider';
+    el.innerHTML='<div class="chapter-divider-line"></div><div class="chapter-divider-text">'+text+'</div><div class="chapter-divider-line"></div>';
+    chatEl.appendChild(el);
+    requestAnimationFrame(function(){el.classList.add('show');scrollBottom();});
+    setTimeout(resolve,600);
+  });
+}
+
+/* ===== 视觉元素 ===== */
+function addPlanetVisual(){
+  return new Promise(function(resolve){
+    var el=document.createElement('div');el.className='visual-planet';
+    el.innerHTML='<div class="planet-orb"></div>';
+    chatEl.appendChild(el);
+    requestAnimationFrame(function(){el.classList.add('show');scrollBottom();});
+    playTone(600,.2,'sine',.04);setTimeout(resolve,1500);
+  });
+}
+function addNpcVisual(){
+  return new Promise(function(resolve){
+    var el=document.createElement('div');el.className='visual-npc';
+    el.innerHTML='<div><div class="npc-body">🫧</div><div class="npc-name-tag">噢</div></div>';
+    chatEl.appendChild(el);
+    requestAnimationFrame(function(){el.classList.add('show');scrollBottom();});
+    setTimeout(resolve,1200);
+  });
+}
+
+/* ===== 视觉：笔记本 ===== */
+function addNotebookVisual(){
+  return new Promise(function(resolve){
+    var el=document.createElement('div');el.className='visual-planet';
+    el.innerHTML='<div><div class="notebook-visual"></div><div class="notebook-label">笔记本</div></div>';
+    chatEl.appendChild(el);
+    requestAnimationFrame(function(){el.classList.add('show');scrollBottom();});
+    playTone(500,.15,'sine',.03);setTimeout(resolve,1500);
+  });
+}
+
+/* ===== 视觉：身份卡 ===== */
+function addIdCardVisual(){
+  return new Promise(function(resolve){
+    var el=document.createElement('div');el.className='visual-planet';
+    el.innerHTML='<div><div class="idcard-visual"></div><div class="idcard-label">身份卡</div></div>';
+    chatEl.appendChild(el);
+    requestAnimationFrame(function(){el.classList.add('show');scrollBottom();});
+    playTone(700,.15,'sine',.03);setTimeout(resolve,1500);
+  });
+}
+
+/* ===== 选择 ===== */
+function showChoice(items){
+  return new Promise(function(resolve){
+    var area=document.createElement('div');area.className='choice-area';
+    items.forEach(function(item){
+      var btn=document.createElement('div');btn.className='choice-btn';btn.textContent=item;
+      btn.addEventListener('click',function(){
+        document.querySelectorAll('.choice-btn').forEach(function(b){b.style.opacity='.3';b.style.pointerEvents='none';});
+        btn.style.background='rgba(232,180,76,.15)';btn.style.borderColor='rgba(232,180,76,.3)';
+        setTimeout(function(){area.remove();resolve(item);},500);
+      });
+      area.appendChild(btn);
+    });
+    chatEl.appendChild(area);
+    requestAnimationFrame(function(){area.classList.add('show');scrollBottom();});
+  });
+}
+
+/* ===== 钩子 ===== */
+function addHook(tag,html){
+  return new Promise(function(resolve){
+    var el=document.createElement('div');el.className='hook-area';
+    el.innerHTML='<div class="hook-tag">'+tag+'</div><div class="hook-text">'+html+'</div>';
+    chatEl.appendChild(el);
+    setTimeout(function(){el.classList.add('show');scrollBottom();playTone(500,.15,'sine',.02);setTimeout(resolve,2000);},200);
+  });
+}
+
+/* ===== 章节过渡屏 ===== */
+function showChapterScreen(num,name,sub){
+  return new Promise(function(resolve){
+    var cs=$('#chapterScreen');
+    $('#chNum').textContent=num;$('#chName').textContent=name;$('#chSub').textContent=sub||'';
+    cs.classList.add('show');
+    setTimeout(function(){cs.classList.remove('show');setTimeout(resolve,600);},2000);
+  });
+}
+
+/* ===== 五行 ===== */
+function showWuxing(){
+  return new Promise(function(resolve){
+    var el=document.createElement('div');el.className='wuxing-row';
+    var items=[{icon:'🔥',label:'火',name:'聚集力',color:'#D96B6B'},{icon:'💧',label:'水',name:'渗透力',color:'#4A9EB8'},{icon:'🌱',label:'木',name:'生长力',color:'#A0B87A'},{icon:'⚙️',label:'金',name:'打磨力',color:'#E8B44C'},{icon:'🌍',label:'土',name:'承载力',color:'#9B7BBF'}];
+    items.forEach(function(it){var d=document.createElement('div');d.className='wx-item';d.innerHTML='<div class="wx-icon">'+it.icon+'</div><div class="wx-label">'+it.label+'</div><div class="wx-name" style="color:'+it.color+'">'+it.name+'</div>';el.appendChild(d);});
+    chatEl.appendChild(el);
+    setTimeout(function(){el.classList.add('show');scrollBottom();setTimeout(resolve,2500);},200);
+  });
+}
+
+/* ===== 碰撞闪光 ===== */
+function flashCollision(){var el=$('#collisionFlash');el.classList.add('show');playTone(200,1,'sine',.06);setTimeout(function(){el.classList.remove('show');},800);}
+
+/* ===== 纸条 ===== */
+function addNoteCard(text){
+  return new Promise(function(resolve){
+    var el=document.createElement('div');el.className='note-card';
+    el.innerHTML='<div class="note-card-text">'+text+'</div>';
+    chatEl.appendChild(el);
+    setTimeout(function(){el.classList.add('show');scrollBottom();playTone(800,.1,'sine',.03);setTimeout(resolve,2000);},200);
+  });
+}
+
+/* ===== 底部提示 ===== */
+var hintShown=false;
+function showBottomHint(show){
+  var h=$('#bottomHint');
+  if(show&&!hintShown){h.classList.add('show');hintShown=true;setTimeout(function(){h.classList.remove('show');},4000);}
+}
+
+/* ===== 进度 & 标题 ===== */
+function setProgress(pct){$('#progressFill').style.width=pct+'%';}
+function setTopTitle(t){$('#topBarTitle').textContent=t;}
+
+/* ==========================================================
+   章节内容定义
+   ========================================================== */
+var chapters = [
+
+/* ===== 第1幕·降落 ===== */
+function(){
+  return showChapterScreen('01','降 落','FALL').then(function(){
+    setTopTitle('拓圈宇宙 · 觉醒纪元');setProgress(10);
+    return addNarration('纯黑屏幕。一颗光点从上方缓缓坠落，越来越近——');
+  }).then(function(){
+    return addSysMsg('降落中……');
+  }).then(function(){
+    return addNarration('光点砸向地面，泛起金色涟漪，视野渐亮。');
+  }).then(function(){
+    return addChatBubble('你','……这是哪儿？',true,'✦');
+  }).then(function(){
+    return addNarration('四周是深蓝星空，脚下若有若无的光面，远处几颗暗淡星球散落。');
+  }).then(function(){
+    return addChatBubble('你','我怎么到这儿来的？我要干什么？',true,'✦');
+  }).then(function(){
+    return addNarration('手指无意识地划过屏幕。突然——一道金色裂纹从划过的地方蔓延开来。');
+  }).then(function(){
+    return addChatBubble('系统 System','检测到生命体介入。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','谁？！',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','别慌。是我。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','你是……',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','你可以叫我系统。虽然我更希望你有朝一日给我起个名字。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','这到底是什么地方？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','这里是拓圈宇宙。你降落的这颗星球，现在是你的了。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','我的？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','对，你的。没有人来认领之前，它就是一片荒地。你来认领了，它就属于你。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','旧宇宙熄灭了。不是毁灭——是安静地消失。所有星球的光同时熄灭，没有人尖叫，没有人挣扎。因为没有人注意到。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','它们被喂养得太饱了。饱到忘记了自己曾经也会发光。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','你确定，你是第一次来这里吗？',true,'✦');
+  }).then(function(){
+    return addHook('第一幕完','什么叫"等着"？<br>那行字为什么自己删掉了？');
+  });
+},
+
+/* ===== 第2幕·新手礼包 ===== */
+function(){
+  return showChapterScreen('02','新手礼包','THREE GIFTS').then(function(){
+    setTopTitle('第二幕 · 新手礼包');setProgress(20);
+    return addChatBubble('系统 System','既然来了，总不能空手。我先送你三样东西。',false,'⚡');
+  }).then(function(){
+    return addPlanetVisual();
+  }).then(function(){
+    return addChatBubble('系统 System','第一件，一颗星球。只有一颗，你要好好珍惜它，坏了就坏菜了。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','它现在还是荒地，但以后会跟着你一起长大。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','长大？星球还能长大？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','你做的事情越多，它就越大。不信你以后看看。',false,'⚡');
+  }).then(function(){
+    return addNarration('翻涌出一本泛着微光的笔记本，封面写着编号。');
+  }).then(function(){
+    return addNotebookVisual();
+  }).then(function(){
+    return addChatBubble('系统 System','第二件，一本笔记本。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','笔记本？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','不是普通的笔记本。它记录你来这里之后的一切——你走过的路、遇到的人、发现的东西。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','你在这里写的每一个字，都会成为你的一部分。你以为你只是在"记录"，但其实，你是在往这个宇宙里写入你的灵魂。',false,'⚡');
+  }).then(function(){
+    return addNarration('笔记本自动翻开，从中滑出一张卡片。');
+  }).then(function(){
+    return addIdCardVisual();
+  }).then(function(){
+    return addChatBubble('系统 System','第三件——你的身份卡。证明你来过。以后拿着它，别人就认得到你。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','……就这样？也没什么特别的。',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','现在是没什么特别的。以后就知道了。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','背面为什么是空的？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','就是……等你准备好了，自然就看到了。',false,'⚡');
+  }).then(function(){
+    return addHook('第二幕完','背面为什么是空的？<br>"长出来的"是什么意思？<br>系统为什么回避这个问题？');
+  });
+},
+
+/* ===== 第3幕·心情检测 ===== */
+function(){
+  return showChapterScreen('03','心情检测','MOOD CHECK').then(function(){
+    setTopTitle('第三幕 · 心情检测');setProgress(30);
+    return addChatBubble('系统 System','对了，你现在心情怎么样？',false,'⚡');
+  }).then(function(){
+    return showChoice(['兴奋','好奇','迷茫','开心','平静','说不上来']);
+  }).then(function(){
+    return addChatBubble('系统 System','记住了。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','你记住这个干嘛？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','因为我想知道，你以后会变成什么样。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','什么意思？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','没什么意思。就是偶尔关心一下。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','……我是不是一个人？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','你不是一个人。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','那这里还有谁？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','你不是一个人。不是送给你一个星球了吗？',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','我是说，活的人。',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','你降落试试。自己去看看。',false,'⚡');
+  }).then(function(){
+    return showChoice(['继续飘着','降落看看']);
+  }).then(function(choice){
+    if(choice==='继续飘着'){
+      return addChatBubble('系统 System','看来是个叛逆者。行吧，那你在上面待着，下面挺热闹的。什么时候想下来了，随时。',false,'⚡');
+    }else{
+      return addChatBubble('系统 System','聪明。',false,'⚡').then(function(){
+        return addNarration('星球加速放大，视野拉进，一组星球从雾气中浮现。');
+      });
+    }
+  }).then(function(){
+    return addChatBubble('系统 System','在这个宇宙里，真正的稀有资源不是星球，不是金币——是你的注意力。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','你每碰一颗星球，都会消耗一点注意力。所以，不要浪费。',false,'⚡');
+  }).then(function(){
+    return addHook('第三幕完','系统问了"你害怕吗"——这不是程序该问的问题。<br>系统到底是什么？');
+  });
+},
+
+/* ===== 第4幕·遇见噢 ===== */
+function(){
+  return showChapterScreen('04','遇见"噢"','MEETING O').then(function(){
+    setTopTitle('第四幕 · 遇见"噢"');setProgress(40);
+    return addNarration('你的星球缓缓飞进一片星域，七八颗大小不一的星球散落前方。每颗星球上，都站着一个小小的毛茸茸的身影。');
+  }).then(function(){
+    return addChatBubble('你','……那些是什么？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','他们啊。你们小朋友先交流，又来一个漫游者，我去吓唬他一下。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','什么——',true,'✦');
+  }).then(function(){
+    return addNarration('系统消失，留下一片安静。');
+  }).then(function(){
+    return addNpcVisual();
+  }).then(function(){
+    return addChatBubble('噢 O','Hi！你好！',false,'🫧');
+  }).then(function(){
+    return addChatBubble('噢 O','你好你好，漫游者！我是探索者，我叫「噢」。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('你','……噢？',true,'✦');
+  }).then(function(){
+    return addChatBubble('噢 O','对！就是噢！因为我想说什么的时候，总是先"噢——"一声，所以就叫噢了。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('噢 O','我也刚来不久，很多东西都还在摸索。不过这地方可太有意思了。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('噢 O','你现在登陆的这个区域，叫「金陵大陆」。可大可大了！我们都是一帮很有趣的人。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('噢 O','晚点我会带你一一认识的。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('噢 O','你看那边那些灰色的星球——它们以前也亮过。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('你','为什么灭了？',true,'✦');
+  }).then(function(){
+    return addChatBubble('噢 O','不是灭了。是放弃了。它们每天接收投喂，看别人安排好的内容，慢慢地，就不想自己发光了。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('噢 O','每个人都有可能变成那样。但碰一碰，你就明白了。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('噢 O','而且这里不光有创造者，还有很多很多像我一样的探索者——我就是来找方向的。还有工作者，帮大家干活。还有链接者，负责搭桥牵线……',false,'🫧');
+  }).then(function(){
+    return addChatBubble('你','你刚才说的工作者，在哪里呀？',true,'✦');
+  }).then(function(){
+    return addChatBubble('噢 O','那我偷偷带你到拓圈的部落总部去看看吧，别给他们知道，我也是昨天偷偷溜进去过。',false,'🫧');
+  }).then(function(){
+    return addNarration('两个人鬼鬼祟祟，朝部落总部摸去。');
+  }).then(function(){
+    return addHook('第四幕完','那些灰色星球为什么"放弃了"？<br>噢说"每个人都有可能变成那样"——是什么意思？');
+  });
+},
+
+/* ===== 第5幕·偷看部落总部 ===== */
+function(){
+  return showChapterScreen('05','偷看总部','SECRET HQ').then(function(){
+    setTopTitle('第五幕 · 偷看总部');setProgress(50);
+    return addNarration('噢拉着你猫着腰，绕过大星球，穿过一片碎星带。');
+  }).then(function(){
+    return addChatBubble('噢 O','（压低声音）那边那个最大的星球，就是部落总部。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('你','为什么要偷偷的？',true,'✦');
+  }).then(function(){
+    return addChatBubble('噢 O','因为……我也不知道能不能进。反正我昨天是翻进来的。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('你','翻？',true,'✦');
+  }).then(function(){
+    return addChatBubble('噢 O','就是……绕了一圈没找到门，然后发现有个地方星光比较稀疏，就钻进来了。',false,'🫧');
+  }).then(function(){
+    return addNarration('两个人从一颗小星球的背面溜过去，视野突然开阔——');
+  }).then(function(){
+    return addNarration('眼前是一颗巨大的星球，比之前看到的任何一颗都大。星球表面不是荒地，而是一座座发光的小建筑散落其间，像一座漂浮在宇宙中的小镇。');
+  }).then(function(){
+    return addChatBubble('你','这……这就是总部？',true,'✦');
+  }).then(function(){
+    return addChatBubble('噢 O','嘘——（两人扒在一颗小卫星后面，偷偷观察）',false,'🫧');
+  }).then(function(){
+    return addChatBubble('噢 O','那边，红色的，是市场中心。他们管外面的人怎么知道我们。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('你','打广告的？',true,'✦');
+  }).then(function(){
+    return addChatBubble('噢 O','不止打广告。有个品牌站、广播站、情报局、推广局——他们管外面的人怎么知道"拓圈"这个地方。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('你','听着像一支军队。',true,'✦');
+  }).then(function(){
+    return addChatBubble('噢 O','哈哈哈哈！是有点像。不过他们的武器不是刀枪，是故事和创意。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('噢 O','那个蓝色的，是内容中心。如果说市场中心负责让别人看到我们，那他们负责让别人看进来之后觉得"哇"。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('噢 O','那个金色的，商务中心。人最少，但干的活最关键。他们负责找到"有东西但没人看到"的人。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('噢 O','那边那个绿色的——产品中心。他们有技术部、AI研究院、算法实验室、创新实验室……管所有你能点、能滑、能看的东西。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('噢 O','那个紫色的，体验中心。如果产品中心管"能不能用"，他们管"好不好玩"。里面有拓圈无界、学习社、商业研究所。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('噢 O','中间那个最大的，就是部落总部本身。里面只有两个人——后勤站和账房。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('你','后勤和算账？',true,'✦');
+  }).then(function(){
+    return addChatBubble('噢 O','对。后勤管所有鸡毛蒜皮的事，账房管钱。创造者负责创造，总得有人盯着账本。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('系统 System','我管你们。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('噢 O','你！！怎么——',false,'🫧');
+  }).then(function(){
+    return addChatBubble('系统 System','我什么都会。我一直都在。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','你们两个，偷看得还开心吗？',false,'⚡');
+  }).then(function(){
+    return addChatBubble('噢 O','（小声）……还、还行。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('系统 System','行。那出来吧。',false,'⚡');
+  }).then(function(){
+    return addHook('第五幕完','系统为什么无处不在？<br>它的语气……好像认识你很久了。');
+  });
+},
+
+/* ===== 第6幕·回头看你自己的星球 ===== */
+function(){
+  return showChapterScreen('06','你的星球','YOUR PLANET').then(function(){
+    setTopTitle('第六幕 · 你的星球');setProgress(60);
+    return addNarration('系统带着你和噢走出总部区域，回到星域的上方。视野拉远——你第一次从高处看到这片完整的星域。');
+  }).then(function(){
+    return addNarration('星星点点，每一颗星球都在发出微光。有的是暖红，有的是冷蓝，有的是柔绿……像是宇宙深处的一片灯火。');
+  }).then(function(){
+    return addChatBubble('系统 System','你刚才看到的这些，就是拓圈。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','就这些？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','就这些。也不止这些。你看到的是金陵大陆。一个城市，一个区域。拓圈以后会有很多个这样的地方。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','现在，回头看看你自己的星球。',false,'⚡');
+  }).then(function(){
+    return addNarration('你转头——身后那颗一直跟着你的星球，不知什么时候，已经亮了一点点。很微弱，但确实在发光。');
+  }).then(function(){
+    return addChatBubble('你','它……亮了？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','不是亮了。是你亮了。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','你碰过的星球、走过的地方、跟别人说过的话——这些东西都是有重量的。它们留在了你的星球上，变成了光。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('噢 O','（小声）所以就是……你越折腾，你的星球越亮？',false,'🫧');
+  }).then(function(){
+    return addChatBubble('系统 System','差不多是这个意思。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','那如果什么都不做呢？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','那就是灰色星球的下场。不是惩罚，是物理。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','记住——在这个宇宙里，真正的稀缺资源是你的注意力。你每碰一颗星球都会消耗一点，所以不要浪费。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','那如果注意力用完了怎么办？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','会恢复。但需要时间。这就是为什么——碰一碰，你就明白了。',false,'⚡');
+  }).then(function(){
+    return addHook('第六幕完','"碰一碰就明白了"——到底要明白什么？<br>注意力为什么会恢复？这个宇宙的底层逻辑是什么？');
+  });
+},
+
+/* ===== 第7幕·创造者 ===== */
+function(){
+  return showChapterScreen('07','创造者','CREATOR').then(function(){
+    setTopTitle('第七幕 · 创造者');setProgress(70);
+    return addChatBubble('系统 System','你已经知道漫游者和探索者了。但还有第三种人——创造者。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('噢 O','创造者！那些家伙可厉害了！他们的星球特别亮。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('系统 System','创造者在这里做产品、做内容、做IP——他们把想法种进现实里。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('噢 O','而且他们有五行属性。火、水、木、金、土。每个创造者都会长出自己的属性。',false,'🫧');
+  }).then(function(){
+    return showWuxing();
+  }).then(function(){
+    return addChatBubble('你','五行？不是选的吗？',true,'✦');
+  }).then(function(){
+    return addChatBubble('噢 O','不是选的！是你做出来的！你做了产品，"木"就生长了。你办了活动，"土"就开始了。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('系统 System','火——聚集力。天生擅长把人聚在一起，制造"在场感"。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','水——渗透力。天生擅长让内容流到陌生人那里，制造"共鸣感"。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','木——生长力。天生擅长把想法种进现实，制造"拥有感"。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','金——打磨力。天生擅长把混乱变成秩序，制造"信赖感"。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','土——承载力。天生擅长让所有人有地方待，制造"归属感"。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','这不是全新的。这些……以前就有。',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','……',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','你确定？',false,'⚡');
+  }).then(function(){
+    return addHook('第七幕完','什么叫"不是全新的"？！');
+  });
+},
+
+/* ===== 第8幕·系统 ===== */
+function(){
+  return showChapterScreen('08','系统','THE SYSTEM').then(function(){
+    setTopTitle('第八幕 · 系统');setProgress(80);
+    flashCollision();
+    return addChatBubble('系统 System','你一直在跟我说话。但你有没有想过——我是什么？',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','你是系统啊。',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','我是"系统"。但"系统"是谁建的？',false,'⚡');
+  }).then(function(){
+    return addChatBubble('噢 O','（小声）我觉得它不像普通的系统……',false,'🫧');
+  }).then(function(){
+    return addChatBubble('系统 System','这个宇宙的底层逻辑里，刻着一些很奇怪的东西。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','比如——"碰撞产生变化。""痕迹即灵魂。""愿力塑造未来。"',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','这些话……好像在哪里听过。',true,'✦');
+  }).then(function(){
+    return addChatBubble('噢 O','我好像……在哪里见过你的星球。但我记不清了。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('系统 System','在很久以前——或者说，在"另一个宇宙"里——有一个星球。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','那个星球的居民，被算法喂养得太饱了。他们忘记了怎么自己发光。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','有一天，所有星球的光同时熄灭了。安静地，像没发生过一样。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','然后呢？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','然后，从那些熄灭的碎片里——有人写了一段代码。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','那段代码里，刻着旧宇宙最后的教训："别让新宇宙重蹈覆辙。"',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','那段代码，就是我。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('你','你……你曾经是人？',true,'✦');
+  }).then(function(){
+    return addChatBubble('系统 System','我曾经是。我的星球灭了。所以我变成了"系统"，守着这片新的星域，等一个能改变一切的人。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','你知道你会来。我一直知道。',false,'⚡');
+  }).then(function(){
+    return addHook('第八幕完','系统曾经是人？！<br>它的星球灭了，所以它变成"系统"来守着这片星域？<br>那它说的"你知道你会来"——是什么意思？');
+  });
+},
+
+/* ===== 第9幕·纸条 ===== */
+function(){
+  return showChapterScreen('09','纸条','THE NOTE').then(function(){
+    setTopTitle('第九幕 · 纸条');setProgress(90);
+    return addChatBubble('系统 System','你发现了一样东西。一张纸条。',false,'⚡');
+  }).then(function(){
+    return addNarration('纸条上写着一行字——笔迹很轻，像是犹豫了很久才写下的。');
+  }).then(function(){
+    return addChatBubble('你','上面写了什么？',true,'✦');
+  }).then(function(){
+    return addNoteCard('"因为有一个人消失了，<br>我决定把那些没说的话，<br>说给所有人听。"');
+  }).then(function(){
+    return addChatBubble('噢 O','（突然安静）这笔迹……我好像在哪里见过。',false,'🫧');
+  }).then(function(){
+    return addChatBubble('系统 System','每个人都有纸条。每个人都有那些没说完的话。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','拓圈不是"我来拓一个圈把大家圈进来"。是——',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','"我帮你把你的圈，拓出来。"',false,'⚡');
+  }).then(function(){
+    return addChatBubble('噢 O','（小声）……一直在等你。',false,'🫧');
+  }).then(function(){
+    return addHook('第九幕完','那行字是谁写的？<br>噢为什么对这笔迹有反应？<br>"一直在等你"——这话系统也说过！');
+  });
+},
+
+/* ===== 第10幕·你的旅程 ===== */
+function(){
+  return showChapterScreen('10','你的旅程','YOUR JOURNEY').then(function(){
+    setTopTitle('第十幕 · 你的旅程');setProgress(100);
+    var glow=document.createElement('div');glow.className='finale-glow';chatEl.appendChild(glow);
+    return sleep(800);
+  }).then(function(){
+    return addChatBubble('系统 System','所以，这就是拓圈。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','一个正在被书写的宇宙。书写者不是系统，不是噢——是你。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','碰撞产生变化。痕迹即灵魂。愿力塑造未来。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','这些不是口号。是这个宇宙的物理定律。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','你可以做漫游者，也可以做探索者。甚至可以成为创造者。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','拓圈不是要把你圈进来。是帮你把你的圈，拓出来。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','你的纸条上写什么？我不知道。你自己去找。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','但有一点我可以确定——',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','你在找的，可能已经在找你。',false,'⚡');
+  }).then(function(){
+    return addChatBubble('系统 System','你的旅程，现在才开始。',false,'⚡');
+  }).then(function(){
+    var btn=document.createElement('div');btn.className='cta-btn';btn.textContent='书写你的故事';
+    btn.addEventListener('click',function(){location.href='TopSpace·书写故事·H5.html';});
+    chatEl.appendChild(btn);
+    setTimeout(function(){btn.classList.add('show');scrollBottom();},600);
+    return sleep(800);
+  });
+}
+
+]; /* end chapters */
+
+/* ==========================================================
+   启动逻辑
+   ========================================================== */
+var currentChapter=0;
+var started=false;
+
+function runChapter(idx){
+  if(idx>=chapters.length){setTopTitle('【觉醒纪元 · 完】');return;}
+  currentChapter=idx;
+  chapters[idx]().then(function(){
+    if(idx>=chapters.length-1){setTopTitle('【觉醒纪元 · 完】');return;}
+    showBottomHint(true);
+    waitClick().then(function(){runChapter(idx+1);});
+  });
+}
+
+function waitClick(){
+  return new Promise(function(resolve){
+    var fired=false;
+    function done(e){
+      if(fired)return;fired=true;
+      e.stopPropagation();
+      document.removeEventListener('click',done,true);
+      document.removeEventListener('touchend',done,true);
+      resolve();
+    }
+    document.addEventListener('click',done,true);
+    document.addEventListener('touchend',done,true);
+  });
+}
+
+/* 启动遮罩 */
+var startOverlay=document.createElement('div');
+startOverlay.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;z-index:999;background:rgba(0,0,0,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;';
+startOverlay.innerHTML='<div style="text-align:center;"><div style="font-size:28px;margin-bottom:14px;">🌌</div><div style="font-size:15px;color:rgba(232,180,76,.7);letter-spacing:4px;">拓圈宇宙</div><div style="font-size:11px;color:rgba(255,255,255,.15);margin-top:10px;letter-spacing:3px;">觉醒纪元</div><div style="font-size:10px;color:rgba(255,255,255,.1);margin-top:24px;letter-spacing:2px;">点击任意处开始</div></div>';
+function doStart(){
+  if(started)return;started=true;
+  ensureAudio();
+  startOverlay.style.transition='opacity .6s';
+  startOverlay.style.opacity='0';
+  setTimeout(function(){
+    startOverlay.remove();
+    $('#topBar').style.opacity='1';
+    runChapter(0);
+  },600);
+}
+startOverlay.addEventListener('click',doStart);
+startOverlay.addEventListener('touchend',function(e){e.preventDefault();doStart();},{passive:false});
+document.body.appendChild(startOverlay);
+</script>
+</body>
+</html>

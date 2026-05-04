@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TopSpace · 我的 · 漫游者</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #F5F0E8;
+            color: #2C2824;
+            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* ===== 手机壳 ===== */
+        .phone-shell {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 375px; height: 812px;
+            border-radius: 44px;
+            background: #F5F0E8;
+            box-shadow:
+                0 0 0 2px #3C3834,
+                0 0 0 6px #1a1816,
+                0 20px 60px rgba(0,0,0,0.3),
+                inset 0 0 0 2px rgba(255,255,255,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+        .phone-notch {
+            position: absolute; top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 150px; height: 30px;
+            background: #2C2824;
+            border-radius: 0 0 18px 18px;
+            z-index: 200;
+        }
+        .phone-notch::before {
+            content: ''; position: absolute;
+            top: 10px; left: 50%; transform: translateX(-50%);
+            width: 60px; height: 6px;
+            background: #3C3834; border-radius: 3px;
+        }
+
+        /* ===== 页面层 ===== */
+        .page-scroll {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 80px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
+        }
+        .page-scroll::-webkit-scrollbar { width: 0; }
+
+        /* ===== 顶部栏 ===== */
+        .top-bar {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 44px 20px 12px;
+            background: linear-gradient(180deg, #F5F0E8 60%, rgba(245,240,232,0) 100%);
+        }
+        .top-left { display: flex; align-items: center; gap: 8px; }
+        .logo-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: linear-gradient(135deg, #8B8680 0%, #6B6660 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 700; color: #fff;
+        }
+        .logo-text { font-size: 16px; font-weight: 600; letter-spacing: 1px; color: #2C2824; }
+        .top-right { display: flex; align-items: center; gap: 12px; }
+        .plate-badge {
+            display: flex; align-items: center; gap: 4px;
+            padding: 6px 10px;
+            background: rgba(139,134,128,0.1);
+            border: 1px solid rgba(139,134,128,0.2);
+            border-radius: 16px; font-size: 12px; color: #8B8680;
+        }
+        .settings-btn {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.06);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; color: #2C2824; cursor: pointer;
+        }
+
+        /* ===== 角色切换入口 ===== */
+        .role-switch-area {
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; padding: 0 20px 16px;
+        }
+        .role-switch-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border-radius: 16px;
+            background: rgba(139,134,128,0.08);
+            border: 1px solid rgba(139,134,128,0.15);
+            font-size: 12px; color: #8B8680; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .role-switch-btn:active { background: rgba(139,134,128,0.15); }
+        .role-switch-arrow { font-size: 10px; }
+
+        /* ===== 角色头部 ===== */
+        .role-header {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 0 20px 24px; text-align: center;
+        }
+        .role-planet {
+            position: relative; width: 120px; height: 120px; margin-bottom: 16px;
+            cursor: pointer;
+        }
+        .planet-canvas {
+            width: 120px; height: 120px; border-radius: 50%;
+            position: relative; overflow: visible;
+            background: radial-gradient(circle at 35% 35%, #A09A94, #6B6660 70%);
+            box-shadow: inset -8px -8px 20px rgba(0,0,0,0.15), 0 4px 20px rgba(139,134,128,0.2);
+        }
+        .planet-dots {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+        }
+        .planet-dot {
+            position: absolute; width: 6px; height: 6px;
+            border-radius: 50%; background: #FFD700;
+            box-shadow: 0 0 6px rgba(255,215,0,0.6);
+            animation: twinkle 3s ease-in-out infinite;
+        }
+        .planet-dot:nth-child(1) { top: 15%; left: 20%; animation-delay: 0s; }
+        .planet-dot:nth-child(2) { top: 30%; right: 10%; animation-delay: 0.8s; }
+        .planet-dot:nth-child(3) { bottom: 25%; left: 15%; animation-delay: 1.6s; }
+        .planet-dot:nth-child(4) { top: 10%; right: 30%; animation-delay: 0.4s; }
+        .planet-dot:nth-child(5) { bottom: 35%; right: 20%; animation-delay: 1.2s; }
+        @keyframes twinkle {
+            0%,100% { opacity: 0.4; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+        .door-plate {
+            position: absolute; bottom: -4px; right: -8px;
+            background: #2C2824; color: #F5F0E8;
+            padding: 4px 10px; border-radius: 8px;
+            font-size: 11px; font-weight: 600; letter-spacing: 1px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .planet-glow {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 140px; height: 140px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(139,134,128,0.2), transparent 70%);
+            opacity: 0.4;
+            animation: breathe 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes breathe {
+            0%,100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+            50% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.5; }
+        }
+        .role-name { font-size: 20px; font-weight: 700; color: #2C2824; }
+        .role-tag-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+        .role-badge {
+            padding: 4px 12px; border-radius: 12px;
+            font-size: 12px; font-weight: 500;
+            background: rgba(139,134,128,0.12); color: #8B8680;
+            border: 1px solid rgba(139,134,128,0.2);
+        }
+
+        /* ===== 状态栏 ===== */
+        .status-row {
+            display: flex; gap: 8px; margin-bottom: 20px; padding: 0 20px;
+        }
+        .status-card {
+            flex: 1;
+            background: #fff;
+            border-radius: 14px;
+            padding: 14px 12px;
+            text-align: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .status-val { font-size: 20px; font-weight: 700; }
+        .status-val-attn { color: #D96B6B; }
+        .status-val-pt { color: #8B8680; }
+        .status-val-day { color: #9B7BBF; }
+        .status-val-score { color: #E8B44C; }
+        .status-label { font-size: 10px; color: rgba(44,40,36,0.45); margin-top: 4px; }
+
+        /* ===== 漫游者提示 ===== */
+        .wanderer-notice {
+            margin: 0 20px 20px;
+            background: rgba(0,0,0,0.03);
+            border: 1px dashed rgba(0,0,0,0.1);
+            border-radius: 14px; padding: 24px 20px;
+            text-align: center;
+        }
+        .wanderer-notice-icon { font-size: 40px; margin-bottom: 10px; }
+        .wanderer-notice-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; color: #2C2824; }
+        .wanderer-notice-desc { font-size: 12px; color: rgba(44,40,36,0.5); line-height: 1.7; }
+        .wanderer-notice-hint {
+            display: inline-block; margin-top: 14px;
+            font-size: 12px; color: #8B8680; cursor: pointer;
+            padding: 6px 16px; border-radius: 12px;
+            background: rgba(139,134,128,0.08);
+            border: 1px solid rgba(139,134,128,0.15);
+        }
+        .wanderer-notice-hint:active { background: rgba(139,134,128,0.15); }
+
+        /* ===== 星空收藏夹入口 ===== */
+        .starfield-entry {
+            margin: 0 20px 20px;
+            background: linear-gradient(135deg, #2C2824 0%, #1a1614 100%);
+            border-radius: 16px; padding: 18px;
+            position: relative; overflow: hidden; cursor: pointer;
+            min-height: 80px; display: flex;
+            align-items: center; justify-content: space-between;
+        }
+        .starfield-entry:active { opacity: 0.9; }
+        .starfield-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+        }
+        .sf-star {
+            position: absolute; width: 4px; height: 4px;
+            border-radius: 50%; background: #fff;
+        }
+        .starfield-left { position: relative; z-index: 1; }
+        .starfield-title { font-size: 14px; font-weight: 600; color: #F5F0E8; }
+        .starfield-desc { font-size: 11px; color: rgba(245,240,232,0.4); margin-top: 3px; }
+        .starfield-count {
+            position: relative; z-index: 1;
+            font-size: 24px; font-weight: 700; color: #FFD700;
+        }
+
+        /* ===== 功能菜单 ===== */
+        .menu-section { padding: 0 20px; margin-bottom: 24px; }
+        .section-title {
+            font-size: 14px; font-weight: 600; color: #2C2824;
+            margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-title::before {
+            content: ''; width: 4px; height: 16px;
+            border-radius: 2px; background: #8B8680;
+        }
+        .menu-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 16px;
+            background: #fff;
+            border-radius: 12px; margin-bottom: 6px;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.04);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .menu-item:active { background: #f9f7f3; transform: scale(0.99); }
+        .menu-icon { font-size: 20px; width: 28px; text-align: center; }
+        .menu-text { flex: 1; font-size: 14px; font-weight: 500; }
+        .menu-badge {
+            padding: 2px 8px; border-radius: 8px;
+            font-size: 10px; font-weight: 600;
+        }
+        .menu-arrow { font-size: 14px; color: rgba(44,40,36,0.2); }
+
+        /* ===== 底部导航 ===== */
+        .bottom-nav {
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 100;
+            background: linear-gradient(0deg, rgba(245,240,232,0.98) 0%, rgba(245,240,232,0.85) 60%, transparent 100%);
+            padding: 8px 0 28px;
+        }
+        .nav-items { display: flex; justify-content: space-around; align-items: flex-end; padding: 0 8px; }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 3px; padding: 6px 10px; cursor: pointer;
+            transition: all 0.2s; border-radius: 12px;
+        }
+        .nav-item:active { transform: scale(0.95); }
+        .nav-item.active .nav-icon { opacity: 1; transform: scale(1.1); }
+        .nav-item.active .nav-label { color: #8B8680; }
+        .nav-icon {
+            width: 26px; height: 26px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; opacity: 0.35; transition: all 0.2s;
+        }
+        .nav-label { font-size: 10px; color: rgba(44,40,36,0.4); transition: all 0.2s; }
+        .nav-item.center { position: relative; top: -8px; }
+        .nav-item.center .nav-icon-wrap {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: linear-gradient(135deg, #8B8680 0%, #6B6660 100%);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 20px rgba(139,134,128,0.3);
+        }
+        .nav-item.center .nav-icon { font-size: 22px; opacity: 1; color: #fff; }
+
+        /* ===== 角色选择弹窗 ===== */
+        .role-modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 999;
+            align-items: center; justify-content: center;
+        }
+        .role-modal-overlay.show { display: flex; }
+        .role-modal {
+            width: 320px; background: #F5F0E8; border-radius: 20px;
+            padding: 24px 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .role-modal-title {
+            font-size: 16px; font-weight: 700; text-align: center;
+            margin-bottom: 20px; color: #2C2824;
+        }
+        .role-modal-option {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 16px; border-radius: 14px;
+            margin-bottom: 8px; cursor: pointer;
+            transition: all 0.2s; border: 2px solid transparent;
+        }
+        .role-modal-option:active { transform: scale(0.98); }
+        .role-modal-option.current {
+            border-color: #8B8680;
+            background: rgba(139,134,128,0.06);
+        }
+        .role-modal-icon { font-size: 24px; }
+        .role-modal-info { flex: 1; }
+        .role-modal-name { font-size: 14px; font-weight: 600; color: #2C2824; }
+        .role-modal-desc { font-size: 11px; color: rgba(44,40,36,0.4); margin-top: 2px; }
+        .role-modal-current-tag {
+            font-size: 10px; padding: 2px 8px; border-radius: 6px;
+            background: rgba(139,134,128,0.12); color: #8B8680;
+        }
+        .role-modal-cancel {
+            display: block; width: 100%; padding: 12px;
+            margin-top: 12px; border: none; border-radius: 12px;
+            background: rgba(0,0,0,0.04); color: rgba(44,40,36,0.5);
+            font-size: 14px; cursor: pointer;
+        }
+        .role-modal-cancel:active { background: rgba(0,0,0,0.08); }
+    </style>
+</head>
+<body>
+<div class="phone-shell">
+    <div class="phone-notch"></div>
+
+    <!-- 顶部栏 -->
+    <div class="top-bar">
+        <div class="top-left">
+            <div class="logo-icon">T</div>
+            <div class="logo-text">Topoo</div>
+        </div>
+        <div class="top-right">
+            <div class="plate-badge">0527</div>
+            <div class="settings-btn" onclick="alert('设置页 - 待开发')">⚙</div>
+        </div>
+    </div>
+
+    <!-- 滚动内容区 -->
+    <div class="page-scroll">
+        <div style="height: 12px;"></div>
+
+        <!-- 角色切换入口 -->
+        <div class="role-switch-area">
+            <div class="role-switch-btn" onclick="openRoleModal()">
+                <span>切换角色</span>
+                <span class="role-switch-arrow">▾</span>
+            </div>
+        </div>
+
+        <!-- 角色头部 -->
+        <div class="role-header">
+            <div class="role-planet" onclick="openRoleModal()">
+                <div class="planet-glow"></div>
+                <div class="planet-canvas">
+                    <div class="planet-dots">
+                        <div class="planet-dot"></div>
+                        <div class="planet-dot"></div>
+                        <div class="planet-dot"></div>
+                        <div class="planet-dot"></div>
+                        <div class="planet-dot"></div>
+                    </div>
+                </div>
+                <div class="door-plate">0527</div>
+            </div>
+            <div class="role-name">苏菜菜</div>
+            <div class="role-tag-row">
+                <div class="role-badge">漫游者 Wanderer</div>
+            </div>
+        </div>
+
+        <!-- 状态栏 -->
+        <div class="status-row">
+            <div class="status-card">
+                <div class="status-val status-val-attn">30</div>
+                <div class="status-label">注意力</div>
+            </div>
+            <div class="status-card">
+                <div class="status-val status-val-pt">0</div>
+                <div class="status-label">被点亮</div>
+            </div>
+            <div class="status-card">
+                <div class="status-val status-val-day">3</div>
+                <div class="status-label">在拓天数</div>
+            </div>
+            <div class="status-card">
+                <div class="status-val status-val-score">60</div>
+                <div class="status-label">积分</div>
+            </div>
+        </div>
+
+        <!-- 漫游者提示 -->
+        <div class="wanderer-notice">
+            <div class="wanderer-notice-icon">🌑</div>
+            <div class="wanderer-notice-title">你的星球还是实心球</div>
+            <div class="wanderer-notice-desc">
+                它安静地悬在这里，没有里面，也没有外面。<br>
+                但它会发光——当有人碰了你，球上会多一个小光点。<br>
+                <br>
+                想打开它吗？去碰撞吧，有人被你打动，<br>
+                你的星球就会裂开一条缝，光会透出来。
+            </div>
+            <div class="wanderer-notice-hint" onclick="alert('前往碰撞页，开始你的第一次碰撞')">开始碰撞 →</div>
+        </div>
+
+        <!-- 星空收藏夹 -->
+        <div class="starfield-entry" onclick="alert('我的星空收藏夹 — 只有自己能看到\n\n那些触动到我的瞬间')">
+            <div class="starfield-bg" id="starfieldBg"></div>
+            <div class="starfield-left">
+                <div class="starfield-title">我的星空</div>
+                <div class="starfield-desc">那些触动到我的瞬间</div>
+            </div>
+            <div class="starfield-count">0</div>
+        </div>
+
+        <!-- 功能菜单 -->
+        <div class="menu-section">
+            <div class="section-title">功能</div>
+            <div class="menu-item" onclick="alert('身份卡 - 漫游者也有身份卡，只是内容比较简单')">
+                <div class="menu-icon">🪪</div>
+                <div class="menu-text">我的身份卡</div>
+                <div class="menu-arrow">›</div>
+            </div>
+            <div class="menu-item" onclick="alert('笔记本 - 自动记录你的碰撞行为，3个月后生成灵魂画像')">
+                <div class="menu-icon">📓</div>
+                <div class="menu-text">我的笔记本</div>
+                <div class="menu-badge" style="background:rgba(217,107,107,0.1); color:#D96B6B;">新</div>
+                <div class="menu-arrow">›</div>
+            </div>
+            <div class="menu-item" onclick="alert('漫游者暂时无法发布内容，升级探索者后解锁')">
+                <div class="menu-icon">📝</div>
+                <div class="menu-text">我发布的内容</div>
+                <div class="menu-arrow">›</div>
+            </div>
+            <div class="menu-item" onclick="alert('号段 & 权重 — 越早入场，积累越高')">
+                <div class="menu-icon">🔢</div>
+                <div class="menu-text">号段 & 权重</div>
+                <div class="menu-arrow">›</div>
+            </div>
+        </div>
+
+        <div style="height: 20px;"></div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <div class="nav-items">
+            <div class="nav-item">
+                <div class="nav-icon">🗺</div>
+                <div class="nav-label">星图</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📖</div>
+                <div class="nav-label">故事</div>
+            </div>
+            <div class="nav-item center">
+                <div class="nav-icon-wrap">
+                    <div class="nav-icon">💫</div>
+                </div>
+                <div class="nav-label">碰撞</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">🏛</div>
+                <div class="nav-label">广场</div>
+            </div>
+            <div class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <div class="nav-label">我的</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 角色选择弹窗 -->
+<div class="role-modal-overlay" id="roleModal">
+    <div class="role-modal">
+        <div class="role-modal-title">选择你的角色</div>
+
+        <div class="role-modal-option current" onclick="switchRole('wanderer')">
+            <div class="role-modal-icon">🌑</div>
+            <div class="role-modal-info">
+                <div class="role-modal-name">漫游者</div>
+                <div class="role-modal-desc">实心球，免费参与</div>
+            </div>
+            <div class="role-modal-current-tag">当前</div>
+        </div>
+
+        <div class="role-modal-option" onclick="switchRole('seeker')">
+            <div class="role-modal-icon">🏠</div>
+            <div class="role-modal-info">
+                <div class="role-modal-name">探索者</div>
+                <div class="role-modal-desc">打开小家，有内部空间</div>
+            </div>
+        </div>
+
+        <div class="role-modal-option" onclick="switchRole('creator')">
+            <div class="role-modal-icon">🪟</div>
+            <div class="role-modal-info">
+                <div class="role-modal-name">创造者</div>
+                <div class="role-modal-desc">小家 + 对外橱窗</div>
+            </div>
+        </div>
+
+        <div class="role-modal-option" onclick="switchRole('linker')">
+            <div class="role-modal-icon">📌</div>
+            <div class="role-modal-info">
+                <div class="role-modal-name">链接者</div>
+                <div class="role-modal-desc">策展人 + 传送门</div>
+            </div>
+        </div>
+
+        <div class="role-modal-option" onclick="switchRole('pioneer')">
+            <div class="role-modal-icon">🌍</div>
+            <div class="role-modal-info">
+                <div class="role-modal-name">开拓者</div>
+                <div class="role-modal-desc">星球运营权（满级晋升）</div>
+            </div>
+        </div>
+
+        <button class="role-modal-cancel" onclick="closeRoleModal()">取消</button>
+    </div>
+</div>
+
+<script>
+    // ===== 星空收藏夹背景星星 =====
+    function initStarfield() {
+        const bg = document.getElementById('starfieldBg');
+        if (!bg) return;
+        for (let i = 0; i < 20; i++) {
+            const star = document.createElement('div');
+            star.className = 'sf-star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.opacity = Math.random() * 0.5 + 0.2;
+            star.style.width = star.style.height = (Math.random() * 3 + 1) + 'px';
+            star.style.animation = `twinkle ${2 + Math.random() * 3}s ease-in-out infinite`;
+            star.style.animationDelay = Math.random() * 2 + 's';
+            bg.appendChild(star);
+        }
+    }
+
+    // ===== 角色选择弹窗 =====
+    function openRoleModal() {
+        document.getElementById('roleModal').classList.add('show');
+    }
+    function closeRoleModal() {
+        document.getElementById('roleModal').classList.remove('show');
+    }
+    function switchRole(role) {
+        const pages = {
+            wanderer: 'TopSpace·我的·漫游者·H5.html',
+            seeker:   'TopSpace·我的·探索者·H5.html',
+            creator:  'TopSpace·我的·创造者·H5.html',
+            linker:   'TopSpace·我的·链接者·H5.html',
+            pioneer:  'TopSpace·我的·开拓者·H5.html',
+        };
+        if (pages[role]) {
+            window.location.href = pages[role];
+        }
+    }
+
+    // 点击遮罩关闭弹窗
+    document.getElementById('roleModal').addEventListener('click', function(e) {
+        if (e.target === this) closeRoleModal();
+    });
+
+    // ===== 初始化 =====
+    initStarfield();
+</script>
+</body>
+</html>

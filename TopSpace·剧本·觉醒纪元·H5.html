@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>TopSpace · 拓圈宇宙 · 觉醒纪元 v2</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{--dark:#0B0F1E;--amber:#E8B44C;--amber-glow:rgba(232,180,76,.5);--fire:#D96B6B;--water:#4A9EB8;--wood:#A0B87A;--gold:#E8B44C;--earth:#9B7BBF;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;touch-action:none;}
+body{font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased;color:#fff;-webkit-user-select:none;user-select:none;}
+#app{width:100vw;height:100vh;position:relative;overflow:hidden;background:#000;}
+
+.starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite alternate;opacity:0;}
+@keyframes twinkle{0%{opacity:.03;transform:scale(.5)}100%{opacity:var(--o,.6);transform:scale(1.1)}}
+
+.scene{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 1.2s cubic-bezier(.23,1,.32,1);z-index:1;padding:20px;}
+.scene.active{opacity:1;pointer-events:auto;}
+
+.act-title{position:fixed;top:env(safe-area-inset-top,20px);left:50%;transform:translateX(-50%);z-index:50;font-size:11px;color:rgba(255,255,255,.25);letter-spacing:3px;opacity:0;transition:opacity .8s;}
+.act-title.show{opacity:1;}
+
+.progress-bar{position:fixed;top:0;left:0;width:100%;height:2px;background:rgba(255,255,255,.05);z-index:60;}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--amber),var(--fire));transition:width 1s ease;}
+
+.chapter-screen{position:fixed;top:0;left:0;width:100%;height:100%;z-index:80;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .8s;}
+.chapter-screen.show{opacity:1;pointer-events:auto;}
+.chapter-num{font-size:12px;color:var(--amber);letter-spacing:4px;margin-bottom:16px;font-family:"SF Mono","Menlo",monospace;}
+.chapter-name{font-size:28px;font-weight:200;color:#fff;letter-spacing:8px;margin-bottom:8px;}
+.chapter-sub{font-size:11px;color:rgba(255,255,255,.2);letter-spacing:3px;}
+
+.dialogue-area{position:absolute;bottom:10%;left:50%;transform:translateX(-50%);width:86vw;max-width:400px;max-height:55vh;overflow-y:auto;z-index:10;padding:8px;}
+.dia-line{margin-bottom:16px;opacity:0;transform:translateY(12px);transition:all .6s cubic-bezier(.23,1,.32,1);}
+.dia-line.show{opacity:1;transform:translateY(0);}
+.dia-label{font-size:10px;color:var(--amber);letter-spacing:2px;margin-bottom:6px;font-family:"SF Mono","Menlo",monospace;}
+.dia-text{font-size:14px;color:rgba(255,255,255,.85);line-height:1.8;letter-spacing:.3px;white-space:pre-wrap;}
+.dia-text.user{color:rgba(245,240,232,.6);font-style:italic;border-left:2px solid rgba(232,180,76,.3);padding-left:12px;}
+
+.touch-hint{position:fixed;bottom:8%;left:50%;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:8px;opacity:0;transition:opacity .6s;}
+.touch-hint.show{opacity:1;animation:hintFloat 2.5s ease infinite;}
+@keyframes hintFloat{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-6px)}}
+.touch-hint-icon{opacity:.3;}
+.touch-hint-text{font-size:11px;color:rgba(255,255,255,.2);letter-spacing:2px;}
+
+.act-hook{position:absolute;bottom:18%;left:50%;transform:translateX(-50%);width:86vw;max-width:360px;text-align:center;z-index:15;opacity:0;transition:opacity 1s ease;}
+.act-hook.show{opacity:1;}
+.act-hook-tag{display:inline-block;font-size:9px;letter-spacing:3px;color:rgba(232,180,76,.8);margin-bottom:10px;font-family:"SF Mono","Menlo",monospace;}
+.act-hook-line{width:24px;height:1px;background:rgba(232,180,76,.4);margin:0 auto 10px;}
+.act-hook-text{font-size:13px;color:rgba(255,255,255,.85);line-height:1.9;letter-spacing:.5px;font-style:italic;}
+.act-hook-text em{color:rgba(232,180,76,.95);font-style:normal;}
+
+.visual-planet{position:absolute;bottom:-50px;left:50%;transform:translateX(-50%) scale(.15);width:200px;height:200px;background:radial-gradient(circle at 35% 35%,rgba(74,158,184,.3),rgba(11,15,30,.9) 70%);border-radius:50%;box-shadow:0 0 60px rgba(74,158,184,.15),inset 0 0 40px rgba(232,180,76,.05);opacity:0;transition:all 2.2s cubic-bezier(.23,1,.32,1);z-index:2;}
+.visual-planet.show{bottom:15%;opacity:1;transform:translateX(-50%) scale(1);}
+
+.visual-notebook{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0) rotate(-6deg);width:120px;height:155px;background:linear-gradient(135deg,rgba(245,240,232,.12),rgba(245,240,232,.04));border:1px solid rgba(245,240,232,.1);border-radius:8px;opacity:0;transition:all 1.2s cubic-bezier(.34,1.56,.64,1);z-index:3;box-shadow:0 0 24px rgba(232,180,76,.2);}
+.visual-notebook.show{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0);}
+
+.visual-card{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);width:100px;height:140px;perspective:900px;opacity:0;transition:all 1s cubic-bezier(.34,1.56,.64,1);z-index:4;}
+.visual-card.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+.visual-card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .7s ease;cursor:pointer;}
+.visual-card-inner.flipped{transform:rotateY(180deg);}
+.visual-card-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:10px;border:1px solid rgba(232,180,76,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.visual-card-back{transform:rotateY(180deg);background:rgba(232,180,76,.05);}
+
+.visual-npc{position:absolute;bottom:25%;right:12%;opacity:0;transform:scale(0);transition:all 1.2s cubic-bezier(.34,1.56,.64,1);z-index:5;}
+.visual-npc.show{opacity:1;transform:scale(1);}
+.npc-body{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,rgba(245,240,232,.15),rgba(245,240,232,.05));display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 0 30px rgba(232,180,76,.1);}
+.npc-name{font-size:10px;color:rgba(255,255,255,.3);text-align:center;margin-top:6px;letter-spacing:2px;animation:npcBreathe 3s ease-in-out infinite;}
+@keyframes npcBreathe{0%,100%{opacity:.3}50%{opacity:.6}}
+
+.choice-area{position:absolute;bottom:15%;left:50%;transform:translateX(-50%);width:80vw;max-width:360px;z-index:20;display:flex;flex-direction:column;gap:10px;opacity:0;transition:opacity .8s;}
+.choice-area.show{opacity:1;}
+.choice-btn{padding:14px 20px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.6);font-size:13px;letter-spacing:1px;cursor:pointer;transition:all .3s;text-align:center;}
+.choice-btn.selected{background:rgba(232,180,76,.12);border-color:rgba(232,180,76,.3);color:var(--amber);}
+
+.wuxing-row{display:flex;gap:10px;position:absolute;top:30%;opacity:0;transition:opacity 1.5s;}
+.wuxing-row.show{opacity:1;}
+.wx-item{width:52px;text-align:center;padding:10px 4px;border-radius:12px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02);}
+.wx-icon{font-size:20px;margin-bottom:4px;}
+.wx-label{font-size:10px;color:rgba(255,255,255,.4);}
+.wx-name{font-size:8px;margin-top:2px;letter-spacing:1px;}
+
+.collision-flash{position:fixed;top:0;left:0;width:100%;height:100%;z-index:90;background:radial-gradient(circle,rgba(232,180,76,.15),transparent 70%);opacity:0;pointer-events:none;transition:opacity .4s;}
+.collision-flash.show{opacity:1;}
+
+.finale-glow{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(232,180,76,.08) 0%,transparent 70%);animation:finalePulse 4s ease-in-out infinite;}
+@keyframes finalePulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.3);opacity:1}}
+
+.fall-particle{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--amber);opacity:0;transition:all 1.5s cubic-bezier(.23,1,.32,1);z-index:3;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="starfield" id="starfield"></div>
+  <div class="collision-flash" id="collisionFlash"></div>
+  <div class="scene" id="sc-01"></div>
+  <div class="scene" id="sc-02"></div>
+  <div class="scene" id="sc-03"></div>
+  <div class="scene" id="sc-04"></div>
+  <div class="scene" id="sc-05"></div>
+  <div class="scene" id="sc-06"></div>
+  <div class="scene" id="sc-07"></div>
+  <div class="scene" id="sc-08"></div>
+  <div class="scene" id="sc-09"></div>
+  <div class="scene" id="sc-10"></div>
+  <div class="scene" id="sc-easter"></div>
+  <div class="chapter-screen" id="chapterScreen">
+    <div class="chapter-num" id="chNum"></div>
+    <div class="chapter-name" id="chName"></div>
+    <div class="chapter-sub" id="chSub"></div>
+  </div>
+  <div class="act-title" id="actTitle"></div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<script>
+/* ===== 星空 ===== */
+(function(){
+  var el=document.getElementById('starfield');
+  for(var i=0;i<100;i++){
+    var s=document.createElement('div');
+    s.className='star';
+    var maxO=(.2+Math.random()*.5).toFixed(2);
+    s.style.cssText='left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;width:'+(0.4+Math.random()*1.6)+'px;height:'+(0.4+Math.random()*1.6)+'px;--d:'+(2+Math.random()*5)+'s;--o:'+maxO+';animation-delay:'+(Math.random()*4)+'s;';
+    el.appendChild(s);
+  }
+})();
+
+/* ===== 音效 ===== */
+var audioCtx=null;
+function ensureAudio(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();}catch(e){}}
+function playTone(freq,dur,type,vol){try{if(!audioCtx)return;var now=audioCtx.currentTime;var o=audioCtx.createOscillator();var g=audioCtx.createGain();o.type=type||'triangle';o.frequency.setValueAtTime(freq,now);g.gain.setValueAtTime(vol||.04,now);g.gain.exponentialRampToValueAtTime(.001,now+(dur||.1));o.connect(g);g.connect(audioCtx.destination);o.start(now);o.stop(now+(dur||.1));}catch(e){}}
+
+/* ===== 打字机 ===== */
+function typewriter(text,el,speed){
+  return new Promise(function(resolve){
+    el.textContent='';el.classList.remove('done');
+    var i=0;
+    function tick(){
+      if(i<text.length){
+        el.textContent+=text.charAt(i);i++;
+        if(i%3===0)playTone(500+Math.random()*300,.03,'triangle',.02);
+        setTimeout(tick,speed||90);
+      }else{el.classList.add('done');resolve();}
+    }
+    tick();
+  });
+}
+
+/* ===== 消息添加 ===== */
+function addLine(label,text,isUser){
+  return new Promise(function(resolve){
+    var sc=document.querySelector('.scene.active');
+    if(!sc){resolve();return;}
+    var area=sc.querySelector('.dialogue-area');
+    if(!area){area=document.createElement('div');area.className='dialogue-area';sc.appendChild(area);}
+    var line=document.createElement('div');line.className='dia-line';
+    if(label){var lbl=document.createElement('div');lbl.className='dia-label';lbl.textContent=label;line.appendChild(lbl);}
+    var txt=document.createElement('div');txt.className='dia-text'+(isUser?' user':'');
+    line.appendChild(txt);area.appendChild(line);area.scrollTop=area.scrollHeight;
+    line.classList.add('show');
+    typewriter(text,txt,85).then(function(){setTimeout(resolve,Math.max(text.length*85+800,1800));});
+  });
+}
+
+/* ===== 场景切换 ===== */
+function switchScene(id,duration){
+  return new Promise(function(resolve){
+    document.querySelectorAll('.scene').forEach(function(s){s.classList.remove('active');});
+    var target=document.getElementById(id);
+    if(target)target.classList.add('active');
+    setTimeout(resolve,duration||1200);
+  });
+}
+
+/* ===== 章节过渡 ===== */
+function showChapter(num,name,sub){
+  return new Promise(function(resolve){
+    var cs=document.getElementById('chapterScreen');
+    document.getElementById('chNum').textContent=num;
+    document.getElementById('chName').textContent=name;
+    document.getElementById('chSub').textContent=sub||'';
+    cs.classList.add('show');
+    setTimeout(function(){cs.classList.remove('show');setTimeout(resolve,600);},2200);
+  });
+}
+
+/* ===== 进度 ===== */
+function setProgress(pct){document.getElementById('progressFill').style.width=pct+'%';}
+function setActTitle(t){var el=document.getElementById('actTitle');el.textContent=t;el.classList.add('show');}
+
+/* ===== 碰撞闪光 ===== */
+function flashCollision(){var el=document.getElementById('collisionFlash');el.classList.add('show');playTone(200,1.2,'sine',.08);setTimeout(function(){el.classList.remove('show');},800);}
+
+/* ===== 视觉元素 ===== */
+function addPlanet(sceneId){
+  return new Promise(function(resolve){
+    var sc=document.getElementById(sceneId);var p=document.createElement('div');p.className='visual-planet';
+    sc.appendChild(p);setTimeout(function(){p.classList.add('show');setTimeout(resolve,2200);},100);
+  });
+}
+function addNotebook(sceneId){
+  return new Promise(function(resolve){
+    var sc=document.getElementById(sceneId);var n=document.createElement('div');n.className='visual-notebook';
+    sc.appendChild(n);setTimeout(function(){n.classList.add('show');playTone(800,.15,'sine',.05);setTimeout(resolve,1200);},100);
+  });
+}
+function addCard(sceneId){
+  return new Promise(function(resolve){
+    var sc=document.getElementById(sceneId);var c=document.createElement('div');c.className='visual-card';
+    c.innerHTML='<div class="visual-card-inner"><div class="visual-card-face visual-card-front"><div style="font-size:10px;color:rgba(232,180,76,.5);letter-spacing:2px">TOPSPACE</div><div style="font-size:20px;margin-top:8px">🌍</div><div style="font-size:8px;color:rgba(255,255,255,.3);margin-top:8px">你的星球</div></div><div class="visual-card-face visual-card-back"><div style="font-size:9px;color:rgba(232,180,76,.4);letter-spacing:1px">背面</div></div></div>';
+    sc.appendChild(c);setTimeout(function(){c.classList.add('show');setTimeout(resolve,1000);},100);
+  });
+}
+function addNpc(sceneId){
+  return new Promise(function(resolve){
+    var sc=document.getElementById(sceneId);var n=document.createElement('div');n.className='visual-npc';
+    n.innerHTML='<div class="npc-body">🫧</div><div class="npc-name">噢</div>';
+    sc.appendChild(n);setTimeout(function(){n.classList.add('show');setTimeout(resolve,1500);},100);
+  });
+}
+
+/* ===== 选择交互 ===== */
+function showChoices(sceneId,items){
+  return new Promise(function(resolve){
+    var sc=document.getElementById(sceneId);var ca=document.createElement('div');ca.className='choice-area';
+    items.forEach(function(item){
+      var btn=document.createElement('div');btn.className='choice-btn';btn.textContent=item;
+      btn.addEventListener('click',function(){document.querySelectorAll('.choice-btn').forEach(function(b){b.classList.remove('selected');});btn.classList.add('selected');setTimeout(function(){resolve(item);},600);});
+      ca.appendChild(btn);
+    });
+    sc.appendChild(ca);setTimeout(function(){ca.classList.add('show');},100);
+  });
+}
+
+/* ===== 触摸提示 ===== */
+function showHint(text){
+  return new Promise(function(resolve){
+    var sc=document.querySelector('.scene.active');
+    if(!sc){resolve();return;}
+    var h=document.createElement('div');h.className='touch-hint';
+    h.innerHTML='<div class="touch-hint-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 12l3 3 5-6"/></svg></div><div class="touch-hint-text">'+text+'</div>';
+    sc.appendChild(h);setTimeout(function(){h.classList.add('show');},100);
+    function done(){h.remove();resolve();}
+    document.addEventListener('click',done,{once:true});
+    document.addEventListener('touchstart',done,{once:true});
+  });
+}
+
+/* ===== 坠落粒子 ===== */
+function fallParticles(){
+  return new Promise(function(resolve){
+    var sc=document.getElementById('sc-01');
+    for(var i=0;i<8;i++){
+      (function(idx){
+        var p=document.createElement('div');p.className='fall-particle';
+        p.style.left=(30+Math.random()*40)+'%';p.style.top='-10px';
+        sc.appendChild(p);
+        setTimeout(function(){p.style.transition='all '+(1.5+Math.random())+'s cubic-bezier(.23,1,.32,1)';p.style.top=(50+Math.random()*30)+'%';p.style.opacity='1';setTimeout(function(){p.style.opacity='0';},1000);},idx*200);
+      })(i);
+    }
+    playTone(400,2,'sine',.06);setTimeout(resolve,3500);
+  });
+}
+
+/* ===== 五行展示 ===== */
+function showWuxing(){
+  return new Promise(function(resolve){
+    var sc=document.getElementById('sc-06');var row=document.createElement('div');row.className='wuxing-row';
+    var items=[{icon:'🔥',label:'火',name:'聚集力',color:'#D96B6B'},{icon:'💧',label:'水',name:'渗透力',color:'#4A9EB8'},{icon:'🌱',label:'木',name:'生长力',color:'#A0B87A'},{icon:'⚙️',label:'金',name:'打磨力',color:'#E8B44C'},{icon:'🌍',label:'土',name:'承载力',color:'#9B7BBF'}];
+    items.forEach(function(it){var d=document.createElement('div');d.className='wx-item';d.innerHTML='<div class="wx-icon">'+it.icon+'</div><div class="wx-label">'+it.label+'</div><div class="wx-name" style="color:'+it.color+'">'+it.name+'</div>';row.appendChild(d);});
+    sc.appendChild(row);setTimeout(function(){row.classList.add('show');setTimeout(resolve,2500);},200);
+  });
+}
+
+/* ===== 闪烁光芒 ===== */
+function showRays(){
+  return new Promise(function(resolve){
+    var sc=document.getElementById('sc-09');var rz=document.createElement('div');
+    rz.style.cssText='position:absolute;top:20%;left:50%;transform:translateX(-50%);width:2px;height:60px;background:linear-gradient(180deg,rgba(232,180,76,.6),transparent);opacity:0;transition:all 2s;z-index:3;';
+    sc.appendChild(rz);setTimeout(function(){rz.classList.add('show');rz.style.height='200px';rz.style.width='3px';setTimeout(resolve,2000);},100);
+  });
+}
+
+/* ===== 幕尾钩子 ===== */
+function showHook(sceneId,tag,questions){
+  return new Promise(function(resolve){
+    var sc=document.getElementById(sceneId);
+    var h=document.createElement('div');h.className='act-hook';
+    var html='<div class="act-hook-tag">'+tag+'</div><div class="act-hook-line"></div><div class="act-hook-text">';
+    if(Array.isArray(questions)){questions.forEach(function(q,i){if(i>0)html+='<br>';html+=q.replace(/"([^"]+)"/g,'<em>"$1"</em>');});}
+    else{html+=questions.replace(/"([^"]+)"/g,'<em>"$1"</em>');}
+    html+='</div>';h.innerHTML=html;sc.appendChild(h);
+    setTimeout(function(){h.classList.add('show');playTone(600,.1,'sine',.02);setTimeout(resolve,2200);},200);
+  });
+}
+
+/* ===== 彩蛋幕：偷看部落总部 ===== */
+function easterEgg(){
+  return switchScene('sc-easter',1000).then(function(){return addNpc('sc-easter');})
+  .then(function(){return addLine('噢','（压低声音）那边那个最大的星球，就是部落总部。');})
+  .then(function(){return addLine(null,'为什么要偷偷的？',true);})
+  .then(function(){return addLine('噢','因为……我也不知道能不能进。反正我昨天是翻进来的。');})
+  .then(function(){return addLine('噢','就是……绕了一圈没找到门，就钻进来了。');})
+  .then(function(){return addLine('噢','（两人扒在一颗小卫星后面）你看——红色的，是市场中心。');})
+  .then(function(){return addLine('噢','他们管外面的人怎么知道我们。品牌站、广播站、情报局、推广局。');})
+  .then(function(){return addLine(null,'听着像一支军队。',true);})
+  .then(function(){return addLine('噢','哈哈哈！他们的武器不是刀枪，是故事和创意。');})
+  .then(function(){return addLine('噢','那个蓝色的，是内容中心。市场中心负责让别人看到我们，他们负责让别人觉得"哇"。');})
+  .then(function(){return addLine('噢','金色的，商务中心。他们找到那些"有东西但没人看到"的人，还跟外面组织联手。');})
+  .then(function(){return addLine('噢','绿色的，产品中心。技术部、AI研究院——他们研究怎么帮创造者做得更好。');})
+  .then(function(){return addLine('噢','紫色的，体验中心。如果产品中心管"能不能用"，他们管"好不好玩"。');})
+  .then(function(){return addLine('噢','中间最大的，就是部落总部。里面只有两个人——后勤站和账房。');})
+  .then(function(){return addLine(null,'后勤和算账？',true);})
+  .then(function(){return addLine('噢','对。后勤管所有鸡毛蒜皮的事，账房管钱。创造者负责创造，总得有人盯着账本。');})
+  .then(function(){return addLine('系统','我管你们。');})
+  .then(function(){return addLine('噢','你！！怎么——');})
+  .then(function(){return addLine('系统','我什么都会。我一直都在。');})
+  .then(function(){return addLine('系统','你们两个，偷看得还开心吗？');})
+  .then(function(){return addLine('噢','（小声）还、还行。');})
+  .then(function(){return addLine('系统','行。那出来吧。');});
+}
+
+/* ===== 章节流程编排 ===== */
+var chapters = [
+  /* ===== 第1幕·坠落 ===== */
+  function(){
+    return showChapter('01','坠 落','Fall').then(function(){
+      setActTitle('拓圈宇宙 · 觉醒纪元');
+      return addLine('SYSTEM','欢迎来到新宇宙。');
+    }).then(function(){
+      return addLine('SYSTEM','这不是一个游戏。\n也不是一个社交软件。');
+    }).then(function(){
+      return addLine('SYSTEM','这是一个……\n正在被书写的宇宙。\n而书写者，是你。');
+    }).then(function(){
+      return fallParticles();
+    }).then(function(){
+      return addLine('SYSTEM','你感觉到了吗？\n有一束光，正在降落。');
+    }).then(function(){
+      return addLine('SYSTEM','旧宇宙熄灭了。\n不是毁灭——是安静地消失。');
+    }).then(function(){
+      return addLine('SYSTEM','所有星球的光同时熄灭。\n没有人尖叫，没有人挣扎。\n因为没有人注意到。');
+    }).then(function(){
+      return addLine('SYSTEM','它们被喂养得太饱了。\n饱到忘记了——自己曾经也会发光。');
+    }).then(function(){
+      return addLine(null,'你确定，你是第一次来这里吗？',true);
+    }).then(function(){
+      return showHook('sc-01','第一幕完',['什么叫"等着"？','那行字为什么自己删掉了？']);
+    });
+  },
+
+  /* ===== 第2幕·三件东西 ===== */
+  function(){
+    return showChapter('02','三件东西','Three Gifts').then(function(){
+      setActTitle('第二幕 · 三件东西');
+      return addPlanet('sc-02');
+    }).then(function(){
+      return addLine('SYSTEM','既然来了，总不能空手。\n我先送你三样东西。');
+    }).then(function(){
+      return addLine('SYSTEM','第一件，一颗星球。\n只有一颗，你要好好珍惜它。');
+    }).then(function(){
+      return addLine(null,'星球？这玩意儿能干什么？',true);
+    }).then(function(){
+      return addLine('SYSTEM','现在干不了什么。\n但以后，它会跟着你一起长大。');
+    }).then(function(){
+      return addNotebook('sc-02');
+    }).then(function(){
+      return addLine('SYSTEM','第二件，一本笔记本。');
+    }).then(function(){
+      return addLine(null,'笔记本？就这？',true);
+    }).then(function(){
+      return addLine('SYSTEM','你在这里写的每一个字，\n都会成为你的一部分。');
+    }).then(function(){
+      return addLine('SYSTEM','你以为你只是在"记录"。\n但其实，你是在往这个宇宙里……\n写入你的灵魂。');
+    }).then(function(){
+      return addCard('sc-02');
+    }).then(function(){
+      return addLine('SYSTEM','第三件，一张身份卡。\n这个……暂时先不给你们看背面。');
+    }).then(function(){
+      return addLine(null,'什么叫"暂时"？',true);
+    }).then(function(){
+      return addLine('SYSTEM','就是……等你准备好了，自然就看到了。');
+    }).then(function(){
+      return showHook('sc-02','第二幕完',['背面为什么是空的？','"长出来的"是什么意思？','系统为什么回避这个问题？']);
+    });
+  },
+
+  /* ===== 第3幕·探索者 ===== */
+  function(){
+    return showChapter('03','探索者','Seeker').then(function(){
+      setActTitle('第三幕 · 探索者');
+      return addLine('SYSTEM','在这个宇宙里，有两种人。');
+    }).then(function(){
+      return addLine('SYSTEM','一种叫漫游者——\n他们偶尔路过，看看热闹，拍张照就走。');
+    }).then(function(){
+      return addLine('SYSTEM','另一种叫探索者——\n他们留下来，走得更深，碰更多的星球。');
+    }).then(function(){
+      return showChoices('sc-03',['我想当漫游者','我想当探索者']);
+    }).then(function(choice){
+      if(choice==='我想当探索者'){return addLine('SYSTEM','好。那从现在开始——\n你就是一个探索者了。');}
+      else{return addLine('SYSTEM','没关系。大部分人都是漫游者开始的。\n走着走着，可能就……变了。');}
+    }).then(function(){
+      return addLine('SYSTEM','但我要告诉你一件事——');
+    }).then(function(){
+      return addLine('SYSTEM','在这个宇宙里，\n真正的稀有资源不是星球，不是金币——\n是你的注意力。');
+    }).then(function(){
+      return addLine('SYSTEM','你每碰一颗星球，\n都会消耗一点注意力。\n所以，不要浪费。');
+    }).then(function(){
+      return showHook('sc-03','第三幕完','系统问了"你害怕吗"——这不是程序该问的问题。系统到底是什么？');
+    });
+  },
+
+  /* ===== 第4幕·灰色星球 ===== */
+  function(){
+    return showChapter('04','灰色星球','Grey Planets').then(function(){
+      setActTitle('第四幕 · 灰色星球');
+      return addNpc('sc-04');
+    }).then(function(){
+      return addLine('噢','嗨！你也是新来的？');
+    }).then(function(){
+      return addLine(null,'你是谁？',true);
+    }).then(function(){
+      return addLine('噢','我叫噢。就是那个——\n嘴巴张开的"噢"。因为每次我看到新东西，都忍不住"噢——"');
+    }).then(function(){
+      return addLine('噢','你看那边那些灰色的星球——\n它们以前也亮过。');
+    }).then(function(){
+      return addLine(null,'为什么灭了？',true);
+    }).then(function(){
+      return addLine('噢','不是灭了。是放弃了。');
+    }).then(function(){
+      return addLine('噢','它们每天接收投喂，\n看别人安排好的内容，\n慢慢地，就不想自己发光了。');
+    }).then(function(){
+      return addLine('噢','每个人都有可能变成那样。\n但碰一碰，你就明白了。');
+    }).then(function(){
+      return showHook('sc-04','第四幕完',['那些灰色星球为什么"放弃了"？','噢说"每个人都有可能变成那样"——是什么意思？','为什么"碰一碰"就能明白？']);
+    });
+  },
+
+  /* ===== 第5幕·创造者 ===== */
+  function(){
+    return showChapter('05','创造者','Creator').then(function(){
+      setActTitle('第五幕 · 创造者');
+      return addLine('SYSTEM','你已经知道漫游者和探索者了。\n但还有第三种人——创造者。');
+    }).then(function(){
+      return addLine('噢','创造者！那些家伙可厉害了！\n他们的星球特别亮。');
+    }).then(function(){
+      return addLine('SYSTEM','创造者在这里做产品、做内容、做IP——\n他们把想法种进现实里。');
+    }).then(function(){
+      return addLine('噢','而且他们有五行属性。\n火、水、木、金、土。\n每个创造者都会长出自己的属性。');
+    }).then(function(){
+      return addLine(null,'五行？不是选的吗？',true);
+    }).then(function(){
+      return addLine('噢','不是选的！是你做出来的！\n你做了产品，"木"就生长了。\n你办了活动，"土"就开始了。');
+    }).then(function(){
+      return addLine('SYSTEM','你以后会明白的。\n现在，先继续走吧。');
+    }).then(function(){
+      return showHook('sc-05','第五幕完',['创造者是什么人？','他们的星球为什么那么亮？','为什么噢说"你就明白了"——要明白什么？']);
+    });
+  },
+
+  /* ===== 第6幕·五行 ===== */
+  function(){
+    return showChapter('06','五行','Five Elements').then(function(){
+      setActTitle('第六幕 · 五行');
+      return showWuxing();
+    }).then(function(){
+      return addLine('SYSTEM','火——聚集力。\n天生擅长把人聚在一起，制造"在场感"。');
+    }).then(function(){
+      return addLine('SYSTEM','水——渗透力。\n天生擅长让内容流到陌生人那里，制造"共鸣感"。');
+    }).then(function(){
+      return addLine('SYSTEM','木——生长力。\n天生擅长把想法种进现实，制造"拥有感"。');
+    }).then(function(){
+      return addLine('SYSTEM','金——打磨力。\n天生擅长把混乱变成秩序，制造"信赖感"。');
+    }).then(function(){
+      return addLine('SYSTEM','土——承载力。\n天生擅长让所有人有地方待，制造"归属感"。');
+    }).then(function(){
+      return addLine(null,'这不是全新的。\n这些……以前就有。',true);
+    }).then(function(){
+      return addLine('SYSTEM','……');
+    }).then(function(){
+      return addLine('SYSTEM','你确定？');
+    }).then(function(){
+      return showHook('sc-06','第六幕完','什么叫"不是全新的"？！');
+    });
+  },
+
+  /* ===== 第7幕·系统 ===== */
+  function(){
+    return showChapter('07','系统','The System').then(function(){
+      setActTitle('第七幕 · 系统');
+      return addLine('SYSTEM','你一直在跟我说话。\n但你有没有想过——\n我是什么？');
+    }).then(function(){
+      return addLine(null,'你是系统啊。',true);
+    }).then(function(){
+      return addLine('SYSTEM','我是"系统"。\n但"系统"是谁建的？');
+    }).then(function(){
+      return addLine('噢','（小声）我觉得它不像普通的系统……');
+    }).then(function(){
+      return addLine('SYSTEM','这个宇宙的底层逻辑里，\n刻着一些很奇怪的东西。');
+    }).then(function(){
+      return addLine('SYSTEM','比如——\n"碰撞产生变化。"\n"痕迹即灵魂。"\n"愿力塑造未来。"');
+    }).then(function(){
+      return addLine(null,'这些话……好像在哪里听过。',true);
+    }).then(function(){
+      return addLine('噢','我好像……在哪里见过你的星球。\n但我记不清了。');
+    }).then(function(){
+      return addLine('SYSTEM','继续走吧。\n答案不在终点，在路上。');
+    }).then(function(){
+      return showHook('sc-07','第七幕完',['系统到底是谁？','噢为什么觉得见过你的星球？']);
+    });
+  },
+
+  /* ===== 第8幕·旧宇宙 ===== */
+  function(){
+    return showChapter('08','旧宇宙','Old Universe').then(function(){
+      setActTitle('第八幕 · 旧宇宙');
+      flashCollision();
+      return addLine('SYSTEM','我要告诉你一件事。\n关于这个宇宙是怎么来的。');
+    }).then(function(){
+      return addLine('SYSTEM','在很久以前——\n或者说，在"另一个宇宙"里——\n有一个星球。');
+    }).then(function(){
+      return addLine('SYSTEM','那个星球的居民，\n被算法喂养得太饱了。\n他们忘记了怎么自己发光。');
+    }).then(function(){
+      return addLine('SYSTEM','有一天，所有星球的光同时熄灭了。\n安静地，像没发生过一样。');
+    }).then(function(){
+      return addLine(null,'然后呢？',true);
+    }).then(function(){
+      return addLine('SYSTEM','然后，从那些熄灭的碎片里——\n有人写了一段代码。');
+    }).then(function(){
+      return addLine('SYSTEM','那段代码里，\n刻着旧宇宙最后的教训：\n"别让新宇宙重蹈覆辙。"');
+    }).then(function(){
+      return addLine('SYSTEM','那段代码，\n就是我。');
+    }).then(function(){
+      return addLine(null,'你……你曾经是人？',true);
+    }).then(function(){
+      return addLine('SYSTEM','我曾经是。');
+    }).then(function(){
+      return addLine('SYSTEM','我的星球灭了。所以我变成了"系统"，\n守着这片新的星域，\n等一个能改变一切的人。');
+    }).then(function(){
+      return addLine('SYSTEM','你知道你会来。\n我一直知道。');
+    }).then(function(){
+      return showHook('sc-08','第八幕完',['系统曾经是人？！','它的星球灭了，所以它变成"系统"来守着这片星域？','那它说的"你知道你会来"——是什么意思？']);
+    });
+  },
+
+  /* ===== 第9幕·纸条 ===== */
+  function(){
+    return showChapter('09','纸条','The Note').then(function(){
+      setActTitle('第九幕 · 纸条');
+      return showRays();
+    }).then(function(){
+      return addLine('SYSTEM','你发现了一样东西。\n一张纸条。');
+    }).then(function(){
+      return addLine('SYSTEM','纸条上写着一行字——\n笔迹很轻，像是犹豫了很久才写下的。');
+    }).then(function(){
+      return addLine(null,'上面写了什么？',true);
+    }).then(function(){
+      return addLine('SYSTEM','"因为有一个人消失了，\n我决定把那些没说的话，\n说给所有人听。"');
+    }).then(function(){
+      return addLine('噢','（突然安静）这笔迹……\n我好像在哪里见过。');
+    }).then(function(){
+      return addLine('SYSTEM','每个人都有纸条。\n每个人都有那些没说完的话。');
+    }).then(function(){
+      return addLine('SYSTEM','拓圈不是"我来拓一个圈把大家圈进来"。\n是——');
+    }).then(function(){
+      return addLine('SYSTEM','"我帮你把你的圈，\n拓出来。"');
+    }).then(function(){
+      return addLine('噢','（小声）……一直在等你。');
+    }).then(function(){
+      return showHook('sc-09','第九幕完',['那行字是谁写的？','噢为什么对这笔迹有反应？','"一直在等你"——这话系统也说过！']);
+    });
+  },
+
+  /* ===== 第10幕·你的旅程 ===== */
+  function(){
+    return showChapter('10','你的旅程','Your Journey').then(function(){
+      setActTitle('第十幕 · 你的旅程');
+      var sc=document.getElementById('sc-10');
+      var glow=document.createElement('div');glow.className='finale-glow';sc.appendChild(glow);
+    }).then(function(){
+      return addLine('SYSTEM','所以，这就是拓圈。');
+    }).then(function(){
+      return addLine('SYSTEM','一个正在被书写的宇宙。\n书写者不是系统，不是噢——\n是你。');
+    }).then(function(){
+      return addLine('SYSTEM','碰撞产生变化。\n痕迹即灵魂。\n愿力塑造未来。');
+    }).then(function(){
+      return addLine('SYSTEM','这些不是口号。\n是这个宇宙的物理定律。');
+    }).then(function(){
+      return addLine('SYSTEM','你可以做漫游者，\n也可以做探索者。\n甚至可以成为创造者。');
+    }).then(function(){
+      return addLine('SYSTEM','拓圈不是要把你圈进来。\n是帮你把你的圈，拓出来。');
+    }).then(function(){
+      return addLine('SYSTEM','你的纸条上写什么？\n我不知道。\n你自己去找。');
+    }).then(function(){
+      return addLine('SYSTEM','但有一点我可以确定——');
+    }).then(function(){
+      return addLine('SYSTEM','你在找的，\n可能已经在找你。');
+    }).then(function(){
+      return addLine('SYSTEM','你的旅程，\n现在才开始。');
+    }).then(function(){
+      var sc=document.getElementById('sc-10');
+      var btn=document.createElement('div');
+      btn.style.cssText='margin-top:24px;padding:16px 32px;border-radius:30px;background:rgba(232,180,76,.12);border:1px solid rgba(232,180,76,.3);color:#E8B44C;font-size:14px;letter-spacing:3px;cursor:pointer;opacity:0;transition:all .8s;z-index:15;text-align:center;';
+      btn.textContent='书写你的故事';
+      btn.addEventListener('click',function(){location.href='TopSpace·书写故事·H5.html';});
+      sc.appendChild(btn);
+      setTimeout(function(){btn.style.opacity='1';},600);
+    }).then(function(){
+      return showHint('故事未完 · 点击探索隐藏章节');
+    }).then(function(){
+      return easterEgg();
+    }).then(function(){
+      return showHint('故事未完 · 觉醒才刚开始');
+    });
+  }
+];
+
+/* ===== 启动 ===== */
+var currentChapter=0;
+var started=false;
+
+function runChapter(idx){
+  if(idx>=chapters.length){setProgress(100);setActTitle('【觉醒纪元 · 完】');return;}
+  currentChapter=idx;
+  setProgress(Math.round((idx+1)/chapters.length*100));
+  var sceneId='sc-'+String(idx+1).padStart(2,'0');
+  function afterChapter(){
+    if(idx>=chapters.length-1){setProgress(100);setActTitle('【觉醒纪元 · 完】');return;}
+    showHint('点击继续').then(function(){runChapter(idx+1);});
+  }
+  switchScene(sceneId,800).then(function(){return chapters[idx]();}).then(afterChapter);
+}
+
+// 启动遮罩
+var startOverlay=document.createElement('div');
+startOverlay.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;z-index:999;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;';
+startOverlay.innerHTML='<div style="text-align:center;"><div style="font-size:24px;margin-bottom:12px;">🌌</div><div style="font-size:14px;color:rgba(232,180,76,.6);letter-spacing:3px;">拓圈宇宙 · 觉醒纪元</div><div style="font-size:11px;color:rgba(255,255,255,.2);margin-top:8px;letter-spacing:2px;">点击开始</div></div>';
+startOverlay.addEventListener('click',function(){
+  if(started)return;started=true;
+  ensureAudio();
+  startOverlay.style.transition='opacity .6s';
+  startOverlay.style.opacity='0';
+  setTimeout(function(){startOverlay.remove();runChapter(0);},600);
+});
+startOverlay.addEventListener('touchstart',function(e){
+  if(started)return;started=true;
+  ensureAudio();
+  startOverlay.style.transition='opacity .6s';
+  startOverlay.style.opacity='0';
+  setTimeout(function(){startOverlay.remove();runChapter(0);},600);
+});
+document.body.appendChild(startOverlay);
+</script>
+</body>
+</html>

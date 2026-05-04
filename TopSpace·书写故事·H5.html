@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>TopSpace · 书写你的故事 v1.1</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --dark:#0B0F1E;
+  --dark-card:rgba(255,255,255,.03);
+  --dark-border:rgba(255,255,255,.06);
+  --paper:#0F1326;
+  --amber:#E8B44C;
+  --amber-light:#F5D276;
+  --amber-glow:rgba(232,180,76,.4);
+  --text-light:#F5F0E8;
+  --text-muted:rgba(245,240,232,.35);
+}
+html,body{width:100%;min-height:100vh;background:var(--paper);color:var(--text-light);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+body{-webkit-user-select:none;user-select:none;}
+
+/* ===== 顶部导航 ===== */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  padding:44px 20px 12px;
+  background:linear-gradient(180deg,var(--paper) 60%,rgba(15,19,38,.8) 85%,transparent 100%);
+}
+.nav-title{font-size:15px;font-weight:600;color:var(--text-light);letter-spacing:2px;}
+.nav-back{
+  position:absolute;left:20px;top:50%;transform:translateY(-50%);
+  width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.05);
+  border:none;color:rgba(255,255,255,.4);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ===== 星空过渡区 ===== */
+.skyline{
+  position:relative;height:180px;
+  background:linear-gradient(180deg,#080C1A 0%,var(--dark) 50%,#141830 75%,var(--paper) 100%);
+  overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.skyline-stars{position:absolute;inset:0;}
+.skyline-star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) ease-in-out infinite alternate;opacity:0;}
+@keyframes twinkle{0%{opacity:.03;transform:scale(.5)}100%{opacity:var(--o,.6);transform:scale(1.1)}}
+.skyline-glow{
+  position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);
+  width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(232,180,76,.06) 0%,transparent 70%);
+}
+.skyline-text{
+  position:relative;z-index:2;text-align:center;
+}
+.skyline-text h2{
+  font-size:20px;font-weight:700;color:#F5F0E8;letter-spacing:3px;margin-bottom:6px;
+}
+.skyline-text p{
+  font-size:12px;color:rgba(245,240,232,.35);letter-spacing:2px;line-height:1.8;
+}
+
+/* ===== 内容区 ===== */
+.content{
+  position:relative;z-index:2;
+  padding:32px 24px 120px;max-width:480px;margin:0 auto;
+}
+
+/* ===== 引言卡片 ===== */
+.intro-card{
+  background:linear-gradient(135deg,rgba(232,180,76,.08),rgba(232,180,76,.02));
+  border:1px solid rgba(232,180,76,.12);border-radius:16px;
+  padding:24px;margin-bottom:32px;
+}
+.intro-quote{
+  font-size:15px;color:var(--amber);line-height:2;text-align:center;
+  font-style:italic;letter-spacing:.5px;margin-bottom:8px;
+}
+.intro-source{
+  font-size:11px;color:var(--text-muted);text-align:center;letter-spacing:1px;
+}
+
+/* ===== 提示 ===== */
+.write-tips{
+  display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;
+}
+.tip-tag{
+  padding:6px 14px;border-radius:20px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  font-size:11px;color:rgba(245,240,232,.35);letter-spacing:1px;
+}
+
+/* ===== 文本编辑区 ===== */
+.editor-wrapper{
+  position:relative;margin-bottom:20px;
+}
+.editor-label{
+  font-size:12px;color:rgba(245,240,232,.35);letter-spacing:2px;margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.editor-label::before{
+  content:'';display:inline-block;width:3px;height:12px;
+  background:var(--amber);border-radius:2px;
+}
+.editor{
+  width:100%;min-height:320px;padding:20px;
+  border:1px solid rgba(255,255,255,.06);border-radius:16px;
+  background:rgba(255,255,255,.03);
+  font-size:15px;color:var(--text-light);line-height:2;
+  letter-spacing:.5px;
+  resize:none;outline:none;
+  -webkit-user-select:text;user-select:text;
+  transition:border-color .3s,box-shadow .3s;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;
+}
+.editor:focus{
+  border-color:rgba(232,180,76,.3);
+  box-shadow:0 0 0 3px rgba(232,180,76,.06);
+}
+.editor::placeholder{
+  color:rgba(255,255,255,.15);font-style:italic;
+}
+.char-count{
+  text-align:right;font-size:11px;color:rgba(255,255,255,.15);
+  margin-top:8px;letter-spacing:1px;
+}
+.char-count.warn{color:rgba(217,107,107,.6);}
+
+/* ===== 昵称输入 ===== */
+.nickname-row{
+  display:flex;gap:12px;margin-bottom:20px;align-items:center;
+}
+.nickname-input{
+  flex:1;padding:14px 16px;border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;background:rgba(255,255,255,.03);
+  font-size:14px;color:var(--text-light);outline:none;
+  -webkit-user-select:text;user-select:text;
+  transition:border-color .3s;
+  font-family:inherit;letter-spacing:1px;
+}
+.nickname-input:focus{border-color:rgba(232,180,76,.3);}
+.nickname-input::placeholder{color:rgba(255,255,255,.15);}
+.nickname-label{
+  font-size:12px;color:rgba(245,240,232,.35);letter-spacing:1px;white-space:nowrap;
+}
+
+/* ===== 提交按钮 ===== */
+.submit-btn{
+  width:100%;padding:16px;border-radius:30px;
+  background:linear-gradient(135deg,#E8A800,#FFD700);
+  border:none;color:#1a1200;font-size:15px;font-weight:700;
+  letter-spacing:3px;cursor:pointer;
+  transition:all .3s;
+  box-shadow:0 4px 32px rgba(255,215,0,.7);
+}
+.submit-btn:active{
+  transform:scale(.97);
+  box-shadow:0 2px 14px rgba(245,200,66,.4);
+}
+.submit-btn:disabled{
+  opacity:.4;cursor:not-allowed;
+  box-shadow:none;
+}
+.submit-btn.saved{
+  background:linear-gradient(135deg,#A0B87A,#B8D49A);
+  box-shadow:0 4px 20px rgba(160,184,122,.2);
+}
+
+/* ===== 本地故事列表 ===== */
+.saved-section{
+  margin-top:48px;
+}
+.saved-title{
+  font-size:13px;color:rgba(245,240,232,.35);letter-spacing:2px;margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.saved-title::after{
+  content:'';flex:1;height:1px;background:rgba(255,255,255,.05);
+}
+.saved-empty{
+  text-align:center;padding:32px 0;
+  font-size:13px;color:rgba(255,255,255,.12);letter-spacing:1px;
+  font-style:italic;
+}
+.saved-item{
+  padding:16px;margin-bottom:12px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);
+  border-radius:12px;cursor:pointer;
+  transition:all .2s;position:relative;
+}
+.saved-item:active{
+  transform:scale(.98);background:rgba(232,180,76,.05);
+}
+.saved-item-header{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
+}
+.saved-item-name{
+  font-size:13px;font-weight:600;color:var(--text-light);letter-spacing:1px;
+}
+.saved-item-date{
+  font-size:10px;color:rgba(245,240,232,.2);letter-spacing:1px;
+}
+.saved-item-preview{
+  font-size:13px;color:rgba(255,255,255,.2);line-height:1.8;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  letter-spacing:.5px;
+}
+.saved-item-actions{
+  position:absolute;top:12px;right:12px;display:flex;gap:6px;
+}
+.saved-action-btn{
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,.04);border:none;
+  color:rgba(255,255,255,.2);font-size:12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ===== Toast ===== */
+.toast{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.9);
+  padding:20px 32px;border-radius:16px;
+  background:rgba(44,40,36,.92);color:#F5F0E8;
+  font-size:14px;letter-spacing:2px;text-align:center;
+  z-index:999;opacity:0;pointer-events:none;
+  transition:all .4s cubic-bezier(.23,1,.32,1);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+.toast-icon{font-size:28px;margin-bottom:8px;}
+
+/* ===== 确认弹框 ===== */
+.confirm-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.4);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.confirm-overlay.show{opacity:1;pointer-events:auto;}
+.confirm-box{
+  width:280px;padding:28px 24px;border-radius:20px;
+  background:var(--paper);text-align:center;
+  transform:scale(.9);transition:transform .3s;
+}
+.confirm-overlay.show .confirm-box{transform:scale(1);}
+.confirm-title{font-size:16px;font-weight:600;color:var(--text-dark);letter-spacing:1px;margin-bottom:8px;}
+.confirm-desc{font-size:13px;color:var(--text-muted);line-height:1.8;margin-bottom:20px;}
+.confirm-btns{display:flex;gap:12px;}
+.confirm-btn{
+  flex:1;padding:12px;border-radius:12px;border:none;
+  font-size:13px;letter-spacing:1px;cursor:pointer;
+  transition:all .2s;
+}
+.confirm-btn.cancel{background:rgba(255,255,255,.04);color:rgba(245,240,232,.35);}
+.confirm-btn.confirm{background:rgba(217,107,107,.1);color:#D96B6B;}
+.confirm-btn:active{transform:scale(.96);}
+
+/* ===== 底部装饰 ===== */
+.footer{
+  text-align:center;padding:32px 0;
+  font-size:10px;color:rgba(255,255,255,.06);letter-spacing:2px;
+}
+
+/* ===== 淡入动画 ===== */
+.fade-up{opacity:0;transform:translateY(20px);transition:opacity .8s ease,transform .8s ease;}
+.fade-up.visible{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<div class="nav">
+  <button class="nav-back" onclick="goBack()">&#8249;</button>
+  <div class="nav-title">书写你的故事</div>
+</div>
+
+<!-- 星空过渡区 -->
+<div class="skyline">
+  <div class="skyline-stars" id="skylineStars"></div>
+  <div class="skyline-glow"></div>
+  <div class="skyline-text">
+    <h2>每个人的纸条</h2>
+    <p>每个人都有没说完的话</p>
+  </div>
+</div>
+
+<!-- 内容区 -->
+<div class="content">
+
+  <!-- 引言卡片 -->
+  <div class="intro-card fade-up">
+    <div class="intro-quote">
+      因为有一个人消失了，<br>
+      我决定把那些没说的话，<br>
+      说给所有人听。
+    </div>
+    <div class="intro-source">—— 拓荒者的纸条</div>
+  </div>
+
+  <!-- 提示标签 -->
+  <div class="write-tips fade-up">
+    <span class="tip-tag">可以匿名</span>
+    <span class="tip-tag">可以短到一句话</span>
+    <span class="tip-tag">可以长到一整夜</span>
+  </div>
+
+  <!-- 昵称 -->
+  <div class="nickname-row fade-up">
+    <span class="nickname-label">你的名字</span>
+    <input type="text" class="nickname-input" id="nicknameInput" placeholder="匿名漫游者" maxlength="20">
+  </div>
+
+  <!-- 文本编辑区 -->
+  <div class="editor-wrapper fade-up">
+    <div class="editor-label">你的故事</div>
+    <textarea class="editor" id="storyEditor" placeholder="在这里写下你想说的话……&#10;&#10;可以是未完成的梦、&#10;可以是没说出口的话、&#10;可以是对某个人说的、&#10;也可以只是对自己说。&#10;&#10;拓圈会替你留着。" maxlength="5000"></textarea>
+    <div class="char-count" id="charCount">0 / 5000</div>
+  </div>
+
+  <!-- 提交按钮 -->
+  <button class="submit-btn" id="submitBtn" onclick="submitStory()">保 存 故 事</button>
+
+  <!-- 本地保存的故事列表 -->
+  <div class="saved-section" id="savedSection">
+    <div class="saved-title">已保存的故事</div>
+    <div id="savedList">
+      <div class="saved-empty">还没有故事，写下你的第一个吧</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    TOPSPACE · 让小而美被世界看见
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toastIcon"></div>
+  <div id="toastText"></div>
+</div>
+
+<!-- 确认弹框 -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle">确认删除？</div>
+    <div class="confirm-desc" id="confirmDesc">删除后将无法恢复</div>
+    <div class="confirm-btns">
+      <button class="confirm-btn cancel" onclick="closeConfirm()">取消</button>
+      <button class="confirm-btn confirm" id="confirmBtn" onclick="confirmAction()">删除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== 星空 ===== */
+(function(){
+  var el=document.getElementById('skylineStars');
+  for(var i=0;i<60;i++){
+    var s=document.createElement('div');
+    s.className='skyline-star';
+    s.style.cssText='left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;width:'+(0.4+Math.random()*1.2)+'px;height:'+(0.4+Math.random()*1.2)+'px;--d:'+(2+Math.random()*4)+'s;--o:'+(0.2+Math.random()*0.4).toFixed(2)+';animation-delay:'+Math.random()*3+'s;';
+    el.appendChild(s);
+  }
+})();
+
+/* ===== 淡入 ===== */
+var obs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible');});
+},{threshold:0.15});
+document.querySelectorAll('.fade-up').forEach(function(el){obs.observe(el);});
+
+/* ===== 字数统计 ===== */
+var editor=document.getElementById('storyEditor');
+var charCount=document.getElementById('charCount');
+var submitBtn=document.getElementById('submitBtn');
+editor.addEventListener('input',function(){
+  var len=editor.value.length;
+  charCount.textContent=len+' / 5000';
+  charCount.className='char-count'+(len>4500?' warn':'');
+  submitBtn.disabled=len===0;
+});
+submitBtn.disabled=true;
+
+/* ===== Toast ===== */
+function showToast(icon,text,duration){
+  var t=document.getElementById('toast');
+  document.getElementById('toastIcon').textContent=icon;
+  document.getElementById('toastText').textContent=text;
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},duration||2000);
+}
+
+/* ===== 存储 ===== */
+function getStories(){
+  try{return JSON.parse(localStorage.getItem('topoo_stories')||'[]');}catch(e){return[];}
+}
+function saveStories(list){
+  try{localStorage.setItem('topoo_stories',JSON.stringify(list));}catch(e){}
+}
+
+/* ===== 提交 ===== */
+function submitStory(){
+  var content=editor.value.trim();
+  if(!content){showToast('✏️','请先写下你的故事');return;}
+  var nickname=document.getElementById('nicknameInput').value.trim()||'匿名漫游者';
+  var stories=getStories();
+  var story={
+    id:Date.now(),
+    nickname:nickname,
+    content:content,
+    date:new Date().toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}),
+    synced:false
+  };
+  stories.unshift(story);
+  saveStories(stories);
+
+  // 预留后端上传接口
+  syncToServer(story);
+
+  // 清空编辑器
+  editor.value='';
+  charCount.textContent='0 / 5000';
+  charCount.className='char-count';
+  submitBtn.disabled=true;
+
+  // 按钮反馈
+  submitBtn.textContent='已 保 存';
+  submitBtn.classList.add('saved');
+  setTimeout(function(){
+    submitBtn.textContent='保 存 故 事';
+    submitBtn.classList.remove('saved');
+  },2000);
+
+  showToast('✨','故事已保存');
+  renderSavedList();
+}
+
+/* ===== 预留后端上传接口 ===== */
+function syncToServer(story){
+  // TODO: 对接后端API
+  // fetch('/api/stories', {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify(story)
+  // }).then(res => res.json()).then(data => {
+  //   if(data.success){
+  //     // 标记为已同步
+  //     var stories = getStories();
+  //     var idx = stories.findIndex(s => s.id === story.id);
+  //     if(idx >= 0){ stories[idx].synced = true; saveStories(stories); }
+  //   }
+  // }).catch(err => {
+  //   console.log('离线保存，下次同步:', err);
+  // });
+  console.log('[TopSpace] 故事已本地保存，等待上传。ID:', story.id);
+}
+
+/* ===== 渲染已保存列表 ===== */
+function renderSavedList(){
+  var stories=getStories();
+  var list=document.getElementById('savedList');
+  if(stories.length===0){
+    list.innerHTML='<div class="saved-empty">还没有故事，写下你的第一个吧</div>';
+    return;
+  }
+  var html='';
+  stories.forEach(function(s){
+    var preview=s.content.replace(/\n/g,' ').substring(0,60);
+    html+='<div class="saved-item" data-id="'+s.id+'">'
+      +'<div class="saved-item-header">'
+      +'<span class="saved-item-name">'+escapeHtml(s.nickname)+'</span>'
+      +'<span class="saved-item-date">'+s.date+(s.synced?' · 已同步':'')+'</span>'
+      +'</div>'
+      +'<div class="saved-item-preview">'+escapeHtml(preview)+'…</div>'
+      +'<div class="saved-item-actions">'
+      +'<button class="saved-action-btn" onclick="event.stopPropagation();loadStory('+s.id+')" title="编辑">&#9998;</button>'
+      +'<button class="saved-action-btn" onclick="event.stopPropagation();deleteStory('+s.id+')" title="删除">&#10005;</button>'
+      +'</div>'
+      +'</div>';
+  });
+  list.innerHTML=html;
+}
+
+function escapeHtml(text){
+  var d=document.createElement('div');d.textContent=text;return d.innerHTML;
+}
+
+/* ===== 加载故事到编辑器 ===== */
+function loadStory(id){
+  var stories=getStories();
+  var s=stories.find(function(x){return x.id===id;});
+  if(!s)return;
+  editor.value=s.content;
+  document.getElementById('nicknameInput').value=s.nickname==='匿名漫游者'?'':s.nickname;
+  var len=s.content.length;
+  charCount.textContent=len+' / 5000';
+  submitBtn.disabled=false;
+  // 删除原记录（保存时会重新创建）
+  stories=stories.filter(function(x){return x.id!==id;});
+  saveStories(stories);
+  renderSavedList();
+  editor.scrollIntoView({behavior:'smooth',block:'center'});
+  showToast('📝','故事已加载到编辑器');
+}
+
+/* ===== 删除 ===== */
+var pendingDeleteId=null;
+function deleteStory(id){
+  pendingDeleteId=id;
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+function closeConfirm(){
+  document.getElementById('confirmOverlay').classList.remove('show');
+  pendingDeleteId=null;
+}
+function confirmAction(){
+  if(pendingDeleteId!==null){
+    var stories=getStories().filter(function(x){return x.id!==pendingDeleteId;});
+    saveStories(stories);
+    renderSavedList();
+    showToast('🗑️','故事已删除');
+  }
+  closeConfirm();
+}
+
+/* ===== 返回 ===== */
+function goBack(){
+  if(editor.value.trim()){
+    // 有未保存内容，提示
+    pendingDeleteId=-1;
+    document.getElementById('confirmTitle').textContent='有未保存的内容';
+    document.getElementById('confirmDesc').textContent='离开后编辑器中的内容将丢失，确定要离开吗？';
+    document.getElementById('confirmBtn').textContent='离开';
+    document.getElementById('confirmOverlay').classList.add('show');
+    // 重写确认按钮行为
+    document.getElementById('confirmBtn').onclick=function(){
+      localStorage.setItem('topoo_draft',JSON.stringify({content:editor.value,nickname:document.getElementById('nicknameInput').value}));
+      closeConfirm();
+      history.back();
+      // 重置
+      document.getElementById('confirmTitle').textContent='确认删除？';
+      document.getElementById('confirmDesc').textContent='删除后将无法恢复';
+      document.getElementById('confirmBtn').textContent='删除';
+      document.getElementById('confirmBtn').onclick=confirmAction;
+    };
+  }else{
+    history.back();
+  }
+}
+
+/* ===== 恢复草稿 ===== */
+(function(){
+  try{
+    var draft=JSON.parse(localStorage.getItem('topoo_draft')||'null');
+    if(draft&&draft.content){
+      editor.value=draft.content;
+      if(draft.nickname)document.getElementById('nicknameInput').value=draft.nickname;
+      var len=draft.content.length;
+      charCount.textContent=len+' / 5000';
+      submitBtn.disabled=false;
+      showToast('📝','已恢复上次未保存的内容');
+      localStorage.removeItem('topoo_draft');
+    }
+  }catch(e){}
+})();
+
+/* ===== 初始渲染 ===== */
+renderSavedList();
+</script>
+</body>
+</html>

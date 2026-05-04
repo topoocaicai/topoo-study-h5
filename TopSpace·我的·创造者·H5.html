@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TopSpace · 我的 · 创造者</title>
+    <style>
+        * { margin:0; padding:0; box-sizing: border-box; }
+        body {
+            background: #F5F0E8; color: #2C2824;
+            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+            overflow: hidden; height: 100vh; width: 100vw;
+            -webkit-user-select: none; user-select: none;
+        }
+        .phone-shell {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 375px; height: 812px; border-radius: 44px;
+            background: #F5F0E8;
+            box-shadow: 0 0 0 2px #3C3834, 0 0 0 6px #1a1816, 0 20px 60px rgba(0,0,0,0.3), inset 0 0 0 2px rgba(255,255,255,0.1);
+            overflow: hidden; position: relative;
+        }
+        .phone-notch {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 150px; height: 30px; background: #2C2824;
+            border-radius: 0 0 18px 18px; z-index: 200;
+        }
+        .phone-notch::before {
+            content: ''; position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+            width: 60px; height: 6px; background: #3C3834; border-radius: 3px;
+        }
+        .page-scroll {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 80px;
+            overflow-y: auto; overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; touch-action: pan-y;
+        }
+        .page-scroll::-webkit-scrollbar { width: 0; }
+        .top-bar {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 44px 20px 12px;
+            background: linear-gradient(180deg, #F5F0E8 60%, rgba(245,240,232,0) 100%);
+        }
+        .top-left { display: flex; align-items: center; gap: 8px; }
+        .logo-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: linear-gradient(135deg, #A0B87A 0%, #8AA862 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 700; color: #fff;
+        }
+        .logo-text { font-size: 16px; font-weight: 600; letter-spacing: 1px; color: #2C2824; }
+        .top-right { display: flex; align-items: center; gap: 12px; }
+        .plate-badge {
+            display: flex; align-items: center; gap: 4px;
+            padding: 6px 10px; border-radius: 16px; font-size: 12px;
+            background: rgba(160,184,122,0.1); border: 1px solid rgba(160,184,122,0.2); color: #6B8A4E;
+        }
+        .settings-btn {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.06);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; color: #2C2824; cursor: pointer;
+        }
+        .role-switch-area {
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; padding: 0 20px 16px;
+        }
+        .role-switch-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border-radius: 16px; cursor: pointer;
+            font-size: 12px; color: #6B8A4E;
+            background: rgba(160,184,122,0.08); border: 1px solid rgba(160,184,122,0.15);
+            transition: all 0.2s;
+        }
+        .role-switch-btn:active { background: rgba(160,184,122,0.15); }
+        .role-switch-arrow { font-size: 10px; }
+        .role-header {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 0 20px 24px; text-align: center;
+        }
+        .role-planet { position: relative; width: 120px; height: 120px; margin-bottom: 16px; cursor: pointer; }
+        .planet-canvas {
+            width: 120px; height: 120px; border-radius: 50%; position: relative; overflow: visible;
+            background: radial-gradient(circle at 40% 35%, #B8CC98 0%, #8AA862 60%, rgba(0,0,0,0.1) 100%);
+            box-shadow: inset -8px -8px 20px rgba(0,0,0,0.1), inset 10px 10px 30px rgba(255,255,255,0.1), 0 4px 20px rgba(160,184,122,0.2);
+        }
+        .planet-dots { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .planet-dot {
+            position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #FFD700;
+            box-shadow: 0 0 6px rgba(255,215,0,0.6); animation: twinkle 3s ease-in-out infinite;
+        }
+        .planet-dot:nth-child(1) { top: 15%; left: 20%; animation-delay: 0s; }
+        .planet-dot:nth-child(2) { top: 30%; right: 10%; animation-delay: 0.8s; }
+        .planet-dot:nth-child(3) { bottom: 25%; left: 15%; animation-delay: 1.6s; }
+        .planet-dot:nth-child(4) { top: 10%; right: 30%; animation-delay: 0.4s; }
+        .planet-dot:nth-child(5) { bottom: 35%; right: 20%; animation-delay: 1.2s; }
+        @keyframes twinkle { 0%,100% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.3); } }
+        .door-plate {
+            position: absolute; bottom: -4px; right: -8px;
+            background: #2C2824; color: #F5F0E8; padding: 4px 10px; border-radius: 8px;
+            font-size: 11px; font-weight: 600; letter-spacing: 1px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .planet-glow {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 140px; height: 140px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(160,184,122,0.2), transparent 70%);
+            opacity: 0.4; animation: breathe 4s ease-in-out infinite; pointer-events: none;
+        }
+        @keyframes breathe { 0%,100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; } 50% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.5; } }
+        .role-name { font-size: 20px; font-weight: 700; color: #2C2824; }
+        .role-tag-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+        .role-badge { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .role-badge-creator { background: rgba(160,184,122,0.12); color: #6B8A4E; border: 1px solid rgba(160,184,122,0.2); }
+        .status-row { display: flex; gap: 8px; margin-bottom: 20px; padding: 0 20px; }
+        .status-card {
+            flex: 1; background: #fff; border-radius: 14px; padding: 14px 12px; text-align: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04);
+        }
+        .status-val { font-size: 20px; font-weight: 700; }
+        .status-val-attn { color: #D96B6B; }
+        .status-val-pt { color: #A0B87A; }
+        .status-val-day { color: #9B7BBF; }
+        .status-val-score { color: #E8B44C; }
+        .status-label { font-size: 10px; color: rgba(44,40,36,0.45); margin-top: 4px; }
+        .section-title {
+            font-size: 14px; font-weight: 600; color: #2C2824; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-title::before { content: ''; width: 4px; height: 16px; border-radius: 2px; background: #A0B87A; }
+        .space-section { margin-bottom: 24px; padding: 0 20px; }
+        .space-card {
+            background: #fff; border-radius: 16px; padding: 18px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04); margin-bottom: 12px;
+        }
+        .space-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .space-card-title { font-size: 14px; font-weight: 600; color: #2C2824; display: flex; align-items: center; gap: 6px; }
+        .space-card-action { font-size: 12px; color: #A0B87A; cursor: pointer; padding: 4px 10px; border-radius: 8px; background: rgba(160,184,122,0.08); }
+        .space-card-action:active { background: rgba(160,184,122,0.15); }
+        .space-bar-track { height: 8px; background: rgba(0,0,0,0.05); border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+        .space-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #A0B87A, #4A9EB8); transition: width 1s ease; }
+        .space-bar-info { display: flex; justify-content: space-between; font-size: 11px; color: rgba(44,40,36,0.4); }
+        .space-hint { font-size: 11px; color: rgba(44,40,36,0.35); margin-top: 8px; line-height: 1.5; }
+        .privacy-toggle { display: flex; gap: 8px; margin-top: 14px; }
+        .privacy-option {
+            flex: 1; padding: 12px; border-radius: 12px; text-align: center; cursor: pointer;
+            transition: all 0.25s; border: 2px solid transparent;
+        }
+        .privacy-option.active { border-color: #A0B87A; background: rgba(160,184,122,0.06); }
+        .privacy-option:not(.active) { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); }
+        .privacy-option:active { transform: scale(0.97); }
+        .privacy-icon { font-size: 22px; margin-bottom: 6px; }
+        .privacy-label { font-size: 13px; font-weight: 600; color: #2C2824; }
+        .privacy-desc { font-size: 10px; color: rgba(44,40,36,0.4); margin-top: 3px; }
+        .showcase-preview {
+            display: flex; gap: 10px; overflow-x: auto;
+            padding: 4px 0 8px; margin: 0 -18px;
+            padding-left: 18px; padding-right: 18px;
+        }
+        .showcase-preview::-webkit-scrollbar { display: none; }
+        .showcase-item {
+            flex: 0 0 110px; height: 140px; border-radius: 12px; overflow: hidden;
+            position: relative; cursor: pointer;
+        }
+        .showcase-item-inner { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+        .showcase-item-icon { font-size: 28px; }
+        .showcase-item-name { font-size: 11px; font-weight: 600; color: #2C2824; }
+        .showcase-item-type { font-size: 9px; padding: 2px 6px; border-radius: 6px; margin-top: 2px; }
+        .upgrade-section { margin-bottom: 24px; padding: 0 20px; }
+        .upgrade-lines { display: flex; flex-direction: column; gap: 8px; }
+        .upgrade-line {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 14px; background: #fff; border-radius: 12px;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.04);
+        }
+        .upgrade-icon { font-size: 20px; flex-shrink: 0; }
+        .upgrade-info { flex: 1; }
+        .upgrade-name { font-size: 13px; font-weight: 600; color: #2C2824; }
+        .upgrade-desc { font-size: 10px; color: rgba(44,40,36,0.4); margin-top: 2px; }
+        .upgrade-bar-wrap { width: 60px; }
+        .upgrade-bar { height: 4px; background: rgba(0,0,0,0.06); border-radius: 2px; overflow: hidden; }
+        .upgrade-bar-fill { height: 100%; border-radius: 2px; }
+        .upgrade-pct { font-size: 10px; color: rgba(44,40,36,0.5); text-align: right; margin-top: 2px; }
+        .starfield-entry {
+            margin: 0 20px 20px; background: linear-gradient(135deg, #2C2824 0%, #1a1614 100%);
+            border-radius: 16px; padding: 18px; position: relative; overflow: hidden; cursor: pointer;
+            min-height: 80px; display: flex; align-items: center; justify-content: space-between;
+        }
+        .starfield-entry:active { opacity: 0.9; }
+        .starfield-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .sf-star { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #fff; }
+        .starfield-left { position: relative; z-index: 1; }
+        .starfield-title { font-size: 14px; font-weight: 600; color: #F5F0E8; }
+        .starfield-desc { font-size: 11px; color: rgba(245,240,232,0.4); margin-top: 3px; }
+        .starfield-count { position: relative; z-index: 1; font-size: 24px; font-weight: 700; color: #FFD700; }
+        .menu-section { padding: 0 20px; margin-bottom: 24px; }
+        .menu-item {
+            display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+            background: #fff; border-radius: 12px; margin-bottom: 6px;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.04);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .menu-item:active { background: #f9f7f3; transform: scale(0.99); }
+        .menu-icon { font-size: 20px; width: 28px; text-align: center; }
+        .menu-text { flex: 1; font-size: 14px; font-weight: 500; }
+        .menu-badge { padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 600; }
+        .menu-arrow { font-size: 14px; color: rgba(44,40,36,0.2); }
+        .bottom-nav {
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 100;
+            background: linear-gradient(0deg, rgba(245,240,232,0.98) 0%, rgba(245,240,232,0.85) 60%, transparent 100%);
+            padding: 8px 0 28px;
+        }
+        .nav-items { display: flex; justify-content: space-around; align-items: flex-end; padding: 0 8px; }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 3px; padding: 6px 10px; cursor: pointer;
+            transition: all 0.2s; border-radius: 12px;
+        }
+        .nav-item:active { transform: scale(0.95); }
+        .nav-item.active .nav-icon { opacity: 1; transform: scale(1.1); }
+        .nav-item.active .nav-label { color: #A0B87A; }
+        .nav-icon { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 20px; opacity: 0.35; transition: all 0.2s; }
+        .nav-label { font-size: 10px; color: rgba(44,40,36,0.4); transition: all 0.2s; }
+        .nav-item.center { position: relative; top: -8px; }
+        .nav-item.center .nav-icon-wrap {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: linear-gradient(135deg, #A0B87A 0%, #4A9EB8 100%);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 20px rgba(160,184,122,0.3);
+        }
+        .nav-item.center .nav-icon { font-size: 22px; opacity: 1; color: #fff; }
+        .role-modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center;
+        }
+        .role-modal-overlay.show { display: flex; }
+        .role-modal {
+            width: 320px; background: #F5F0E8; border-radius: 20px; padding: 24px 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .role-modal-title { font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 20px; color: #2C2824; }
+        .role-modal-option {
+            display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px;
+            margin-bottom: 8px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;
+        }
+        .role-modal-option:active { transform: scale(0.98); }
+        .role-modal-option.current { border-color: #A0B87A; background: rgba(160,184,122,0.06); }
+        .role-modal-icon { font-size: 24px; }
+        .role-modal-info { flex: 1; }
+        .role-modal-name { font-size: 14px; font-weight: 600; color: #2C2824; }
+        .role-modal-desc { font-size: 11px; color: rgba(44,40,36,0.4); margin-top: 2px; }
+        .role-modal-current-tag { font-size: 10px; padding: 2px 8px; border-radius: 6px; background: rgba(160,184,122,0.12); color: #6B8A4E; }
+        .role-modal-cancel {
+            display: block; width: 100%; padding: 12px; margin-top: 12px; border: none; border-radius: 12px;
+            background: rgba(0,0,0,0.04); color: rgba(44,40,36,0.5); font-size: 14px; cursor: pointer;
+        }
+        .role-modal-cancel:active { background: rgba(0,0,0,0.08); }
+    </style>
+</head>
+<body>
+<div class="phone-shell">
+    <div class="phone-notch"></div>
+
+    <div class="top-bar">
+        <div class="top-left"><div class="logo-icon">T</div><div class="logo-text">Topoo</div></div>
+        <div class="top-right">
+            <div class="plate-badge">0527</div>
+            <div class="settings-btn" onclick="alert('设置页 - 待开发')">⚙</div>
+        </div>
+    </div>
+
+    <div class="page-scroll">
+        <div style="height:12px;"></div>
+        <div class="role-switch-area">
+            <div class="role-switch-btn" onclick="openRoleModal()">
+                <span>切换角色</span><span class="role-switch-arrow">▾</span>
+            </div>
+        </div>
+
+        <!-- 角色头部 -->
+        <div class="role-header">
+            <div class="role-planet" onclick="openRoleModal()">
+                <div class="planet-glow"></div>
+                <div class="planet-canvas">
+                    <div class="planet-dots">
+                        <div class="planet-dot"></div><div class="planet-dot"></div>
+                        <div class="planet-dot"></div><div class="planet-dot"></div>
+                        <div class="planet-dot"></div>
+                    </div>
+                </div>
+                <div class="door-plate">0527</div>
+            </div>
+            <div class="role-name">苏菜菜</div>
+            <div class="role-tag-row">
+                <div class="role-badge role-badge-creator">创造者 Creator</div>
+            </div>
+        </div>
+
+        <!-- 状态栏 -->
+        <div class="status-row">
+            <div class="status-card"><div class="status-val status-val-attn">18</div><div class="status-label">注意力</div></div>
+            <div class="status-card"><div class="status-val status-val-pt">89</div><div class="status-label">被点亮</div></div>
+            <div class="status-card"><div class="status-val status-val-day">142</div><div class="status-label">在拓天数</div></div>
+            <div class="status-card"><div class="status-val status-val-score">3,840</div><div class="status-label">积分</div></div>
+        </div>
+
+        <!-- 空间模块 -->
+        <div class="space-section">
+            <div class="section-title">我的空间</div>
+            <div class="space-card">
+                <div class="space-card-header">
+                    <div class="space-card-title">🏠 我的小家</div>
+                    <div class="space-card-action">进入空间</div>
+                </div>
+                <div class="space-bar-track"><div class="space-bar-fill" style="width: 55%;"></div></div>
+                <div class="space-bar-info"><span>280㎡ / 500㎡</span><span>创造者 Lv.12</span></div>
+                <div class="space-hint">每次被点亮，空间扩容 +1㎡</div>
+                <div class="privacy-toggle">
+                    <div class="privacy-option active" onclick="setPrivacy('open', this)">
+                        <div class="privacy-icon">👁</div>
+                        <div class="privacy-label">对外+瞄一眼</div>
+                        <div class="privacy-desc">别人可有限视角窥探</div>
+                    </div>
+                    <div class="privacy-option" onclick="setPrivacy('close', this)">
+                        <div class="privacy-icon">🔒</div>
+                        <div class="privacy-label">紧闭</div>
+                        <div class="privacy-desc">完全锁门，谁也进不来</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 橱窗模块 -->
+        <div class="space-section">
+            <div class="section-title">我的橱窗</div>
+            <div class="space-card">
+                <div class="space-card-header">
+                    <div class="space-card-title">🪟 橱窗 · 对外展示</div>
+                    <div class="space-card-action">管理橱窗</div>
+                </div>
+                <div style="font-size:11px; color:rgba(44,40,36,0.4); margin-bottom:12px;">
+                    别人路过你的门牌时，第一个看到的就是橱窗
+                </div>
+                <div class="showcase-preview">
+                    <div class="showcase-item" style="background: linear-gradient(135deg, rgba(217,107,107,0.12), rgba(217,107,107,0.03));">
+                        <div class="showcase-item-inner">
+                            <div class="showcase-item-icon">☕</div>
+                            <div class="showcase-item-name">手冲咖啡课</div>
+                            <div class="showcase-item-type" style="background:rgba(217,107,107,0.12); color:#D96B6B;">火·门店型</div>
+                        </div>
+                    </div>
+                    <div class="showcase-item" style="background: linear-gradient(135deg, rgba(160,184,122,0.12), rgba(160,184,122,0.03));">
+                        <div class="showcase-item-inner">
+                            <div class="showcase-item-icon">🪴</div>
+                            <div class="showcase-item-name">植物香氛系列</div>
+                            <div class="showcase-item-type" style="background:rgba(160,184,122,0.12); color:#6B8A4E;">木·产品型</div>
+                        </div>
+                    </div>
+                    <div class="showcase-item" style="background: linear-gradient(135deg, rgba(155,123,191,0.12), rgba(155,123,191,0.03));">
+                        <div class="showcase-item-inner">
+                            <div class="showcase-item-icon">🎪</div>
+                            <div class="showcase-item-name">周末手作市集</div>
+                            <div class="showcase-item-type" style="background:rgba(155,123,191,0.12); color:#9B7BBF;">土·活动型</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 升级线 -->
+        <div class="upgrade-section">
+            <div class="section-title">升级之路</div>
+            <div class="upgrade-lines">
+                <div class="upgrade-line">
+                    <div class="upgrade-icon">📋</div>
+                    <div class="upgrade-info"><div class="upgrade-name">任务线</div><div class="upgrade-desc">完成碰撞任务攒经验</div></div>
+                    <div class="upgrade-bar-wrap">
+                        <div class="upgrade-bar"><div class="upgrade-bar-fill" style="width: 85%; background: #4A9EB8;"></div></div>
+                        <div class="upgrade-pct">85%</div>
+                    </div>
+                </div>
+                <div class="upgrade-line">
+                    <div class="upgrade-icon">⚡</div>
+                    <div class="upgrade-info">
+                        <div class="upgrade-name">加速器</div>
+                        <div class="upgrade-desc">灵感不必等时间，作品先人一步长出来</div>
+                    </div>
+                    <div class="upgrade-bar-wrap">
+                        <div class="upgrade-bar"><div class="upgrade-bar-fill" style="width: 20%; background: #9B7BBF;"></div></div>
+                        <div class="upgrade-pct">20%</div>
+                    </div>
+                </div>
+                <div class="upgrade-line">
+                    <div class="upgrade-icon">✨</div>
+                    <div class="upgrade-info"><div class="upgrade-name">积分线</div><div class="upgrade-desc">日常活跃攒积分</div></div>
+                    <div class="upgrade-bar-wrap">
+                        <div class="upgrade-bar"><div class="upgrade-bar-fill" style="width: 92%; background: #E8B44C;"></div></div>
+                        <div class="upgrade-pct">92%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 星空收藏夹 -->
+        <div class="starfield-entry" onclick="alert('我的星空收藏夹 — 只有自己能看到\n\n那些触动到我的瞬间')">
+            <div class="starfield-bg" id="starfieldBg"></div>
+            <div class="starfield-left"><div class="starfield-title">我的星空</div><div class="starfield-desc">那些触动到我的瞬间</div></div>
+            <div class="starfield-count">27</div>
+        </div>
+
+        <!-- 功能菜单 -->
+        <div class="menu-section">
+            <div class="section-title">功能</div>
+            <div class="menu-item" onclick="alert('身份卡')">
+                <div class="menu-icon">🪪</div><div class="menu-text">我的身份卡</div><div class="menu-arrow">›</div>
+            </div>
+            <div class="menu-item" onclick="alert('笔记本')">
+                <div class="menu-icon">📓</div><div class="menu-text">我的笔记本</div>
+                <div class="menu-badge" style="background:rgba(217,107,107,0.1); color:#D96B6B;">5 新</div>
+                <div class="menu-arrow">›</div>
+            </div>
+            <div class="menu-item" onclick="alert('发布的内容')">
+                <div class="menu-icon">📝</div><div class="menu-text">我发布的内容</div><div class="menu-arrow">›</div>
+            </div>
+            <div class="menu-item" onclick="alert('我的活动')">
+                <div class="menu-icon">🎯</div><div class="menu-text">我的活动</div><div class="menu-arrow">›</div>
+            </div>
+            <div class="menu-item" onclick="alert('号段信息')">
+                <div class="menu-icon">🔢</div><div class="menu-text">号段 & 权重</div><div class="menu-arrow">›</div>
+            </div>
+        </div>
+        <div style="height:20px;"></div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <div class="nav-items">
+            <div class="nav-item"><div class="nav-icon">🗺</div><div class="nav-label">星图</div></div>
+            <div class="nav-item"><div class="nav-icon">📖</div><div class="nav-label">故事</div></div>
+            <div class="nav-item center">
+                <div class="nav-icon-wrap"><div class="nav-icon">💫</div></div>
+                <div class="nav-label">碰撞</div>
+            </div>
+            <div class="nav-item"><div class="nav-icon">🏛</div><div class="nav-label">广场</div></div>
+            <div class="nav-item active"><div class="nav-icon">👤</div><div class="nav-label">我的</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- 角色选择弹窗 -->
+<div class="role-modal-overlay" id="roleModal">
+    <div class="role-modal">
+        <div class="role-modal-title">选择你的角色</div>
+        <div class="role-modal-option" onclick="switchRole('wanderer')">
+            <div class="role-modal-icon">🌑</div>
+            <div class="role-modal-info"><div class="role-modal-name">漫游者</div><div class="role-modal-desc">实心球，免费参与</div></div>
+        </div>
+        <div class="role-modal-option" onclick="switchRole('seeker')">
+            <div class="role-modal-icon">🏠</div>
+            <div class="role-modal-info"><div class="role-modal-name">探索者</div><div class="role-modal-desc">打开小家，有内部空间</div></div>
+        </div>
+        <div class="role-modal-option current" onclick="switchRole('creator')">
+            <div class="role-modal-icon">🪟</div>
+            <div class="role-modal-info"><div class="role-modal-name">创造者</div><div class="role-modal-desc">小家 + 对外橱窗</div></div>
+            <div class="role-modal-current-tag">当前</div>
+        </div>
+        <div class="role-modal-option" onclick="switchRole('linker')">
+            <div class="role-modal-icon">📌</div>
+            <div class="role-modal-info"><div class="role-modal-name">链接者</div><div class="role-modal-desc">策展人 + 传送门</div></div>
+        </div>
+        <div class="role-modal-option" onclick="switchRole('pioneer')">
+            <div class="role-modal-icon">🌍</div>
+            <div class="role-modal-info"><div class="role-modal-name">开拓者</div><div class="role-modal-desc">星球运营权（达到条件后可申请）</div></div>
+        </div>
+        <button class="role-modal-cancel" onclick="closeRoleModal()">取消</button>
+    </div>
+</div>
+
+<script>
+    function initStarfield() {
+        const bg = document.getElementById('starfieldBg');
+        if (!bg) return;
+        for (let i = 0; i < 20; i++) {
+            const star = document.createElement('div');
+            star.className = 'sf-star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.opacity = Math.random() * 0.5 + 0.2;
+            const size = (Math.random() * 3 + 1) + 'px';
+            star.style.width = size; star.style.height = size;
+            star.style.animation = `twinkle ${2 + Math.random() * 3}s ease-in-out infinite`;
+            star.style.animationDelay = Math.random() * 2 + 's';
+            bg.appendChild(star);
+        }
+    }
+    function openRoleModal() { document.getElementById('roleModal').classList.add('show'); }
+    function closeRoleModal() { document.getElementById('roleModal').classList.remove('show'); }
+    function switchRole(role) {
+        const pages = {
+            wanderer: 'TopSpace·我的·漫游者·H5.html',
+            seeker:   'TopSpace·我的·探索者·H5.html',
+            creator:  'TopSpace·我的·创造者·H5.html',
+            linker:   'TopSpace·我的·链接者·H5.html',
+            pioneer:  'TopSpace·我的·开拓者·H5.html',
+        };
+        if (pages[role]) window.location.href = pages[role];
+    }
+    function setPrivacy(mode, el) {
+        const parent = el.parentElement;
+        parent.querySelectorAll('.privacy-option').forEach(opt => opt.classList.remove('active'));
+        el.classList.add('active');
+    }
+    document.getElementById('roleModal').addEventListener('click', function(e) { if (e.target === this) closeRoleModal(); });
+    initStarfield();
+</script>
+</body>
+</html>

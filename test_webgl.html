@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Test</title></head>
+<body>
+<div id="err" style="position:fixed;inset:0;background:#0B0F1E;color:#E89090;display:none;align-items:center;justify-content:center;padding:40px;font-size:14px;text-align:center;z-index:999;white-space:pre-wrap"></div>
+<canvas id="c"></canvas>
+<script>
+window.onerror=function(m,u,l,c,e){
+    var el=document.getElementById("err");
+    el.style.display="flex";
+    el.textContent="JS Error: "+m+"
+Line: "+l+"
+Col: "+c+"
+Stack: "+(e?e.stack:"N/A");
+    return true;
+};
+window.addEventListener("unhandledrejection",function(e){
+    var el=document.getElementById("err");
+    el.style.display="flex";
+    el.textContent="Unhandled Promise: "+e.reason;
+});
+
+// Load THREE
+var s=document.createElement("script");
+s.src="https://unpkg.com/three@0.152.0/build/three.min.js";
+s.onload=function(){
+    document.title="THREE loaded OK, r"+THREE.REVISION;
+    try {
+        var ren=new THREE.WebGLRenderer({canvas:document.getElementById("c"),antialias:true});
+        ren.setSize(innerWidth,innerHeight);
+        document.title="WebGL OK";
+    } catch(e) {
+        document.getElementById("err").style.display="flex";
+        document.getElementById("err").textContent="WebGL Error: "+e.message;
+    }
+};
+s.onerror=function(){
+    document.getElementById("err").style.display="flex";
+    document.getElementById("err").textContent="CDN load failed";
+};
+document.head.appendChild(s);
+</script>
+</body>
+</html>

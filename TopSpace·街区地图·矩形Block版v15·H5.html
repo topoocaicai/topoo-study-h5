@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>TopSpace · 街区地图 v15</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#F5F0E8;font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;overflow:hidden;height:100vh;width:100vw;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+canvas{display:block;width:100%;height:100%}
+.hint{position:fixed;top:0;left:0;right:0;z-index:90;text-align:center;padding:13px;font-size:12px;color:rgba(26,26,26,0.30);letter-spacing:1px;pointer-events:none;transition:opacity 0.5s}
+.info-panel{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(245,240,232,0.97);border-top:1px solid rgba(42,42,62,0.10);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.info-panel.show{transform:translateY(0)}
+.info-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.info-avatar{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.info-name{font-size:17px;font-weight:700;color:#1A1A1A;line-height:1.3}
+.info-id{font-size:12px;color:rgba(26,26,26,0.40);font-family:"SF Mono","Menlo",monospace;margin-top:2px;letter-spacing:1px}
+.info-type{font-size:12px;margin-top:2px;letter-spacing:0.5px}
+.info-desc{font-size:13px;color:rgba(26,26,26,0.55);line-height:1.6;margin-top:8px}
+.info-bonus{font-size:12px;color:rgba(26,26,26,0.50);line-height:1.6;margin-top:6px;padding:8px 10px;background:rgba(42,42,62,0.05);border-radius:8px}
+.mode-btn{position:fixed;top:16px;right:16px;z-index:95;display:flex;align-items:center;gap:6px;background:rgba(245,240,232,0.92);border:1px solid rgba(42,42,62,0.12);border-radius:20px;padding:7px 14px;font-size:13px;color:#1A1A1A;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.mode-btn:active{transform:scale(0.95)}
+.mode-btn .dot{width:7px;height:7px;border-radius:50%;transition:background 0.3s}
+.mode-btn .dot.overview{background:#4A9EB8}
+.mode-btn .dot.explore{background:#E8B44C}
+.mode-label{font-weight:600;font-size:13px;color:rgba(26,26,26,0.70)}
+</style>
+</head>
+<body>
+
+<div class="hint" id="hint">单指拖动 · 双指缩放 · 点击门牌查看</div>
+<canvas id="mapCanvas"></canvas>
+
+<div class="mode-btn" id="modeBtn">
+  <span class="dot explore" id="modeDot"></span>
+  <span class="mode-label" id="modeLabel">探索模式</span>
+</div>
+
+<div class="info-panel" id="infoPanel">
+  <div class="info-header">
+    <div class="info-avatar" id="infoAvatar"></div>
+    <div>
+      <div class="info-name" id="infoName">—</div>
+      <div class="info-id"   id="infoId"></div>
+      <div class="info-type" id="infoType">—</div>
+    </div>
+  </div>
+  <div class="info-desc" id="infoDesc">点击地图其他位置关闭</div>
+  <div class="info-bonus" id="infoBonus" style="display:none"></div>
+</div>
+
+<script>
+// ============================================================
+//  TopSpace 街区地图 v15
+//  · 10x10网格，深灰道路 #C8C0B4
+//  · v11色块渲染（渐变光泽 + 高饱和）
+//  · 相邻同属性地块加成机制
+//  · 新增：总览/探索双模式切换
+//  · 新增：三级迷雾（已点亮 / 薄雾 / 浓雾）
+//  · 新增：回声机制（路过门牌留下呼吸光晕，24h后消失）
+//
+//  VI：底#F5F0E8   文字#1A1A1A
+//  五色：火#D96B6B  水#4A9EB8  木#A0B87A  金#E8B44C  土#9B7BBF
+// ============================================================
+
+var ELEM = {
+  fire:  {c:'#D96B6B', label:'火·门店型', desc:'烟火气聚集地，线下体验空间', emoji:'🔥'},
+  water: {c:'#4A9EB8', label:'水·内容型', desc:'无形流淌，触达每个角落', emoji:'💧'},
+  wood:  {c:'#A0B87A', label:'木·产品型', desc:'从种子到果实，生长可见', emoji:'🌱'},
+  metal: {c:'#E8B44C', label:'金·服务型', desc:'高价值硬通货，专业交付', emoji:'⚙️'},
+  earth: {c:'#9B7BBF', label:'土·活动型', desc:'承载万物的地基，连接你我', emoji:'🌍'}
+};
+var ELEM_KEYS = ['fire','water','wood','metal','earth'];
+
+// ===== 参数 =====
+var COLS = 10, ROWS = 10;
+var CELL = 110;
+var STREET = 14;
+var ALLEY = 6;
+
+// ===== 模式 & 迷雾 =====
+var MODE_OVERVIEW = 'overview';
+var MODE_EXPLORE = 'explore';
+var currentMode = MODE_EXPLORE;
+
+// 探索状态：0=浓雾, 1=薄雾, 2=已点亮
+// 初始化：中心区域已点亮，周围薄雾，外围浓雾
+var fogState = [];
+function initFogState() {
+  var centerR = Math.floor(ROWS / 2);
+  var centerC = Math.floor(COLS / 2);
+  for (var r = 0; r < ROWS; r++) {
+    fogState[r] = [];
+    for (var c = 0; c < COLS; c++) {
+      var dist = Math.abs(r - centerR) + Math.abs(c - centerC);
+      if (dist <= 2) {
+        fogState[r][c] = 2; // 已点亮
+      } else if (dist <= 4) {
+        fogState[r][c] = 1; // 薄雾
+      } else {
+        fogState[r][c] = 0; // 浓雾
+      }
+    }
+  }
+  // 随机点亮更多区域
+  for (var r = 0; r < ROWS; r++) {
+    for (var c = 0; c < COLS; c++) {
+      if (fogState[r][c] === 0 && Math.random() < 0.25) fogState[r][c] = 1;
+      if (fogState[r][c] === 1 && Math.random() < 0.3) fogState[r][c] = 2;
+    }
+  }
+}
+
+// 获取某个cell的迷雾等级（取该cell所属block中所有cell的最大值）
+function getCellFog(r, c) {
+  return fogState[r][c];
+}
+
+// 获取block的迷雾等级（取block中所有cell的最小值，只有全部点亮才算点亮）
+function getBlockFog(bid) {
+  var cells = blockData[bid].cells;
+  var minFog = 2;
+  for (var j = 0; j < cells.length; j++) {
+    var f = fogState[cells[j][0]][cells[j][1]];
+    if (f < minFog) minFog = f;
+  }
+  return minFog;
+}
+
+// 碰撞：点亮门牌周围的区域
+function revealAround(r, c) {
+  var revealRadius = 2; // 曼哈顿距离
+  for (var dr = -revealRadius; dr <= revealRadius; dr++) {
+    for (var dc = -revealRadius; dc <= revealRadius; dc++) {
+      var nr = r + dr, nc = c + dc;
+      if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+      var dist = Math.abs(dr) + Math.abs(dc);
+      var newFog;
+      if (dist <= 1) {
+        newFog = 2; // 近距离直接点亮
+      } else {
+        newFog = Math.max(fogState[nr][nc], 1); // 远一点变成薄雾
+      }
+      fogState[nr][nc] = newFog;
+    }
+  }
+}
+
+// ===== 回声机制 =====
+var echoes = []; // {blockIdx, time, x, y}
+var ECHO_DURATION = 24 * 60 * 60 * 1000; // 24小时
+
+function addEcho(blockIdx) {
+  var b = liveBlocks[blockIdx];
+  // 检查是否已有回声
+  for (var i = 0; i < echoes.length; i++) {
+    if (echoes[i].blockIdx === blockIdx) return; // 已有
+  }
+  echoes.push({
+    blockIdx: blockIdx,
+    time: Date.now(),
+    x: b.doorX,
+    y: b.doorY
+  });
+}
+
+function cleanEchoes() {
+  var now = Date.now();
+  echoes = echoes.filter(function(e) { return now - e.time < ECHO_DURATION; });
+}
+
+// ===== 网格 + 合并 =====
+var grid = [];
+var blockData = {};
+var nextBid = 0;
+
+for (var r = 0; r < ROWS; r++) {
+  grid[r] = [];
+  for (var c = 0; c < COLS; c++) {
+    grid[r][c] = nextBid;
+    blockData[nextBid] = {
+      elem: ELEM_KEYS[Math.floor(Math.random()*5)],
+      depth: 0.2 + Math.random() * 0.8,
+      visited: Math.random() < 0.6,
+      cells: [[r,c]],
+      dead: false
+    };
+    nextBid++;
+  }
+}
+
+function mergeInto(ra, ca, rb, cb) {
+  var idA = grid[ra][ca];
+  var idB = grid[rb][cb];
+  if (idA === idB) return false;
+  if (blockData[idA].dead || blockData[idB].dead) return false;
+  for (var r2 = 0; r2 < ROWS; r2++) {
+    for (var c2 = 0; c2 < COLS; c2++) {
+      if (grid[r2][c2] === idB) {
+        grid[r2][c2] = idA;
+        blockData[idA].cells.push([r2,c2]);
+      }
+    }
+  }
+  blockData[idB].dead = true;
+  return true;
+}
+
+var MERGE_TRIES = Math.floor(COLS * ROWS * 0.40);
+for (var t = 0; t < MERGE_TRIES; t++) {
+  var rr = Math.floor(Math.random() * ROWS);
+  var cc = Math.floor(Math.random() * COLS);
+  var dr = 0, dc = 0;
+  if (Math.random() < 0.5) { dc = 1; } else { dr = 1; }
+  if (rr + dr >= ROWS || cc + dc >= COLS) continue;
+  mergeInto(rr, cc, rr+dr, cc+dc);
+}
+
+var hStreetAfterRow = [];
+var vStreetAfterCol = [];
+
+for (var r = 0; r < ROWS-1; r++) {
+  hStreetAfterRow[r] = false;
+  for (var c = 0; c < COLS; c++) {
+    if (grid[r][c] !== grid[r+1][c]) { hStreetAfterRow[r] = true; break; }
+  }
+}
+for (var c = 0; c < COLS-1; c++) {
+  vStreetAfterCol[c] = false;
+  for (var r = 0; r < ROWS; r++) {
+    if (grid[r][c] !== grid[r][c+1]) { vStreetAfterCol[c] = true; break; }
+  }
+}
+
+var colLeft = [STREET];
+for (var c = 1; c < COLS; c++) {
+  colLeft[c] = colLeft[c-1] + CELL;
+  if (vStreetAfterCol[c-1]) colLeft[c] += STREET;
+}
+var rowTop = [STREET];
+for (var r = 1; r < ROWS; r++) {
+  rowTop[r] = rowTop[r-1] + CELL;
+  if (hStreetAfterRow[r-1]) rowTop[r] += STREET;
+}
+
+var WORLD_W = colLeft[COLS-1] + CELL + STREET + 20;
+var WORLD_H = rowTop[ROWS-1] + CELL + STREET + 20;
+
+// ===== 初始化迷雾 =====
+initFogState();
+
+// ===== 构建liveBlocks =====
+var liveBlocks = [];
+var liveBidList = [];
+for (var bid in blockData) { if (!blockData[bid].dead) liveBidList.push(parseInt(bid)); }
+liveBidList.sort(function(a,b){return a-b;});
+
+var NAMES = [
+  '星尘','流光','青木','金石','厚土','晨露','焱焰','碧藤','银铃','琥珀',
+  '极光','赤松','云归','霜降','岚烟','墨染','月蚀','星轨','潮汐','萤火',
+  '破晓','暮色','归鸿','逝川','空镜','浮岛','晚祷','迷迭','霜天','半夏',
+  '长风','微澜','寒烟','素履','清欢','南风','北望','东篱','西洲','中岳'
+];
+
+for (var i = 0; i < liveBidList.length; i++) {
+  var bid = liveBidList[i];
+  var b = blockData[bid];
+  var minC=COLS, maxC=-1, minR=ROWS, maxR=-1;
+  for (var j = 0; j < b.cells.length; j++) {
+    minR = Math.min(minR, b.cells[j][0]);
+    maxR = Math.max(maxR, b.cells[j][0]);
+    minC = Math.min(minC, b.cells[j][1]);
+    maxC = Math.max(maxC, b.cells[j][1]);
+  }
+  var bx = colLeft[minC];
+  var by = rowTop[minR];
+  var bw = colLeft[maxC] - colLeft[minC] + CELL;
+  var bh = rowTop[maxR] - rowTop[minR] + CELL;
+
+  var skewX = (Math.random()-0.5) * 3;
+  var skewY = (Math.random()-0.5) * 3;
+
+  var edgeIdx = Math.floor(Math.random()*4);
+  var m = 11;
+  var doorX, doorY;
+  if (edgeIdx === 0) {
+    doorX = bx + bw * (0.18 + Math.random()*0.64);
+    doorY = by + m;
+  } else if (edgeIdx === 1) {
+    doorX = bx + bw * (0.18 + Math.random()*0.64);
+    doorY = by + bh - m;
+  } else if (edgeIdx === 2) {
+    doorX = bx + m;
+    doorY = by + bh * (0.18 + Math.random()*0.64);
+  } else {
+    doorX = bx + bw - m;
+    doorY = by + bh * (0.18 + Math.random()*0.64);
+  }
+
+  liveBlocks.push({
+    bid: bid,
+    x: bx, y: by, w: bw, h: bh,
+    elem: b.elem,
+    depth: b.depth,
+    skewX: skewX,
+    skewY: skewY,
+    visited: b.visited,
+    hasAlley: false,
+    alleyDir: '',
+    doorX: doorX,
+    doorY: doorY,
+    doorR: minR,
+    doorC: minC,
+    name: NAMES[i % NAMES.length],
+    idStr: (1001 + i).toString()
+  });
+}
+
+for (var i = 0; i < liveBlocks.length; i++) {
+  var bid = liveBlocks[i].bid;
+  if (blockData[bid].cells.length >= 4 && Math.random() < 0.5) {
+    liveBlocks[i].hasAlley = true;
+    liveBlocks[i].alleyDir = Math.random() < 0.5 ? 'H' : 'V';
+  }
+}
+
+// ===== 街道段 =====
+var hStreetSegments = [];
+var vStreetSegments = [];
+
+for (var r = 0; r < ROWS-1; r++) {
+  if (!hStreetAfterRow[r]) continue;
+  var streetMidY = rowTop[r] + CELL + STREET / 2;
+  var segStart = -1;
+  for (var c = 0; c < COLS; c++) {
+    var diff = (grid[r][c] !== grid[r+1][c]);
+    if (diff && segStart < 0) segStart = c;
+    if (!diff && segStart >= 0) {
+      hStreetSegments.push({x1:colLeft[segStart], x2:colLeft[c-1]+CELL, y:streetMidY});
+      segStart = -1;
+    }
+  }
+  if (segStart >= 0) {
+    hStreetSegments.push({x1:colLeft[segStart], x2:colLeft[COLS-1]+CELL, y:streetMidY});
+  }
+}
+
+for (var c = 0; c < COLS-1; c++) {
+  if (!vStreetAfterCol[c]) continue;
+  var streetMidX = colLeft[c] + CELL + STREET / 2;
+  var segStart = -1;
+  for (var r = 0; r < ROWS; r++) {
+    var diff = (grid[r][c] !== grid[r][c+1]);
+    if (diff && segStart < 0) segStart = r;
+    if (!diff && segStart >= 0) {
+      vStreetSegments.push({x:streetMidX, y1:rowTop[segStart], y2:rowTop[r-1]+CELL});
+      segStart = -1;
+    }
+  }
+  if (segStart >= 0) {
+    vStreetSegments.push({x:streetMidX, y1:rowTop[segStart], y2:rowTop[ROWS-1]+CELL});
+  }
+}
+
+// ===== 相邻地块检测 =====
+function getAdjacentInfo(liveIdx) {
+  var bid = liveBlocks[liveIdx].bid;
+  var cells = blockData[bid].cells;
+  var myElem = blockData[bid].elem;
+  var adjCounts = {};
+  var adjSame = 0;
+  for (var j = 0; j < cells.length; j++) {
+    var r = cells[j][0], c = cells[j][1];
+    var dirs = [[-1,0],[1,0],[0,-1],[0,1]];
+    for (var d = 0; d < 4; d++) {
+      var nr = r + dirs[d][0], nc = c + dirs[d][1];
+      if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+      var nBid = grid[nr][nc];
+      if (nBid === bid) continue;
+      var nElem = blockData[nBid].elem;
+      if (!adjCounts[nElem]) adjCounts[nElem] = 0;
+      adjCounts[nElem]++;
+      if (nElem === myElem) adjSame++;
+    }
+  }
+  return { adjCounts: adjCounts, adjSame: adjSame };
+}
+
+// ===== Canvas =====
+var canvas = document.getElementById('mapCanvas');
+var ctx;
+var W, H, dpr;
+var viewX = WORLD_W/2, viewY = WORLD_H/2, zoom = 1;
+var startTime = Date.now();
+
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function init() {
+  resize();
+  requestAnimationFrame(loop);
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+window.addEventListener('load', function(){ resize(); });
+window.addEventListener('resize', resize);
+
+// ===== 工具 =====
+function toScreen(wx, wy) {
+  return { x: W/2 + (wx - viewX) * zoom, y: H/2 + (wy - viewY) * zoom };
+}
+function hexRGB(h) {
+  return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+}
+function rgba(hex, a) {
+  var c = hexRGB(hex);
+  return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a.toFixed(3) + ')';
+}
+
+// ===== 模式切换 =====
+document.getElementById('modeBtn').addEventListener('click', function() {
+  if (currentMode === MODE_EXPLORE) {
+    currentMode = MODE_OVERVIEW;
+    document.getElementById('modeDot').className = 'dot overview';
+    document.getElementById('modeLabel').textContent = '总览模式';
+  } else {
+    currentMode = MODE_EXPLORE;
+    document.getElementById('modeDot').className = 'dot explore';
+    document.getElementById('modeLabel').textContent = '探索模式';
+  }
+  document.getElementById('infoPanel').classList.remove('show');
+});
+
+// ===== 触摸/鼠标 =====
+var touch=false, pinch=false, tx0=0,ty0=0,vx0=0,vy0=0,pDist0=0,pZoom0=1;
+var isDragging = false;
+var dragThreshold = 8;
+var touchStartX = 0, touchStartY = 0;
+
+canvas.addEventListener('touchstart', function(e){
+  e.preventDefault();
+  if(e.touches.length===1){
+    touch=true; pinch=false;
+    tx0=e.touches[0].clientX; ty0=e.touches[0].clientY;
+    vx0=viewX; vy0=viewY;
+    touchStartX=tx0; touchStartY=ty0;
+    isDragging=false;
+  } else if(e.touches.length===2){
+    pinch=true; touch=false;
+    var dx=e.touches[1].clientX-e.touches[0].clientX;
+    var dy=e.touches[1].clientY-e.touches[0].clientY;
+    pDist0=Math.sqrt(dx*dx+dy*dy);
+    pZoom0=zoom;
+  }
+},{passive:false});
+
+canvas.addEventListener('touchmove', function(e){
+  e.preventDefault();
+  if(pinch&&e.touches.length===2){
+    var dx=e.touches[1].clientX-e.touches[0].clientX;
+    var dy=e.touches[1].clientY-e.touches[0].clientY;
+    zoom=Math.max(0.15,Math.min(4,pZoom0*Math.sqrt(dx*dx+dy*dy)/pDist0));
+  }else if(touch&&e.touches.length===1){
+    var ddx=Math.abs(e.touches[0].clientX-touchStartX);
+    var ddy=Math.abs(e.touches[0].clientY-touchStartY);
+    if(ddx>dragThreshold||ddy>dragThreshold) isDragging=true;
+    viewX=vx0-(e.touches[0].clientX-tx0)/zoom;
+    viewY=vy0-(e.touches[0].clientY-ty0)/zoom;
+  }
+},{passive:false});
+
+canvas.addEventListener('touchend', function(e){
+  // 判断是点击还是拖拽
+  if(touch && !isDragging && !pinch){
+    handleClick(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+  }
+  touch=false; pinch=false; isDragging=false;
+});
+
+var mDown=false,mx0=0,my0=0,mvx0=0,mvy0=0,mDragged=false;
+canvas.addEventListener('mousedown',function(e){
+  mDown=true; mx0=e.clientX; my0=e.clientY; mvx0=viewX; mvy0=viewY; mDragged=false;
+});
+canvas.addEventListener('mousemove',function(e){
+  if(!mDown)return;
+  if(Math.abs(e.clientX-mx0)>3||Math.abs(e.clientY-my0)>3) mDragged=true;
+  viewX=mvx0-(e.clientX-mx0)/zoom;
+  viewY=mvy0-(e.clientY-my0)/zoom;
+});
+canvas.addEventListener('mouseup',function(e){
+  if(mDown && !mDragged) handleClick(e.clientX, e.clientY);
+  mDown=false; mDragged=false;
+});
+canvas.addEventListener('mouseleave',function(){ mDown=false; mDragged=false; });
+canvas.addEventListener('wheel',function(e){
+  e.preventDefault();
+  zoom=Math.max(0.15,Math.min(4,zoom*(e.deltaY>0?0.92:1.08)));
+},{passive:false});
+
+// ===== 点击处理 =====
+function handleClick(cx, cy) {
+  document.getElementById('hint').style.opacity='0';
+  var closest=-1, best=40;
+  for(var i=0;i<liveBlocks.length;i++){
+    var b=liveBlocks[i], p=toScreen(b.doorX,b.doorY);
+    var dx=cx-p.x, dy=cy-p.y, d=Math.sqrt(dx*dx+dy*dy);
+    if(d<best){closest=i;best=d;}
+  }
+
+  if(closest>=0) {
+    var fog = (currentMode === MODE_OVERVIEW) ? 2 : getBlockFog(liveBlocks[closest].bid);
+
+    if(fog >= 1) {
+      // 薄雾或已点亮：可以查看信息
+      showInfo(closest, fog);
+      // 探索模式下：点亮周围区域
+      if(currentMode === MODE_EXPLORE) {
+        revealAround(liveBlocks[closest].doorR, liveBlocks[closest].doorC);
+      }
+    } else {
+      // 浓雾：无法查看，但留回声
+      if(currentMode === MODE_EXPLORE) {
+        addEcho(closest);
+        // 轻微揭开（变成薄雾）
+        var b = liveBlocks[closest];
+        revealAround(b.doorR, b.doorC);
+      }
+    }
+  } else {
+    document.getElementById('infoPanel').classList.remove('show');
+  }
+}
+
+function showInfo(i, fogLevel) {
+  var b=liveBlocks[i], ec=ELEM[b.elem];
+  document.getElementById('infoAvatar').style.background=rgba(ec.c,0.20);
+  document.getElementById('infoAvatar').textContent=ec.emoji;
+  document.getElementById('infoName').textContent=b.name;
+  document.getElementById('infoId').textContent='#'+b.idStr;
+  document.getElementById('infoId').style.color=ec.c;
+  document.getElementById('infoType').textContent=ec.label;
+  document.getElementById('infoType').style.color=ec.c;
+
+  // 薄雾模式：隐藏描述
+  if(fogLevel === 1) {
+    document.getElementById('infoDesc').textContent='?? ? ? ? ?';
+    document.getElementById('infoBonus').style.display='none';
+    document.getElementById('infoPanel').classList.add('show');
+    return;
+  }
+
+  document.getElementById('infoDesc').textContent=ec.desc;
+
+  // 相邻加成
+  var info = getAdjacentInfo(i);
+  var bonusEl = document.getElementById('infoBonus');
+  if (info.adjSame > 0) {
+    bonusEl.style.display='block';
+    bonusEl.style.borderLeft='3px solid ' + ec.c;
+    bonusEl.innerHTML='<b>📍 相邻同属性地块 x' + info.adjSame + '</b><br>'
+      + '选择此位置，升级时将获得<b>额外加成</b>。<br>'
+      + '相邻同属性地块越多，加成越高。';
+  } else {
+    var adjHtml = '';
+    var keys = Object.keys(info.adjCounts);
+    if (keys.length > 0) {
+      var parts = [];
+      for (var k = 0; k < keys.length; k++) {
+        parts.push(ELEM[keys[k]].emoji + ' ' + ELEM[keys[k]].label.split('\u00B7')[0] + ' x' + info.adjCounts[keys[k]]);
+      }
+      adjHtml = '相邻地块：' + parts.join('\uFF0C') + '<br>';
+    }
+    bonusEl.style.display='block';
+    bonusEl.style.borderLeft='3px solid rgba(26,26,26,0.15)';
+    bonusEl.innerHTML=adjHtml + '<b>选择相邻同属性地块</b>的位置，升级时可获得额外加成。';
+  }
+
+  document.getElementById('infoPanel').classList.add('show');
+}
+
+document.addEventListener('click',function(e){
+  var p=document.getElementById('infoPanel');
+  if(!p.contains(e.target)&&e.target!==canvas&&e.target.id!=='infoAvatar'){
+    p.classList.remove('show');
+  }
+});
+
+// ===== 渲染 =====
+function loop(){ requestAnimationFrame(loop); render(); }
+
+function render(){
+  if(!ctx||!W||!H) return;
+  var now = Date.now();
+  cleanEchoes();
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#F5F0E8';
+  ctx.fillRect(0,0,W,H);
+
+  var r0 = Math.max(7, 13*zoom);
+  var isOverview = (currentMode === MODE_OVERVIEW);
+
+  // —— 1. 街道灰色底面 ——
+  for (var i = 0; i < hStreetSegments.length; i++) {
+    var seg = hStreetSegments[i];
+    var s1 = toScreen(seg.x1, seg.y - STREET/2);
+    var s2 = toScreen(seg.x2, seg.y + STREET/2);
+    var x1 = Math.min(s1.x, s2.x), y1 = Math.min(s1.y, s2.y);
+    var x2 = Math.max(s1.x, s2.x), y2 = Math.max(s1.y, s2.y);
+    if(x2 < -20 || x1 > W+20 || y2 < -20 || y1 > H+20) continue;
+
+    // 探索模式：浓雾区域的道路更淡
+    var segR = Math.round((seg.y - rowTop[0]) / CELL);
+    var streetAlpha = 1;
+    if (!isOverview && segR >= 0 && segR < ROWS) {
+      // 用街道附近cell的迷雾决定可见度
+      var minFog = 2;
+      var checkR = Math.min(segR, ROWS-2);
+      for (var cc = 0; cc < COLS; cc++) {
+        var f = Math.max(fogState[checkR][cc], fogState[checkR+1][cc]);
+        if (f < minFog) minFog = f;
+      }
+      if (minFog === 0) streetAlpha = 0.25;
+      else if (minFog === 1) streetAlpha = 0.60;
+    }
+
+    ctx.fillStyle = 'rgba(200,192,180,' + streetAlpha.toFixed(2) + ')';
+    ctx.fillRect(x1, y1, x2-x1, y2-y1);
+  }
+  for (var i = 0; i < vStreetSegments.length; i++) {
+    var seg = vStreetSegments[i];
+    var s1 = toScreen(seg.x - STREET/2, seg.y1);
+    var s2 = toScreen(seg.x + STREET/2, seg.y2);
+    var x1 = Math.min(s1.x, s2.x), y1 = Math.min(s1.y, s2.y);
+    var x2 = Math.max(s1.x, s2.x), y2 = Math.max(s1.y, s2.y);
+    if(x2 < -20 || x1 > W+20 || y2 < -20 || y1 > H+20) continue;
+
+    var segC = Math.round((seg.x - colLeft[0]) / CELL);
+    var streetAlpha = 1;
+    if (!isOverview && segC >= 0 && segC < COLS) {
+      var minFog = 2;
+      var checkC = Math.min(segC, COLS-2);
+      for (var rr = 0; rr < ROWS; rr++) {
+        var f = Math.max(fogState[rr][checkC], fogState[rr][checkC+1]);
+        if (f < minFog) minFog = f;
+      }
+      if (minFog === 0) streetAlpha = 0.25;
+      else if (minFog === 1) streetAlpha = 0.60;
+    }
+
+    ctx.fillStyle = 'rgba(200,192,180,' + streetAlpha.toFixed(2) + ')';
+    ctx.fillRect(x1, y1, x2-x1, y2-y1);
+  }
+
+  // —— 2. 地块色块 ——
+  for (var i=0;i<liveBlocks.length;i++){
+    var b=liveBlocks[i], ec=ELEM[b.elem], d=b.depth;
+    var ox=b.skewX*0.6, oy=b.skewY*0.6;
+
+    var c0=toScreen(b.x+ox, b.y+oy);
+    var c1=toScreen(b.x+b.w+ox, b.y+oy);
+    var c2=toScreen(b.x+b.w+ox, b.y+b.h+oy);
+    var c3=toScreen(b.x+ox, b.y+b.h+oy);
+
+    var allX=[c0.x,c1.x,c2.x,c3.x], allY=[c0.y,c1.y,c2.y,c3.y];
+    if(Math.max.apply(null,allX)<-100) continue;
+    if(Math.min.apply(null,allX)>W+100) continue;
+    if(Math.max.apply(null,allY)<-100) continue;
+    if(Math.min.apply(null,allY)>H+100) continue;
+
+    ctx.beginPath();
+    ctx.moveTo(c0.x,c0.y);
+    ctx.lineTo(c1.x,c1.y);
+    ctx.lineTo(c2.x,c2.y);
+    ctx.lineTo(c3.x,c3.y);
+    ctx.closePath();
+
+    // 迷雾等级
+    var fog = isOverview ? 2 : getBlockFog(b.bid);
+
+    if(fog === 2) {
+      // 已点亮：正常鲜艳渲染
+      if(b.visited){
+        ctx.fillStyle=rgba(ec.c, 0.35 + d*0.40);
+        ctx.fill();
+        var grd = ctx.createLinearGradient(c0.x, c0.y, c2.x, c2.y);
+        grd.addColorStop(0, rgba(ec.c, 0.12));
+        grd.addColorStop(0.5, 'rgba(255,255,255,0.08)');
+        grd.addColorStop(1, rgba(ec.c, 0.08));
+        ctx.fillStyle = grd;
+        ctx.fill();
+      } else {
+        ctx.fillStyle=rgba(ec.c, 0.10 + d*0.12);
+        ctx.fill();
+      }
+      // 边框
+      ctx.strokeStyle=rgba(ec.c, 0.30 + d*0.45);
+      ctx.lineWidth=Math.max(1.5, 2*zoom);
+      ctx.setLineDash([4+Math.abs(b.skewX)*1.2, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    } else if(fog === 1) {
+      // 薄雾：能看到地块轮廓，但看不到属性颜色
+      ctx.fillStyle='rgba(200,192,180,0.30)';
+      ctx.fill();
+      ctx.strokeStyle='rgba(200,192,180,0.50)';
+      ctx.lineWidth=Math.max(1.5, 2*zoom);
+      ctx.setLineDash([4, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      // 浓雾：几乎看不见
+      ctx.fillStyle='rgba(200,192,180,0.10)';
+      ctx.fill();
+    }
+
+    // 内部小巷（仅已点亮+visited）
+    if(fog === 2 && b.hasAlley && b.visited){
+      ctx.save();
+      if(b.alleyDir==='H'){
+        var my=b.y+b.h/2;
+        var a1=toScreen(b.x+18,my), a2=toScreen(b.x+b.w-18,my);
+        ctx.strokeStyle='#F5F0E8';
+        ctx.lineWidth=ALLEY*zoom;
+        ctx.beginPath(); ctx.moveTo(a1.x,a1.y); ctx.lineTo(a2.x,a2.y); ctx.stroke();
+        ctx.strokeStyle='rgba(255,255,255,0.60)';
+        ctx.lineWidth=Math.max(0.5,0.7*zoom);
+        ctx.setLineDash([4,4]);
+        ctx.beginPath(); ctx.moveTo(a1.x,a1.y); ctx.lineTo(a2.x,a2.y); ctx.stroke();
+      }else{
+        var mx=b.x+b.w/2;
+        var a1=toScreen(mx,b.y+18), a2=toScreen(mx,b.y+b.h-18);
+        ctx.strokeStyle='#F5F0E8';
+        ctx.lineWidth=ALLEY*zoom;
+        ctx.beginPath(); ctx.moveTo(a1.x,a1.y); ctx.lineTo(a2.x,a2.y); ctx.stroke();
+        ctx.strokeStyle='rgba(255,255,255,0.60)';
+        ctx.lineWidth=Math.max(0.5,0.7*zoom);
+        ctx.setLineDash([4,4]);
+        ctx.beginPath(); ctx.moveTo(a1.x,a1.y); ctx.lineTo(a2.x,a2.y); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+  }
+
+  // —— 3. 街道虚线中线 ——
+  ctx.lineCap='round';
+  for (var i = 0; i < hStreetSegments.length; i++) {
+    var seg = hStreetSegments[i];
+    var p1 = toScreen(seg.x1, seg.y);
+    var p2 = toScreen(seg.x2, seg.y);
+    if(p1.y<-10||p2.y>H+10) continue;
+    if(Math.max(p1.x,p2.x)<-10||Math.min(p1.x,p2.x)>W+10) continue;
+
+    var segR = Math.round((seg.y - rowTop[0]) / CELL);
+    var lineAlpha = 1;
+    if (!isOverview && segR >= 0 && segR < ROWS) {
+      var minFog = 2;
+      var checkR = Math.min(segR, ROWS-2);
+      for (var cc = 0; cc < COLS; cc++) {
+        var f = Math.max(fogState[checkR][cc], fogState[checkR+1][cc]);
+        if (f < minFog) minFog = f;
+      }
+      if (minFog === 0) lineAlpha = 0.15;
+      else if (minFog === 1) lineAlpha = 0.40;
+    }
+
+    ctx.strokeStyle='rgba(255,255,255,' + lineAlpha.toFixed(2) + ')';
+    ctx.lineWidth=Math.max(0.8,1.2*zoom);
+    ctx.setLineDash([6*zoom,5*zoom]);
+    ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  for (var i = 0; i < vStreetSegments.length; i++) {
+    var seg = vStreetSegments[i];
+    var p1 = toScreen(seg.x, seg.y1);
+    var p2 = toScreen(seg.x, seg.y2);
+    if(p1.x<-10||p2.x>W+10) continue;
+    if(Math.max(p1.y,p2.y)<-10||Math.min(p1.y,p2.y)>H+10) continue;
+
+    var segC = Math.round((seg.x - colLeft[0]) / CELL);
+    var lineAlpha = 1;
+    if (!isOverview && segC >= 0 && segC < COLS) {
+      var minFog = 2;
+      var checkC = Math.min(segC, COLS-2);
+      for (var rr = 0; rr < ROWS; rr++) {
+        var f = Math.max(fogState[rr][checkC], fogState[rr][checkC+1]);
+        if (f < minFog) minFog = f;
+      }
+      if (minFog === 0) lineAlpha = 0.15;
+      else if (minFog === 1) lineAlpha = 0.40;
+    }
+
+    ctx.strokeStyle='rgba(255,255,255,' + lineAlpha.toFixed(2) + ')';
+    ctx.lineWidth=Math.max(0.8,1.2*zoom);
+    ctx.setLineDash([6*zoom,5*zoom]);
+    ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // —— 4. 回声（呼吸光晕）——
+  if (!isOverview) {
+    for (var ei = 0; ei < echoes.length; ei++) {
+      var echo = echoes[ei];
+      var ep = toScreen(echo.x, echo.y);
+      if(ep.x<-80||ep.x>W+80||ep.y<-80||ep.y>H+80) continue;
+
+      // 呼吸动画
+      var breathe = 0.5 + 0.5 * Math.sin((now - echo.time) / 1200 * Math.PI);
+      var echoAlpha = 0.08 + breathe * 0.14;
+      var echoRadius = (r0 + 6 + breathe * 6) * zoom;
+
+      ctx.fillStyle = 'rgba(232,180,76,' + echoAlpha.toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(ep.x, ep.y, echoRadius, 0, Math.PI*2);
+      ctx.fill();
+
+      // 内层更亮一点
+      ctx.fillStyle = 'rgba(232,180,76,' + (echoAlpha * 0.5).toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(ep.x, ep.y, echoRadius * 0.5, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  // —— 5. 门牌 ——
+  for (var i=0;i<liveBlocks.length;i++){
+    var b=liveBlocks[i], ec=ELEM[b.elem], d=b.depth;
+    var p=toScreen(b.doorX,b.doorY);
+    if(p.x<-50||p.x>W+50||p.y<-50||p.y>H+50) continue;
+    var fog = isOverview ? 2 : getBlockFog(b.bid);
+
+    if(fog === 0) {
+      // 浓雾：不画门牌
+      continue;
+    }
+
+    if(fog === 2) {
+      // 已点亮
+      if(b.visited){
+        ctx.fillStyle=rgba(ec.c, 0.12 + d*0.15);
+        ctx.beginPath(); ctx.arc(p.x,p.y,r0+8*zoom,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle=rgba(ec.c, 0.82 + d*0.18);
+        ctx.beginPath(); ctx.arc(p.x,p.y,r0,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle='rgba(255,255,255,0.70)';
+        ctx.lineWidth=Math.max(1.5,2.2*zoom);
+        ctx.beginPath(); ctx.arc(p.x,p.y,r0,0,Math.PI*2); ctx.stroke();
+        ctx.font=Math.round(r0*1.15)+'px sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillStyle='#FFFFFF';
+        ctx.fillText(ec.emoji, p.x, p.y-0.5);
+        if(zoom>0.4){
+          ctx.font='bold '+Math.max(8,Math.round(10*zoom))+'px -apple-system,"PingFang SC",sans-serif';
+          ctx.fillStyle=ec.c;
+          ctx.textAlign='center'; ctx.textBaseline='top';
+          ctx.fillText(b.name, p.x, p.y+r0+3*zoom);
+          ctx.font=Math.max(7,Math.round(6.5*zoom))+'px "SF Mono","Menlo",monospace';
+          ctx.fillStyle='rgba(26,26,26,0.35)';
+          ctx.fillText('#'+b.idStr, p.x, p.y+r0+3*zoom+12*zoom);
+        }
+      } else {
+        ctx.strokeStyle=rgba(ec.c, 0.25 + d*0.15);
+        ctx.lineWidth=Math.max(1,1.5*zoom);
+        ctx.setLineDash([3,4]);
+        ctx.beginPath(); ctx.arc(p.x,p.y,r0,0,Math.PI*2); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.font=Math.round(r0*0.9)+'px sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillStyle=rgba(ec.c, 0.30 + d*0.15);
+        ctx.fillText('?',p.x,p.y);
+      }
+    } else if(fog === 1) {
+      // 薄雾：能看到门牌位置，但看不到内容
+      ctx.strokeStyle='rgba(200,192,180,0.45)';
+      ctx.lineWidth=Math.max(1,1.5*zoom);
+      ctx.setLineDash([3,4]);
+      ctx.beginPath(); ctx.arc(p.x,p.y,r0,0,Math.PI*2); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font=Math.round(r0*0.9)+'px sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillStyle='rgba(200,192,180,0.40)';
+      ctx.fillText('?',p.x,p.y);
+    }
+  }
+
+  // —— 6. 浓雾覆盖层（大范围星雾效果）——
+  if (!isOverview) {
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        if (fogState[r][c] !== 0) continue;
+        var fx = colLeft[c] + CELL/2;
+        var fy = rowTop[r] + CELL/2;
+        var fp = toScreen(fx, fy);
+        if(fp.x<-100||fp.x>W+100||fp.y<-100||fp.y>H+100) continue;
+
+        var fogAlpha = 0.06 + 0.03 * Math.sin(now / 3000 + r * 0.7 + c * 0.5);
+        var fogR = CELL * 0.7 * zoom;
+        ctx.fillStyle = 'rgba(180,175,168,' + fogAlpha.toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.arc(fp.x, fp.y, fogR, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+  }
+
+  // —— 7. 薄雾覆盖层 ——
+  if (!isOverview) {
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        if (fogState[r][c] !== 1) continue;
+        var fx = colLeft[c] + CELL/2;
+        var fy = rowTop[r] + CELL/2;
+        var fp = toScreen(fx, fy);
+        if(fp.x<-100||fp.x>W+100||fp.y<-100||fp.y>H+100) continue;
+
+        var mistAlpha = 0.03 + 0.015 * Math.sin(now / 4000 + r * 0.5 + c * 0.3);
+        var mistR = CELL * 0.55 * zoom;
+        ctx.fillStyle = 'rgba(190,185,178,' + mistAlpha.toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.arc(fp.x, fp.y, mistR, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+  }
+}
+</script>
+</body>
+</html>
