@@ -1,0 +1,2198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>拓圈·蛋生壹号街区·3D</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0A1020;overflow:hidden;font-family:-apple-system,"PingFang SC",sans-serif}
+#c{display:block;width:100%;height:100%}
+.hdr{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;flex-direction:column;align-items:center;padding:10px 20px;background:linear-gradient(180deg,rgba(10,16,32,.95) 0%,transparent 100%);pointer-events:none}
+.ht{font-size:14px;font-weight:600;letter-spacing:3px;color:#F5F0E8}
+.hs{font-size:10px;color:#4A9EB8;margin-top:2px;letter-spacing:1px}
+.ctrl{position:fixed;right:12px;bottom:85px;z-index:90;display:flex;flex-direction:column;gap:7px}
+.cb{width:38px;height:38px;background:rgba(74,158,184,.15);border:1px solid rgba(74,158,184,.35);border-radius:50%;color:#4A9EB8;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;pointer-events:auto}
+.ctrl-l{position:fixed;left:12px;bottom:85px;z-index:90;}
+.ctrl-l .cb{width:auto;height:auto;padding:14px 22px;flex-direction:column;gap:5px;font-size:14px;letter-spacing:2px;border-radius:22px;border:2.5px solid #4A9EB8;box-shadow:0 0 20px rgba(74,158,184,.5),inset 0 0 12px rgba(74,158,184,.15);background:linear-gradient(135deg,#1A3A4A 0%,#0D2030 100%);color:#7DD4E8;font-weight:600;text-shadow:0 0 8px rgba(74,158,184,.6);}
+.btn-back{position:fixed;top:12px;left:12px;z-index:200;display:none;padding:6px 16px;background:rgba(10,16,32,.85);border:1px solid rgba(74,158,184,.5);border-radius:20px;color:#4A9EB8;font-size:13px;cursor:pointer;letter-spacing:1px;}
+.hint{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:10px;color:rgba(245,240,232,.25);letter-spacing:1px;pointer-events:none}
+#loading{position:fixed;inset:0;background:#0A1020;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:500}
+.ld-ring{width:48px;height:48px;border:3px solid rgba(74,158,184,.2);border-top:3px solid #4A9EB8;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ld-txt{color:#4A9EB8;font-size:13px;letter-spacing:2px}
+.ld-sub{color:rgba(74,158,184,.5);font-size:11px;margin-top:6px}
+#err{position:fixed;inset:0;background:#0B0F1E;color:#E89090;display:none;align-items:center;justify-content:center;padding:40px;font-size:14px;text-align:center;z-index:999;white-space:pre-wrap;line-height:1.8}
+.enter-overlay{position:fixed;inset:0;background:rgba(10,16,32,.7);display:none;align-items:center;justify-content:center;z-index:300;backdrop-filter:blur(4px)}
+.enter-dialog{background:linear-gradient(135deg,#1A2A3A,#0D1A2A);border:2px solid #4A9EB8;border-radius:16px;padding:30px 40px;text-align:center;box-shadow:0 0 40px rgba(74,158,184,.3)}
+.enter-dialog h3{color:#D4A040;font-size:18px;font-weight:600;margin-bottom:8px;letter-spacing:2px}
+.enter-dialog p{color:#8A9AAA;font-size:13px;margin-bottom:20px}
+.enter-dialog .enter-btn{display:inline-block;padding:10px 30px;background:linear-gradient(135deg,#4A9EB8,#3A7E98);border:none;border-radius:20px;color:#F5F0E8;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:2px;transition:transform .15s,box-shadow .15s}
+.enter-dialog .enter-btn:hover{transform:scale(1.05);box-shadow:0 0 20px rgba(74,158,184,.5)}
+.enter-dialog .enter-cancel{display:inline-block;padding:8px 20px;background:transparent;border:1px solid #556;border-radius:20px;color:#8A9AAA;font-size:12px;cursor:pointer;margin-left:12px}
+.enter-dialog .enter-cancel:hover{border-color:#889;color:#BBC}
+
+</style>
+
+<script src="three.min.js"></script>
+</head>
+<body>
+<div id="loading">
+    <div class="ld-ring"></div>
+    <div class="ld-txt">正在加载街区...</div>
+    <div class="ld-sub">LOADING TOPSPACE</div>
+</div>
+<div id="err"></div>
+<canvas id="c"></canvas>
+<div class="hdr"><div class="ht">蛋生壹号街区</div><div class="hs">TOPSPACE · 3D BLOCK #001</div></div>
+<div class="ctrl"><div class="cb" id="btnTop">&#x2B06;</div><div class="cb" id="btn45">&#x27F3;</div><div class="cb" id="btnRst">&#x27F2;</div></div>
+<div class="ctrl-l"><div class="cb" id="btnCafe" style="font-size:12px;flex-direction:column;line-height:1.2;">&#x2615;<span style="font-size:10px;">咖啡店</span></div></div>
+<button class="btn-back" id="btnBack">&#x2190; 返回街区</button>
+<div class="hint">左键旋转 · 右键平移 · 滚轮缩放 · 双击复位</div>
+<div class="enter-overlay" id="exitOverlay">
+  <div class="enter-dialog">
+    <h3>拜 拜 ~</h3>
+    <p style="color:#8A9AAA;font-size:13px;margin-bottom:16px">慢半拍随时等你回来</p>
+    <button class="enter-btn" id="exitBtn">离开咖啡店</button>
+    <button class="enter-cancel" id="exitCancel">再坐会儿</button>
+  </div>
+</div>
+<div class="enter-overlay" id="enterOverlay">
+  <div class="enter-dialog">
+    <h3>慢 半 拍</h3>
+    <p>SLOW BEAT CAFÉ</p>
+    <p style="color:#6A7A8A;font-size:12px;margin-bottom:16px">一扇门，推开就是另一个世界</p>
+    <button class="enter-btn" id="enterBtn">进 入</button>
+    <button class="enter-cancel" id="enterCancel">再看看</button>
+  </div>
+</div>
+
+<!-- NPC点亮对话框 -->
+<div class="npc-dialog-overlay" id="npcDialog" style="position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;z-index:400;pointer-events:none;">
+  <div class="npc-dialog-box" style="pointer-events:auto;width:92%;max-width:420px;background:linear-gradient(135deg,#1A2A3A 0%,#0D1A2A 100%);border:2px solid #4A9EB8;border-radius:16px 16px 4px 4px;padding:20px 24px;margin-bottom:24px;box-shadow:0 0 30px rgba(74,158,184,.4);">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#00704A,#005C3A);display:flex;align-items:center;justify-content:center;font-size:18px;color:#FFD700;">&#x2615;</div>
+      <div>
+        <div style="color:#F5F0E8;font-size:15px;font-weight:600;">小拍 · 咖啡师</div>
+        <div style="color:#4A9EB8;font-size:11px;">SLOW BEAT BARISTA</div>
+      </div>
+    </div>
+    <div id="npcText" style="color:#C8D8E8;font-size:14px;line-height:1.7;min-height:48px;margin-bottom:16px;">欢迎来到慢半拍~ 你想做什么？</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <button id="npcIgnite" style="flex:1;padding:12px 16px;background:linear-gradient(135deg,rgba(212,160,64,.15),rgba(232,93,48,.15));border:1.5px solid rgba(212,160,64,.5);border-radius:12px;color:#D4A040;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:1px;">
+        &#x2728; 点亮
+      </button>
+      <div id="npcAttentionBox" style="padding:8px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;text-align:center;min-width:90px;">
+        <div style="color:rgba(255,255,255,.4);font-size:10px;margin-bottom:2px;">注意力</div>
+        <div id="npcAttentionVal" style="color:#D4A040;font-size:22px;font-weight:700;line-height:1;">100</div>
+      </div>
+    </div>
+    <div id="npcIgniteAnim" style="position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);pointer-events:none;font-size:28px;font-weight:700;color:#D4A040;opacity:0;transition:all .6s ease-out;text-shadow:0 0 20px rgba(212,160,64,.6);"></div>
+  </div>
+</div>
+
+<!-- 海报/笔记本弹框 -->
+<div class="enter-overlay" id="itemPopup">
+  <div class="enter-dialog" style="max-width:460px;padding:24px 28px;">
+    <h3 id="itemPopupTitle" style="color:#D4A040;font-size:18px;font-weight:600;margin-bottom:12px;letter-spacing:2px;">标题</h3>
+    <div id="itemPopupBody" style="color:#C8D8E8;font-size:14px;line-height:1.8;margin-bottom:20px;white-space:pre-wrap;"></div>
+    <button class="enter-btn" id="itemPopupClose">知道了</button>
+  </div>
+</div>
+
+<script>
+window.onerror=function(m,u,l){var _ld=document.getElementById('loading');if(_ld)_ld.style.display='none';var e=document.getElementById('err');e.style.display='flex';e.innerHTML='<div style="max-width:320px"><div style="font-size:20px;margin-bottom:12px">&#x26A0;</div><div style="color:#E89090;font-size:15px;margin-bottom:8px">JavaScript 运行错误</div><div style="color:#8A9AAA;font-size:12px;line-height:1.8;word-break:break-all">'+m+'</div></div>';};
+function initApp(){
+try {
+
+// ===== WebGL Check =====
+var testCv=document.createElement('canvas');
+var gl=testCv.getContext('webgl2')||testCv.getContext('webgl');
+if(!gl){var el=document.getElementById('err');el.style.display='flex';el.innerHTML='<div style="max-width:320px"><div style="font-size:20px;margin-bottom:12px">&#x1F3AE;</div><div style="color:#E89090;font-size:15px;margin-bottom:8px">您的浏览器不支持3D渲染</div><div style="color:#8A9AAA;font-size:12px;line-height:1.8">需要 WebGL 支持<br><span style="color:#FFD700">建议：</span>请使用Chrome/Safari/Edge浏览器</div></div>';return;}
+var maxLights=gl.getParameter(gl.MAX_LIGHTS);
+console.log('WebGL OK, maxLights:',maxLights);
+
+// ===== Three.js Setup =====
+var cam3d=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,0.1,800);
+cam3d.position.set(120,150,120);
+var scn=new THREE.Scene();
+scn.background=new THREE.Color(0x0A1020);
+scn.fog=new THREE.FogExp2(0x0A1020,0.0006);
+
+// ===== Mode Switch =====
+var appMode='block'; // 'block' | 'cafe'
+var cafeGroup=null;
+var blockGroup=new THREE.Group(); scn.add(blockGroup);
+// Keep references to global objects for mode switching
+var gAmbient=null, gMoon=null, gHemi=null, gStars=null;
+var ren=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true});
+ren.setSize(innerWidth,innerHeight);
+ren.setPixelRatio(Math.min(devicePixelRatio||1,2));
+ren.shadowMap.enabled=true;
+ren.shadowMap.type=THREE.PCFSoftShadowMap;
+if(ren.outputEncoding!==undefined) ren.outputEncoding=THREE.sRGBEncoding;
+if(ren.toneMapping!==undefined){ren.toneMapping=THREE.ACESFilmicToneMapping;ren.toneMappingExposure=1.2;}
+
+// ===== Orbit Controls (inline) =====
+var tgt=new THREE.Vector3(0,0,0);
+var sph=new THREE.Spherical();
+sph.setFromVector3(cam3d.position.clone().sub(tgt));
+var md={t:0,p:0,px:0,py:0,z:0};
+var ms=-1,mx=0,my=0;
+var dampF=0.07;
+
+    // Interior mode camera bounds (W=12, H=7, D=10, center at (0,0,2))
+    // z range: -2.5 to 6.5, x range: -5 to 5, y min: 0.5
+    var interiorBounds={xMin:-5,xMax:5,yMin:0.5,yMax:6.5,zMin:-2.5,zMax:6.5};
+    var interiorTgt=new THREE.Vector3(0,2.8,2);
+
+function updCam(){
+    cam3d.position.set(
+        sph.radius*Math.sin(sph.phi)*Math.sin(sph.theta),
+        sph.radius*Math.cos(sph.phi),
+        sph.radius*Math.sin(sph.phi)*Math.cos(sph.theta)
+    ).add(tgt);
+    // Interior mode: clamp camera inside room
+    if(appMode==='interior'){
+        cam3d.position.x=Math.max(interiorBounds.xMin,Math.min(interiorBounds.xMax,cam3d.position.x));
+        cam3d.position.y=Math.max(interiorBounds.yMin,Math.min(interiorBounds.yMax,cam3d.position.y));
+        cam3d.position.z=Math.max(interiorBounds.zMin,Math.min(interiorBounds.zMax,cam3d.position.z));
+    }
+    cam3d.lookAt(tgt);
+}
+function tick(){
+    var ok=false;
+    if(md.t||md.p){
+        sph.theta-=md.t;
+        if(appMode==='interior'){
+            // Interior: 360°旋转
+            sph.phi=Math.max(0.1,Math.min(Math.PI-0.1,sph.phi+md.p));
+            md.t*=1-dampF*1.5;md.p*=1-dampF*1.5;
+        } else {
+            sph.phi=Math.max(0.05,Math.min(Math.PI/2.01,sph.phi+md.p));
+            md.t*=1-dampF;md.p*=1-dampF;
+        }
+        ok=true;
+    }
+    if(md.px||md.py){
+        var dd=sph.radius*0.00012;var r=new THREE.Vector3();r.setFromMatrixColumn(cam3d.matrix,0);var u=new THREE.Vector3();u.setFromMatrixColumn(cam3d.matrix,1);tgt.add(r.multiplyScalar(-md.px*dd));tgt.add(u.multiplyScalar(md.py*dd));
+        // Interior: clamp target（更高灵敏度）
+        if(appMode==='interior'){
+            tgt.x=Math.max(interiorBounds.xMin+1,Math.min(interiorBounds.xMax-1,tgt.x));
+            tgt.y=Math.max(1.5,Math.min(4,tgt.y));
+            tgt.z=Math.max(interiorBounds.zMin+1,Math.min(interiorBounds.zMax-1,tgt.z));
+            md.px*=1-dampF*1.5;md.py*=1-dampF*1.5;
+        } else {
+            md.px*=1-dampF;md.py*=1-dampF;
+        }
+        ok=true;
+    }
+    if(md.z){
+        sph.radius=Math.max(25,Math.min(500,sph.radius+md.z*sph.radius*0.5));
+        // Interior: limit zoom range（更高灵敏度）
+        if(appMode==='interior'){
+            sph.radius=Math.max(1.5,Math.min(10,sph.radius));
+            md.z*=1-dampF*2;
+        } else {
+            md.z*=1-dampF;
+        }
+        ok=true;
+    }
+    if(ok)updCam();
+}
+ren.domElement.addEventListener('mousedown',function(e){ms=e.button===0?0:(e.button===2?1:-1);if(ms>=0){mx=e.clientX;my=e.clientY;}});
+window.addEventListener('mouseup',function(){ms=-1;});
+window.addEventListener('mousemove',function(e){if(ms<0)return;var dx=e.clientX-mx,dy=e.clientY-my;mx=e.clientX;my=e.clientY;
+    if(ms===0){var rF=appMode==='interior'?0.0015:(appMode==='cafe'?0.0006:0.0004);md.t+=dx*rF;md.p+=dy*rF;}
+    else if(ms===1){md.px+=dx*1.5;md.py+=dy*1.5;}});
+ren.domElement.addEventListener('wheel',function(e){e.preventDefault();md.z+=e.deltaY*0.008;},{passive:false});
+ren.domElement.addEventListener('contextmenu',function(e){e.preventDefault();});
+var t0=[],touchMode=-1,prevPinch=0;
+ren.domElement.addEventListener('touchstart',function(e){t0=[].slice.call(e.touches);if(t0.length===1)touchMode=0;else if(t0.length===2){touchMode=2;prevPinch=Math.hypot(t0[0].clientX-t0[1].clientX,t0[0].clientY-t0[1].clientY);}else touchMode=-1;},{passive:true});
+ren.domElement.addEventListener('touchmove',function(e){if(touchMode<0)return;e.preventDefault();var t=[].slice.call(e.touches);
+if(touchMode===0&&t.length===1){var tF=appMode==='interior'?0.002:(appMode==='cafe'?0.0008:0.0005);md.t+=(t[0].clientX-t0[0].clientX)*tF;md.p+=(t[0].clientY-t0[0].clientY)*tF;}
+else if(t.length===2&&t0.length===2){
+    var d0=Math.hypot(t0[0].clientX-t0[1].clientX,t0[0].clientY-t0[1].clientY);
+    var d1=Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+    var pinchDelta=d1-d0;
+    if(Math.abs(pinchDelta)>2){if(d0>1){var pMin=appMode==='interior'?1.5:25;var pMax=appMode==='interior'?10:500;sph.radius=Math.max(pMin,Math.min(pMax,sph.radius*(d0/d1)));}}
+    else{var cx0=(t0[0].clientX+t0[1].clientX)/2,cy0=(t0[0].clientY+t0[1].clientY)/2;var cx1=(t[0].clientX+t[1].clientX)/2,cy1=(t[0].clientY+t[1].clientY)/2;md.px+=cx1-cx0;md.py+=cy1-cy0;}
+}t0=t;},{passive:false});
+ren.domElement.addEventListener('touchend',function(){touchMode=-1;});
+
+// ===== Lights (night warm) - LIMITED for WebGL compatibility =====
+// Use strong ambient + directional + hemisphere, minimize PointLights
+var ambient=gAmbient=new THREE.AmbientLight(0xCCDDFF,1.2);
+scn.add(ambient);
+
+var moon=gMoon=new THREE.DirectionalLight(0x8899CC,0.8);
+moon.position.set(-100,180,-80);
+moon.castShadow=true;
+moon.shadow.mapSize.set(1024,1024);
+moon.shadow.camera.left=moon.shadow.camera.bottom=-200;
+moon.shadow.camera.right=moon.shadow.camera.top=200;
+scn.add(moon);
+
+var hemi=gHemi=new THREE.HemisphereLight(0x6688CC,0x2A3020,0.8);
+scn.add(hemi);
+
+// Only use a few strategic PointLights (keep under WebGL maxLights)
+var lightCount=0;
+var MAX_PT_LIGHTS=10;
+function addPtLight(color,intensity,dist,x,y,z){
+    if(lightCount>=MAX_PT_LIGHTS)return;
+    var l=new THREE.PointLight(color,intensity,dist);
+    l.position.set(x,y,z);
+    scn.add(l);
+    lightCount++;
+}
+// Strategic warm lights at key locations
+addPtLight(0xFFAA44,1.0,40, 0,8,0);       // center
+addPtLight(0xFFAA44,0.8,35, -35,-35,8);   // NW hub
+addPtLight(0xFFAA44,0.8,35, 35,-35,8);    // NE hub
+addPtLight(0xFFAA44,0.8,35, -35,35,8);    // SW hub
+addPtLight(0xFFAA44,0.8,35, 35,35,8);     // SE hub
+addPtLight(0xFFCC66,0.6,30, 0,-75,6);     // north fountain
+addPtLight(0xFFCC66,0.6,30, -110,-60,6);  // pond
+addPtLight(0xFFAA44,0.5,25, -60,0,6);     // west road
+addPtLight(0xFFAA44,0.5,25, 60,0,6);      // east road
+addPtLight(0xFFAA44,0.5,25, 0,60,6);      // south road
+
+console.log('PointLights used:',lightCount,'/',MAX_PT_LIGHTS);
+
+// ===== Starfield (星空背景) =====
+var starGeo=null,starMat=null;
+(function mkStars(){
+    var count=1500;
+    var positions=new Float32Array(count*3);
+    for(var i=0;i<count;i++){
+        var r=300+Math.random()*500;
+        var theta=Math.random()*Math.PI*2;
+        var phi=Math.acos(2*Math.random()-1);
+        positions[i*3]=r*Math.sin(phi)*Math.cos(theta);
+        positions[i*3+1]=Math.abs(r*Math.cos(phi))+30;
+        positions[i*3+2]=r*Math.sin(phi)*Math.sin(theta);
+    }
+    starGeo=new THREE.BufferGeometry();
+    starGeo.setAttribute('position',new THREE.BufferAttribute(positions,3));
+    starMat=new THREE.PointsMaterial({color:0xFFFFEE,size:1,transparent:true,opacity:0.9,sizeAttenuation:true,blending:THREE.AdditiveBlending,depthWrite:false});
+    gStars=new THREE.Points(starGeo,starMat);
+    scn.add(gStars);
+})();
+
+// ===== Helpers =====
+function M(c){return new THREE.MeshPhongMaterial({color:c,shininess:10,specular:0x111111});}
+// mkEmissiveMat: for glowing windows - MeshStandardMaterial with strong emissive
+function mkEmissiveMat(c,i){
+    return new THREE.MeshStandardMaterial({
+        color:new THREE.Color(c),
+        emissive:new THREE.Color(c),
+        emissiveIntensity:i||1.0
+    });
+}
+function addBody(g,w,h,d,c){var bd=new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.1,w),Math.max(0.1,h),Math.max(0.1,d)),M(c));bd.position.y=h/2;bd.castShadow=true;bd.receiveShadow=true;g.add(bd);}
+function addWin(g,x,y,z,w,h,c,i){var gl=new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.05,w),Math.max(0.05,h),0.12),mkEmissiveMat(c,i||1.2));gl.position.set(x,y,z);g.add(gl);}
+
+// ===== Name Pools =====
+var NAME_POOL={
+    cafe:['慢半拍','一日','角落之光','黑胶与咖啡','停留','月光杯','半醒','第三空间'],
+    bookstore:['纸上','翻阅','不是书店','深夜书架','字里行间','盲盒书','读铃','纸上旅行'],
+    tea:['半杯','珍珠语','泡泡','茶颜','一杯入魂','慢茶','茶觉','半山春'],
+    flower:['野花','瓶中诗','花期','一束','慢花','花间集','朝颜','植觉'],
+    pet:['爪印','毛孩子','尾巴','汪喵','四只脚','爪爪铺','尾巴档案馆'],
+    bakery:['麦田','烤箱','香气','酥皮','早晨','酵母公社','烤物志'],
+    workshop:['造物','手工课','铁皮屋','刨花','匠人','敲敲打打','木工误差'],
+    gallery:['白盒子','空間','展','一隅','看见','取景框','无界'],
+    music:['低频','共振','节拍','声穴','音浪','回声公园','黑胶Fiction'],
+    clothing:['衣橱','布','质地','穿搭','形态','剪标','无用服'],
+    restaurant:['灶台','烟火','围桌','锅气','味道','夜食堂','聚光灯'],
+    design:['像素','线条','构','比例','原型','网格','草稿本'],
+    theater:['幕','台','角色','剧本','灯暗','第四堵墙','彩排室'],
+    yoga:['呼吸','伸展','静座','平衡','内观','折叠','松绑'],
+    boardgame:['骰子','回合','桌面上','卡牌','策略','运气有限公司'],
+    photo:['快门','取景器','光影','定格','焦距','曝光补偿','暗房']
+};
+function rndName(type){var pool=NAME_POOL[type];return pool?pool[Math.floor(Math.random()*pool.length)]:'小店';}
+
+// ===== Door Sign (门牌号) =====
+// w=建筑宽度, d=建筑深度; 门牌放在建筑正前方(+z方向)
+function mkSign(x,z,type,name,w,d){
+    var cv=document.createElement('canvas');
+    cv.width=200;cv.height=150;
+    var ctx=cv.getContext('2d');
+    ctx.fillStyle='#1A1208';ctx.fillRect(0,0,200,150);
+    ctx.strokeStyle='#D4A040';ctx.lineWidth=2;ctx.strokeRect(4,4,192,142);
+    ctx.strokeStyle='#8A6A2A';ctx.lineWidth=1;ctx.strokeRect(9,9,182,132);
+    var labels={cafe:'[ 咖啡 ]',bookstore:'[ 书店 ]',tea:'[ 奶茶 ]',flower:'[ 花店 ]',pet:'[ 宠物 ]',bakery:'[ 面包 ]',workshop:'[ 工坊 ]',gallery:'[ 画廊 ]',music:'[ 音乐 ]',clothing:'[ 买手 ]',restaurant:'[ 餐厅 ]',design:'[ 设计 ]',theater:'[ 剧场 ]',yoga:'[ 冥想 ]',boardgame:'[ 桌游 ]',photo:'[ 摄影 ]'};
+    ctx.fillStyle='#D4A040';ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+    ctx.fillText(labels[type]||'[ 商店 ]',100,30);
+    ctx.fillStyle='#FFCC66';ctx.font='bold 20px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    var dn=name.length>5?name.substring(0,5):name;
+    ctx.fillText(dn,100,75);
+    ctx.fillStyle='#8A7A5A';ctx.font='11px sans-serif';
+    ctx.fillText('[ 可进入 ]',100,125);
+    var tex=new THREE.CanvasTexture(cv);tex.minFilter=THREE.LinearFilter;
+    var sign=new THREE.Mesh(new THREE.PlaneGeometry(2.8,2.1),new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.DoubleSide}));
+    // 放在建筑右前方（+x方向偏移），距离建筑前面1.2单位
+    var frontZ = z + d/2 + 1.2;
+    var signX = x + w/2 + 2.0;
+    sign.position.set(signX, 4, frontZ);
+    sign.rotation.y = 0;
+    scn.add(sign);
+}
+
+// ===== Billboards (广告牌) =====
+function mkBillboard(x,z,h,w,drawFn,ry,baseY){
+    var cv=document.createElement('canvas');cv.width=512;cv.height=256;
+    var ctx=cv.getContext('2d');
+    if(drawFn)drawFn(ctx,512,256);
+    var tex=new THREE.CanvasTexture(cv);tex.minFilter=THREE.LinearFilter;
+    var bY=baseY||1;
+    var board=new THREE.Mesh(new THREE.PlaneGeometry(w||8,h||4),new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.DoubleSide}));
+    board.position.set(x,bY+h/2,z);board.rotation.y=ry||0;scn.add(board);
+    // 广告牌支柱
+    var pH=(h||4)/2+1;
+    [-1,1].forEach(function(s){var pole=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.18,bY+pH,6),M(0x444444));pole.position.set(x+s*(w||8)/2*0.8,(bY+pH)/2,z);pole.rotation.y=ry||0;scn.add(pole);});
+}
+// ===== Ground =====
+var gnd=new THREE.Mesh(new THREE.BoxGeometry(350,2,350),M(0x2A4A38));
+gnd.position.y=-1;gnd.receiveShadow=true;blockGroup.add(gnd);
+
+// ============================================================
+// Building Factories - NO individual PointLights, use emissive windows
+// ============================================================
+function mkBox(x,z,w,h,d,cs){var g=new THREE.Group();g.position.set(x,0,z);addBody(g,w,h,d,cs.body);var rf=new THREE.Mesh(new THREE.ConeGeometry(Math.max(0.3,w*0.82),h*0.3,4),M(cs.roof));rf.position.y=h+h*0.15;rf.rotation.y=Math.PI/4;rf.castShadow=true;g.add(rf);addWin(g,0,h*0.5,d/2+0.04,w*0.3,h*0.2,0xFFDD88,0.4);g.userData={type:'generic',enterable:false};scn.add(g);}
+function mkFlat(x,z,w,h,d,cs){var g=new THREE.Group();g.position.set(x,0,z);addBody(g,w,h,d,cs.body);var cp=new THREE.Mesh(new THREE.BoxGeometry(w+0.5,0.3,d+0.5),M(0x4A5A68));cp.position.y=h+0.15;g.add(cp);addWin(g,0,h*0.5,d/2+0.04,w*0.4,h*0.3,0xFFEEBB,0.5);g.userData={type:'generic',enterable:false};scn.add(g);}
+
+function mkCafe(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    addBody(g,w,h,d,0x8B6F47);
+    var cp=new THREE.Mesh(new THREE.BoxGeometry(w+0.4,0.3,d+0.4),M(0x5C4033));cp.position.y=h+0.15;g.add(cp);
+    var aw=new THREE.Mesh(new THREE.BoxGeometry(w*0.8,0.15,2.5),M(0xC2571A));aw.position.set(0,h*0.65,d/2+1.2);aw.rotation.x=-0.15;g.add(aw);
+    addWin(g,0,h*0.45,d/2+0.04,w*0.6,h*0.3,0xFFDD88,0.8);
+    addWin(g,-w*0.25,h*0.55,d/2+0.04,w*0.2,h*0.15,0xFFCC66,0.6);
+    addWin(g,w*0.25,h*0.55,d/2+0.04,w*0.2,h*0.15,0xFFCC66,0.6);
+    var tb=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,0.15,8),M(0x7A5C3E));tb.position.set(0,2.2,d/2+3);g.add(tb);
+    var lg=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.15,2.1,6),M(0x555555));lg.position.set(0,1.05,d/2+3);g.add(lg);
+    var cup=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.25,0.6,8),M(0xF5F0E8));cup.position.set(0,2.6,d/2+3);g.add(cup);
+    var name=rndName('cafe');g.userData={type:'cafe',name:name,enterable:true};scn.add(g);mkSign(x,z,'cafe',name,w,d);
+}
+function mkBookstore(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    addBody(g,w,h,d,0x6B5B4E);
+    var cp=new THREE.Mesh(new THREE.BoxGeometry(w+0.5,0.4,d+0.5),M(0x4A3F35));cp.position.y=h+0.2;g.add(cp);
+    var sc=[0x8B4513,0xA0522D,0xD2691E,0xCD853F];
+    for(var sy=0;sy<3;sy++)for(var sx=0;sx<4;sx++){var bw=new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.1,w*0.12),Math.max(0.1,h*0.15),0.08),M(sc[(sy*4+sx)%4]));bw.position.set(-w*0.25+sx*(w*0.5/3),h*0.2+sy*(h*0.2),d/2+0.04);g.add(bw);}
+    var sg=new THREE.Mesh(new THREE.BoxGeometry(w*0.7,1.2,0.15),M(0x3A2A1E));sg.position.set(0,h*0.82,d/2+0.08);g.add(sg);
+    addWin(g,0,h*0.5,d/2+0.04,w*0.5,h*0.25,0xFFCC66,0.6);
+    var name=rndName('bookstore');g.userData={type:'bookstore',name:name,enterable:true};scn.add(g);mkSign(x,z,'bookstore',name,w,d);
+}
+function mkTea(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    addBody(g,w,h,d,0xF5C6D0);
+    var arc=new THREE.Mesh(new THREE.SphereGeometry(Math.max(0.3,w*0.55),16,8,0,Math.PI*2,0,Math.PI/2),M(0xF0A0B8));arc.position.y=h;arc.castShadow=true;g.add(arc);
+    addWin(g,0,h*0.55,d/2+0.05,w*0.4,0.8,0xFFE4E8,0.7);
+    var cup=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1,3,12),M(0xFFF0F3));cup.position.set(w/2+1.5,1.5,0);g.add(cup);
+    var lid=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,0.3,12),M(0xF5C6D0));lid.position.set(w/2+1.5,3.15,0);g.add(lid);
+    for(var bi=0;bi<5;bi++){var pp=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,6),M(0x2A2A2A));pp.position.set(w/2+1.5+Math.cos(bi*1.2)*0.7,0.5,Math.sin(bi*1.2)*0.7);g.add(pp);}
+    var name=rndName('tea');g.userData={type:'tea',name:name,enterable:true};scn.add(g);mkSign(x,z,'tea',name,w,d);
+}
+function mkFlower(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    addBody(g,w,h,d,0xF5F0E8);
+    var aw=new THREE.Mesh(new THREE.BoxGeometry(w+1,0.2,d*0.4),M(0x7BC67E));aw.position.set(0,h+0.1,d/2+d*0.2);g.add(aw);
+    [-1,1].forEach(function(s){var pl=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,h+0.2,6),M(0x5A5A5A));pl.position.set(s*w*0.4,(h+0.2)/2,d/2+d*0.35);g.add(pl);});
+    var fc=[0xFF6B8A,0xFFB347,0xFF69B4,0xDDA0DD,0xFF4500];
+    for(var fi=0;fi<5;fi++){var pt=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.4,0.8,8),M(0xD2691E));pt.position.set(-w*0.3+fi*(w*0.6/4),0.4,d/2+d*0.25);g.add(pt);var fl=new THREE.Mesh(new THREE.SphereGeometry(0.6,8,6),M(fc[fi]));fl.position.set(-w*0.3+fi*(w*0.6/4),1.2,d/2+d*0.25);g.add(fl);}
+    addWin(g,0,h*0.4,d/2+0.03,w*0.5,h*0.35,0xCCFFCC,0.5);
+    var name=rndName('flower');g.userData={type:'flower',name:name,enterable:true};scn.add(g);mkSign(x,z,'flower',name,w,d);
+}
+function mkPet(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    addBody(g,w,h,d,0xE8D5B8);
+    var rf=new THREE.Mesh(new THREE.ConeGeometry(Math.max(0.3,w*0.65),4,4),M(0xC4A882));rf.position.y=h+2;rf.rotation.y=Math.PI/4;rf.castShadow=true;g.add(rf);
+    var dr=new THREE.Mesh(new THREE.BoxGeometry(w*0.3,h*0.4,0.15),M(0x8B7355));dr.position.set(0,h*0.2,d/2+0.08);g.add(dr);
+    addWin(g,0,h*0.5,d/2+0.04,w*0.35,h*0.2,0xFFDD88,0.5);
+    [-1,1].forEach(function(s){var pad=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,6),M(0xA08060));pad.position.set(s*w*0.25,h*0.6,d/2+0.08);g.add(pad);});
+    var bc=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,1.2,8),M(0xFFF8DC));bc.position.set(w/2+0.8,1.5,d/2+0.5);g.add(bc);
+    var name=rndName('pet');g.userData={type:'pet',name:name,enterable:true};scn.add(g);mkSign(x,z,'pet',name,w,d);
+}
+function mkBakery(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    addBody(g,w,h,d,0xD4A574);
+    var cp=new THREE.Mesh(new THREE.BoxGeometry(w+0.4,0.35,d+0.4),M(0x8B6F47));cp.position.y=h+0.175;g.add(cp);
+    var ch=new THREE.Mesh(new THREE.BoxGeometry(1.5,4,1.5),M(0x9E7B5A));ch.position.set(w*0.25,h+2,-d*0.2);ch.castShadow=true;g.add(ch);
+    addWin(g,0,h*0.38,d/2+0.04,w*0.7,h*0.35,0xFFEEBB,0.8);
+    var sg=new THREE.Mesh(new THREE.BoxGeometry(w*0.5,1,0.12),M(0x6B4226));sg.position.set(0,h*0.85,d/2+0.06);g.add(sg);
+    var name=rndName('bakery');g.userData={type:'bakery',name:name,enterable:true};scn.add(g);mkSign(x,z,'bakery',name,w,d);
+}
+function mkWorkshop(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    addBody(g,w,h,d,0x7A8B8B);
+    for(var ti=0;ti<3;ti++){var th=new THREE.Mesh(new THREE.BoxGeometry(w*0.3,3,d),M(0x607070));th.position.set(-w*0.3+ti*(w*0.6/2),h+1.5,0);th.castShadow=true;g.add(th);}
+    addWin(g,0,h*0.35,d/2+0.04,w*0.65,h*0.4,0xAADDFF,0.5);
+    var cm=new THREE.Mesh(new THREE.CylinderGeometry(1,1.2,8,8),M(0x5A6A6A));cm.position.set(-w*0.3,h+4,-d*0.2);cm.castShadow=true;g.add(cm);
+    var name=rndName('workshop');g.userData={type:'workshop',name:name,enterable:true};scn.add(g);mkSign(x,z,'workshop',name,w,d);
+}
+function mkGallery(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    addBody(g,w,h,d,0xF0EDE8);
+    var cp=new THREE.Mesh(new THREE.BoxGeometry(w+0.6,0.2,d+0.6),M(0xD0CCC5));cp.position.y=h+0.1;g.add(cp);
+    addWin(g,0,h*0.4,d/2+0.03,w*0.85,h*0.6,0xEEEEFF,0.4);
+    var fr=new THREE.Mesh(new THREE.BoxGeometry(w*0.12,h*0.55,0.12),M(0x2A2A2A));fr.position.set(0,h*0.275,d/2+0.06);g.add(fr);
+    var name=rndName('gallery');g.userData={type:'gallery',name:name,enterable:true};scn.add(g);mkSign(x,z,'gallery',name,w,d);
+}
+function mkMusic(x,z,w,h,d,cs){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    var bodyC=cs?cs.body:0x5A4A7A,roofC=cs?cs.roof:0x4A3A6A;
+    addBody(g,w,h,d,bodyC);
+    var dm=new THREE.Mesh(new THREE.SphereGeometry(Math.max(0.5,Math.min(w,d)*0.55),16,12,0,Math.PI*2,0,Math.PI/2),M(roofC));dm.position.y=h;dm.castShadow=true;g.add(dm);
+    addWin(g,0,h*0.4,d/2+0.04,w*0.5,h*0.3,0xCC88FF,0.5);
+    var nt=new THREE.Mesh(new THREE.SphereGeometry(0.6,8,6),mkEmissiveMat(bodyC,0.5));nt.position.set(0,h+Math.min(w,d)*0.35,d/2+0.5);g.add(nt);
+    var name=rndName('music');g.userData={type:'music',name:name,enterable:true};scn.add(g);mkSign(x,z,'music',name,w,d);
+}
+function mkClothing(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    addBody(g,w,h,d,0xE8D8C8);
+    var ev=new THREE.Mesh(new THREE.BoxGeometry(w+1,0.25,d+1),M(0xC8B8A8));ev.position.y=h+0.125;g.add(ev);
+    addWin(g,0,h*0.38,d/2+0.03,w*0.75,h*0.45,0xFFEECC,0.6);
+    var mn=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,h*0.25,8),M(0xDDD8D0));mn.position.set(-w*0.15,h*0.3,d/2+0.5);g.add(mn);
+    var hd=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),M(0xDDD8D0));hd.position.set(-w*0.15,h*0.45,d/2+0.5);g.add(hd);
+    var name=rndName('clothing');g.userData={type:'clothing',name:name,enterable:true};scn.add(g);mkSign(x,z,'clothing',name,w,d);
+}
+function mkRestaurant(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    addBody(g,w,h,d,0xB8553A);
+    var cp=new THREE.Mesh(new THREE.BoxGeometry(w+0.4,0.3,d+0.4),M(0x7A3A2A));cp.position.y=h+0.15;g.add(cp);
+    var aw=new THREE.Mesh(new THREE.BoxGeometry(w*0.9,0.15,3),M(0xCC4422));aw.position.set(0,h*0.7,d/2+1.5);aw.rotation.x=-0.12;g.add(aw);
+    addWin(g,0,h*0.45,d/2+0.04,w*0.6,h*0.35,0xFFDD88,0.7);
+    for(var ti=0;ti<2;ti++){var tb=new THREE.Mesh(new THREE.CylinderGeometry(1,1,0.12,8),M(0x6B4226));tb.position.set(-2+ti*4,2,d/2+3.5);g.add(tb);var lg=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.12,1.9,6),M(0x444444));lg.position.set(-2+ti*4,0.95,d/2+3.5);g.add(lg);}
+    var name=rndName('restaurant');g.userData={type:'restaurant',name:name,enterable:true};scn.add(g);mkSign(x,z,'restaurant',name,w,d);
+}
+function mkDesignStudio(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    addBody(g,w,h,d,0x4A5A6A);
+    addWin(g,0,h*0.45,d/2+0.03,w*0.9,h*0.7,0x88CCFF,0.4);
+    var st=new THREE.Mesh(new THREE.BoxGeometry(w+0.3,0.5,0.3),M(0x3A8AD0));st.position.set(0,h+0.25,d/2+0.15);g.add(st);
+    var sl=new THREE.Mesh(new THREE.BoxGeometry(0.08,h*0.5,d*0.7),mkEmissiveMat(0x4A9EB8,0.5));sl.position.set(w/2+0.04,h*0.35,0);g.add(sl);
+    var name=rndName('design');g.userData={type:'design',name:name,enterable:true};scn.add(g);mkSign(x,z,'design',name,w,d);
+}
+function mkTheater(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    addBody(g,w,h,d,0x5A4A6A);
+    for(var si=0;si<3;si++){var st=new THREE.Mesh(new THREE.BoxGeometry(w*(1-si*0.2),1.5,d*(1-si*0.15)),M(0x4A3A5A));st.position.y=h+si*1.5+0.75;st.castShadow=true;g.add(st);}
+    var dr=new THREE.Mesh(new THREE.BoxGeometry(w*0.35,h*0.5,0.15),M(0x3A2A4A));dr.position.set(0,h*0.25,d/2+0.08);g.add(dr);
+    addWin(g,0,h*0.5,d/2+0.04,w*0.4,h*0.25,0xCC88FF,0.5);
+    var name=rndName('theater');g.userData={type:'theater',name:name,enterable:true};scn.add(g);mkSign(x,z,'theater',name,w,d);
+}
+function mkYoga(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    var r=Math.min(w,d)*0.45;
+    var bd=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,16),M(0xD8D0C8));bd.position.y=h/2;bd.castShadow=true;bd.receiveShadow=true;g.add(bd);
+    var cn=new THREE.Mesh(new THREE.ConeGeometry(Math.max(0.3,r*1.1),4,16),M(0xA0B87A));cn.position.y=h+2;cn.castShadow=true;g.add(cn);
+    addWin(g,0,h*0.5,d/2+0.04,w*0.4,h*0.3,0xAAFFCC,0.5);
+    var name=rndName('yoga');g.userData={type:'yoga',name:name,enterable:true};scn.add(g);mkSign(x,z,'yoga',name,w,d);
+}
+function mkBoardGame(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    addBody(g,w,h,d,0x8B7355);
+    var cp=new THREE.Mesh(new THREE.BoxGeometry(w+0.6,0.5,d+0.6),M(0x6B5335));cp.position.y=h+0.25;g.add(cp);
+    var sg=new THREE.Mesh(new THREE.BoxGeometry(w*0.6,1.5,0.15),M(0x4A3A2A));sg.position.set(0,h*0.8,d/2+0.08);g.add(sg);
+    addWin(g,0,h*0.45,d/2+0.04,w*0.4,h*0.25,0xFFCC66,0.6);
+    var dc=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.5,1.5),M(0xFFF8F0));dc.position.set(w/2+1.2,2,d/2+0.5);dc.rotation.set(0.3,0.5,0.2);g.add(dc);
+    var name=rndName('boardgame');g.userData={type:'boardgame',name:name,enterable:true};scn.add(g);mkSign(x,z,'boardgame',name,w,d);
+}
+function mkPhoto(x,z,w,h,d){
+    var g=new THREE.Group();g.position.set(x,0,z);
+    addBody(g,w,h,d,0x3A3A3A);
+    var cp=new THREE.Mesh(new THREE.BoxGeometry(w+0.3,0.2,d+0.3),M(0x2A2A2A));cp.position.y=h+0.1;g.add(cp);
+    addWin(g,0,h*0.4,d/2+0.03,w*0.8,h*0.5,0xFFEEDD,0.5);
+    var ln=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1,2,12),M(0x1A1A1A));ln.position.set(w/2+0.5,h*0.6,d/2+0.5);ln.rotation.x=Math.PI/2;g.add(ln);
+    var rn=new THREE.Mesh(new THREE.TorusGeometry(0.9,0.1,8,16),M(0xCC2222));rn.position.set(w/2+0.5,h*0.6,d/2+1.51);g.add(rn);
+    var name=rndName('photo');g.userData={type:'photo',name:name,enterable:true};scn.add(g);mkSign(x,z,'photo',name,w,d);
+}
+
+// ============================================================
+// Environment helpers
+// ============================================================
+function mkTree(x,z,s){s=s||1;var g=new THREE.Group();g.position.set(x,0,z);g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.3*s,0.5*s,4*s,6),M(0x6B4226))).position.y=2*s;[{y:5*s,r:3*s,c:0x3A8C4C},{y:7.5*s,r:2.5*s,c:0x4CB86C},{y:9.5*s,r:1.8*s,c:0x5DC87C}].forEach(function(l){var m=new THREE.Mesh(new THREE.SphereGeometry(Math.max(0.1,l.r),8,6),M(l.c));m.position.y=l.y;m.castShadow=true;g.add(m);});scn.add(g);}
+function mkPine(x,z,s){s=s||1;var g=new THREE.Group();g.position.set(x,0,z);g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.2*s,0.4*s,3*s,6),M(0x6B4226))).position.y=1.5*s;[{y:4*s,r:3*s,h:4*s},{y:7*s,r:2.2*s,h:3*s},{y:9.5*s,r:1.4*s,h:2.5*s}].forEach(function(l){var m=new THREE.Mesh(new THREE.ConeGeometry(Math.max(0.1,l.r),l.h,8),M(0x2A5B3A));m.position.y=l.y;m.castShadow=true;g.add(m);});scn.add(g);}
+function mkLamp(x,z){var g=new THREE.Group();g.position.set(x,0,z);var pole=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.2,7,6),M(0x555555));pole.position.y=3.5;g.add(pole);var lantern=new THREE.Mesh(new THREE.BoxGeometry(1,1.2,1),mkEmissiveMat(0xE8B44C,0.9));lantern.position.y=7;g.add(lantern);addPtLight(0xFFCC66,0.6,15,x,7,z);scn.add(g);}
+function mkBench(x,z,ry){var g=new THREE.Group();g.position.set(x,0,z);if(ry)g.rotation.y=ry;g.add(new THREE.Mesh(new THREE.BoxGeometry(3,0.3,1),M(0x8B6F47))).position.y=1.2;[-1.2,1.2].forEach(function(xo){g.add(new THREE.Mesh(new THREE.BoxGeometry(0.2,1.2,0.8),M(0x6B4F2F))).position.set(xo,0.6,0);});scn.add(g);}
+function mkFountain(x,z,r){r=r||5;var g=new THREE.Group();g.position.set(x,0,z);g.add(new THREE.Mesh(new THREE.CylinderGeometry(r,r*1.1,1.5,20),M(0x3A5068))).position.y=0.75;g.add(new THREE.Mesh(new THREE.CylinderGeometry(r*0.9,r*0.9,0.1,20),mkEmissiveMat(0x4A9EB8,0.4))).position.y=1.55;g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.4,5,8),M(0x5A6878))).position.y=4;g.add(new THREE.Mesh(new THREE.SphereGeometry(0.6,8,6),mkEmissiveMat(0x4A9EB8,0.6))).position.y=7;scn.add(g);}
+function mkPond(x,z,rx,rz){var g=new THREE.Group();g.position.set(x,0.05,z);g.add(new THREE.Mesh(new THREE.BoxGeometry(rx*2+2,0.5,rz*2+2),M(0x1A3A30))).position.y=-0.25;g.add(new THREE.Mesh(new THREE.BoxGeometry(rx*2,0.05,rz*2),mkEmissiveMat(0x3A7EA8,0.3)));scn.add(g);}
+function mkRoad(x,z,w,d){var m=new THREE.Mesh(new THREE.BoxGeometry(w,0.2,d),M(0x3A3530));m.position.set(x,0.1,z);m.receiveShadow=true;scn.add(m);}
+function mkSide(x,z,w,d){var m=new THREE.Mesh(new THREE.BoxGeometry(w,0.25,d),M(0x353025));m.position.set(x,0.05,z);m.receiveShadow=true;scn.add(m);}
+function mkDash(x1,z1,x2,z2,sp){sp=sp||5;var dx=x2-x1,dz=z2-z1,n=Math.floor(Math.sqrt(dx*dx+dz*dz)/sp);for(var i=0;i<=n;i++){var t=i/Math.max(1,n);var m=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.05,0.3),M(0xE8B44C));m.position.set(x1+dx*t,0.2,z1+dz*t);scn.add(m);}}
+
+// ===== Roads =====
+mkRoad(0,-60,350,20); mkRoad(0,60,350,20);
+mkRoad(-60,0,20,350); mkRoad(60,0,20,350);
+mkDash(-170,-60,170,-60); mkDash(-170,60,170,60);
+mkDash(-60,-170,-60,170); mkDash(60,-170,60,170);
+[[-110,-110,80,12],[110,-110,80,12],[-110,110,80,12],[110,110,80,12],
+ [-110,-110,12,80],[110,-110,12,80],[-110,110,12,80],[110,110,12,80],
+ [-35,-110,12,55],[35,-110,12,55],[-35,110,12,55],[35,110,12,55],
+ [-110,-35,55,12],[110,-35,55,12],[-110,35,55,12],[110,35,55,12]
+].forEach(function(r){mkRoad(r[0],r[1],r[2],r[3]);});
+[[-150,-110,-70,-110],[70,-110,150,-110],[-150,110,-70,110],[70,110,150,110],
+ [-110,-150,-110,-35],[110,-150,110,-35],[-110,70,-110,150],[110,70,110,150]
+].forEach(function(d){mkDash(d[0],d[1],d[2],d[3]);});
+
+// ===== Sidewalks =====
+[[0,0,42,42],[-110,-110,40,40],[110,-110,40,40],[-110,110,40,40],[110,110,40,40],
+ [-35,-35,88,88],[35,-35,88,88],[-35,35,88,88],[35,35,88,88],
+ [-110,-35,88,40],[110,-35,88,40],[-110,35,88,40],[110,35,88,40],
+ [-35,-110,40,88],[35,-110,40,88],[-35,110,40,88],[35,110,40,88]
+].forEach(function(s){mkSide(s[0],s[1],s[2],s[3]);});
+
+mkPond(-110,-60,12,8);
+
+// ===== Building Placement =====
+// Left-Top FIRE
+mkCafe(-35,-35,18,12,16);
+mkRestaurant(-60,-40,16,14,14);
+mkTheater(-35,-70,18,16,14);
+mkCafe(-70,-75,14,10,12);
+mkFlat(-90,-40,12,10,10,{body:0xE87878,roof:0xD06060});
+mkMusic(-80,-85,12,22,10,{body:0xE87878,roof:0xD06060});
+mkRestaurant(-95,-65,14,18,12);
+mkBoardGame(-50,-90,18,12,16);
+mkYoga(-110,-90,10,8,10);
+mkCafe(-125,-78,12,10,10);
+mkTheater(-130,-95,10,9,10);
+mkRestaurant(-130,-120,14,14,12);
+
+// Right-Top WATER
+mkBookstore(35,-35,20,14,18);
+mkPhoto(60,-40,14,12,14);
+mkBookstore(35,-70,16,10,14);
+mkDesignStudio(70,-75,12,10,10);
+mkGallery(90,-40,16,18,14);
+mkPhoto(80,-85,12,22,10);
+mkBookstore(95,-65,12,20,12);
+mkDesignStudio(50,-90,14,26,12);
+mkPhoto(110,-90,10,8,10);
+mkGallery(125,-78,12,10,10);
+mkBookstore(130,-95,10,9,10);
+mkDesignStudio(130,-120,14,14,12);
+
+// Left-Bottom WOOD
+mkWorkshop(-35,35,22,14,18);
+mkFlower(-60,40,14,12,12);
+mkBakery(-35,70,16,12,14);
+mkWorkshop(-70,75,14,10,14);
+mkFlower(-90,40,12,10,10);
+mkWorkshop(-80,85,14,18,12);
+mkBakery(-50,90,12,10,10);
+mkPet(-95,65,10,20,10);
+mkWorkshop(-110,40,10,8,10);
+mkFlower(-110,55,14,12,12);
+mkBakery(-125,78,12,10,10);
+mkWorkshop(-130,95,14,14,12);
+
+// Right-Bottom GOLD+EARTH
+mkDesignStudio(35,35,22,16,20);
+mkPhoto(60,40,14,14,14);
+mkDesignStudio(35,70,16,12,14);
+mkClothing(70,75,14,10,12);
+mkPhoto(90,40,14,20,12);
+mkDesignStudio(80,85,12,26,10);
+mkClothing(95,65,12,10,10);
+mkBakery(50,90,10,8,10);
+mkTheater(110,40,18,14,16);
+mkYoga(110,65,20,10,16);
+mkBoardGame(110,90,22,18,20);
+mkTheater(130,50,14,12,12);
+mkMusic(130,80,12,22,12,{body:0xB888D8,roof:0xA070C8});
+mkBoardGame(130,120,14,12,14);
+
+// Center
+mkCafe(-8,10,8,6,8);
+mkFlower(10,-8,8,6,8);
+mkTea(8,10,6,5,6);
+mkPet(-10,-10,8,5,8);
+mkBookstore(0,-15,6,8,3);
+
+// North outer
+mkCafe(-30,-140,12,10,10);
+mkBookstore(0,-140,16,12,12);
+mkWorkshop(30,-140,10,8,10);
+mkRestaurant(-60,-140,14,14,12);
+mkGallery(60,-140,12,10,10);
+
+// South outer
+mkFlower(-30,140,12,10,10);
+mkDesignStudio(0,140,16,12,12);
+mkBoardGame(30,140,10,8,10);
+mkPhoto(-60,140,14,14,12);
+mkTheater(60,140,12,10,10);
+
+// West outer
+mkBakery(-140,-30,10,8,12);
+mkTea(-140,0,12,14,12);
+mkPet(-140,30,10,8,12);
+
+// East outer
+mkClothing(140,-30,10,8,12);
+mkYoga(140,0,12,14,12);
+mkMusic(140,30,10,8,12,{body:0xB888D8,roof:0xA070C8});
+
+// ===== Fountains =====
+mkFountain(0,0,5); mkFountain(0,-75,4);
+
+// ===== Trees =====
+[[-25,-25,0.9],[-90,-30,1.1],[-28,-88,0.7],[-55,-12,0.8],[-120,-45,0.8],[-145,-80,1],[-15,-50,0.6],[-85,-55,0.9],[-158,-30,1.1],[-18,-8,0.5],[-18,8,0.5],
+ [25,-25,0.8],[90,-30,1],[28,-88,0.7],[55,-12,0.8],[120,-45,0.9],[145,-80,1],[15,-50,0.6],[85,-55,0.9],[158,-30,1.1],[18,-8,0.5],[18,8,0.5],
+ [-25,25,1],[-90,30,1.1],[-28,88,0.7],[-55,12,0.7],[-120,45,0.9],[-145,80,1],[-15,50,0.6],[-85,55,0.9],[-158,30,1.1],[-8,-18,0.5],[8,-18,0.5],
+ [25,25,0.9],[90,30,0.85],[28,88,0.75],[55,12,0.7],[120,45,0.9],[145,80,1],[15,50,0.6],[85,55,0.9],[158,30,1.1],[8,18,0.5],[-8,18,0.5],
+ [-40,-135,0.8],[40,-135,0.7],[-80,-135,1],[80,-135,0.8],[-160,-135,1.1],[160,-135,0.9],
+ [-40,135,0.8],[40,135,0.7],[-80,135,1],[80,135,0.8],[-160,135,1.1],[160,135,0.9],
+ [-150,-120,1.2],[150,-120,1.1],[-150,120,1.3],[150,120,1],
+ [-20,-150,1.1],[20,-150,0.9],[-20,150,1],[20,150,1.2],
+ [-175,0,1.1],[175,0,1]
+].forEach(function(t){mkTree(t[0],t[1],t[2]);});
+[[-165,-135,1.3],[165,-135,1.2],[-165,135,1.4],[165,135,1.2],[-30,-165,1.2],[30,-165,1],[-30,165,1.3],[30,165,1.1],[-185,0,1.2],[185,0,1.1]
+].forEach(function(p){mkPine(p[0],p[1],p[2]);});
+
+// ===== Lamps (NO PointLights, just emissive lanterns) =====
+[[-30,-50],[30,-50],[-50,-30],[-50,30],[30,50],[50,30],[50,-30],[-30,50],
+ [-85,-85],[85,-85],[-85,85],[85,85],
+ [-100,-60],[100,-60],[-100,60],[100,60],
+ [-60,-100],[60,-100],[-60,100],[60,100],
+ [-120,-120],[120,-120],[-120,120],[120,120],
+ [-35,-35],[35,-35],[-35,35],[35,35],
+ [-70,-35],[70,-35],[-70,35],[70,35],
+ [-35,-70],[35,-70],[-35,70],[35,70],
+ [-140,-35],[-140,35],[140,-35],[140,35],
+ [-35,-140],[35,-140],[-35,140],[35,140]
+].forEach(function(l){mkLamp(l[0],l[1]);});
+// 更多路灯
+[[-120,-60],[-80,-60],[0,-60],[80,-60],[120,-60],
+ [-120,60],[-80,60],[0,60],[80,60],[120,60],
+ [-60,-120],[-60,-80],[-60,0],[-60,80],[-60,120],
+ [60,-120],[60,-80],[60,0],[60,80],[60,120]
+].forEach(function(l){mkLamp(l[0],l[1]);});
+// 广告牌（放在空旷区域，远离建筑，避免穿模）
+// 麦当劳：西北空地 x=-155 z=-155，面向街区中心
+mkBillboard(-155,-155,16,30,function(ctx,w,h){ctx.fillStyle='#CC0000';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#FFD700';ctx.lineWidth=6;ctx.strokeRect(10,10,w-20,h-20);ctx.fillStyle='#FFD700';ctx.font='bold 220px "Arial Black","PingFang SC",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('M',w/2,h/2-25);ctx.font='48px "PingFang SC","Microsoft YaHei",sans-serif';ctx.fillStyle='#FFFFFF';ctx.fillText('麦当劳',w/2,h/2+100);},Math.PI*0.75);
+// KFC：南边外围空地 x=0 z=158，面向北边街区，远离建筑
+mkBillboard(0,158,16,30,function(ctx,w,h){ctx.fillStyle='#E4002B';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#FFFFFF';ctx.lineWidth=6;ctx.strokeRect(10,10,w-20,h-20);ctx.fillStyle='#FFFFFF';ctx.font='bold 180px "Arial Black","PingFang SC",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('KFC',w/2,h/2-15);ctx.font='48px "PingFang SC","Microsoft YaHei",sans-serif';ctx.fillText('肯德基',w/2,h/2+95);},Math.PI);
+// 星巴克：东北空地 x=155 z=-155，面向街区中心，canvas加宽防字溢出
+mkBillboard(155,-155,16,38,function(ctx,w,h){ctx.fillStyle='#00704A';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#FFFFFF';ctx.lineWidth=6;ctx.strokeRect(10,10,w-20,h-20);ctx.fillStyle='#FFFFFF';ctx.font='bold 110px "Arial","PingFang SC",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('Starbucks',w/2,h/2-15);ctx.font='44px "PingFang SC","Microsoft YaHei",sans-serif';ctx.fillText('星巴克',w/2,h/2+90);},Math.PI*0.25);
+// TOPOO：中心偏南空旷处，矮扁比例
+mkBillboard(0,25,10,32,function(ctx,w,h){ctx.fillStyle='#1A1208';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#D4A040';ctx.lineWidth=4;ctx.strokeRect(8,8,w-16,h-16);ctx.strokeStyle='#8A6A2A';ctx.lineWidth=2;ctx.strokeRect(16,16,w-32,h-32);ctx.fillStyle='#FFCC66';ctx.font='bold 90px "Arial","PingFang SC",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('TOPOO',w/2,h/2-10);ctx.fillStyle='#D4A040';ctx.font='30px "PingFang SC","Microsoft YaHei",sans-serif';ctx.fillText('让小而美被世界看见',w/2,h/2+50);},0,12);
+
+// ===== 南京奥体中心·主体育场（东南远郊地标） =====
+// 特征：金陵红双斜拱（45度倾斜）+ 银灰色马鞍形屋面 + 碗状看台
+(function(){
+var stadium=new THREE.Group();
+var R=45,H=32,hStands=16;
+// 碗状看台（银灰色混凝土）
+var pts=[];
+pts.push(new THREE.Vector2(R*0.5,0));
+pts.push(new THREE.Vector2(R*0.5,1.2));
+pts.push(new THREE.Vector2(R, hStands));
+pts.push(new THREE.Vector2(R*0.93,hStands+2.5));
+pts.push(new THREE.Vector2(R*0.93,hStands+3));
+var bowlGeo=new THREE.LatheGeometry(pts,64);
+stadium.add(new THREE.Mesh(bowlGeo,M(0x9CA8B0)));
+// 内场绿色草坪
+var field=new THREE.Mesh(new THREE.CircleGeometry(R*0.48,48),M(0x3A8A4A));
+field.rotation.x=-Math.PI/2;field.position.y=0.15;
+stadium.add(field);
+// 跑道（暗红色环形）
+for(var ti=0;ti<40;ti++){
+var a=ti*Math.PI*2/40;
+var trk=new THREE.Mesh(new THREE.BoxGeometry(2.2,0.06,0.8),M(0xBB5544));
+trk.position.set(Math.cos(a)*R*0.40,0.18,Math.sin(a)*R*0.40);
+trk.rotation.y=-a+Math.PI/2;stadium.add(trk);}
+// 马鞍形银灰色屋面（外圈高、中间低的马鞍形：用RingGeometry倾斜模拟）
+var roofR=R*1.12,roofIn=R*0.9,roofH=hStands+5;
+var roofGeo=new THREE.RingGeometry(roofIn,roofR,64,8);
+var posAttr=roofGeo.attributes.position;
+for(var vi=0;vi<posAttr.count;vi++){
+var vx=posAttr.getX(vi),vy=posAttr.getY(vi);
+var dist=Math.sqrt(vx*vx+vy*vy);
+var ang=Math.atan2(vy,vx);
+// 马鞍形：y=cos(2*angle)*factor，形成对侧高一侧低
+var saddle=Math.cos(2*ang)*6;
+posAttr.setZ(vi,saddle);}
+roofGeo.computeVertexNormals();
+var roofMesh=new THREE.Mesh(roofGeo,M(0xB0B8C4));
+roofMesh.rotation.x=-Math.PI/2;roofMesh.position.y=roofH;
+stadium.add(roofMesh);
+// 屋顶环梁（银灰色）
+var beam=new THREE.Mesh(new THREE.TorusGeometry((roofR+roofIn)/2,1,6,64),M(0x8898A8));
+beam.rotation.x=Math.PI/2;beam.position.y=roofH;
+stadium.add(beam);
+// ★★★ 金陵红双斜拱（核心标志）★★★
+// 两根巨型倾斜拱，45度角，红色铝合金
+[-1,1].forEach(function(s){
+// 斜拱：从地面一侧倾斜升起，跨越360度到另一侧
+var archPts=[];
+for(var ai=0;ai<=24;ai++){
+var t=ai/24;
+var ang=t*Math.PI; // 0到PI跨越
+var archR=R*0.85;
+// 45度倾斜：x方向偏移随高度增大
+var xOff=s*ang*archR*0.45; // 45度斜率
+var yPos=Math.sin(ang)*H*1.5;
+var zPos=Math.cos(ang)*archR*0.5;
+archPts.push(new THREE.Vector3(xOff,yPos,zPos));}
+var archCurve=new THREE.CatmullRomCurve3(archPts);
+// 拱截面要粗（单根1400吨）
+var archGeo=new THREE.TubeGeometry(archCurve,40,2.5,8,false);
+stadium.add(new THREE.Mesh(archGeo,M(0xCC3333)));
+// 拱底座（红色，圆柱形石材基座，更精致）
+[-1,1].forEach(function(end){
+var bx=end===-1?-8:8;
+// 主基座
+var base=new THREE.Mesh(new THREE.CylinderGeometry(2.5,3,4,8),M(0xAA2222));
+base.position.set(s*bx,2,R*0.48*end);stadium.add(base);
+// 拱脚连接件（弧形过渡）
+var footPts=[new THREE.Vector2(0,0),new THREE.Vector2(0.8,0),new THREE.Vector2(0.6,2.5),new THREE.Vector2(0,2.5)];
+var footGeo=new THREE.LatheGeometry(footPts,12);
+var foot=new THREE.Mesh(footGeo,M(0xCC3333));
+foot.position.set(s*bx,4.5,R*0.48*end);foot.rotation.y=end*0.3;stadium.add(foot);
+});
+// 拱顶到屋面的红色斜拉索
+for(var ci=0;ci<12;ci++){
+var ca=ci*Math.PI*2/12;
+var tPos=ci/12;
+var cabTop=new THREE.Vector3(s*(tPos*Math.PI*0.45),Math.sin(tPos*Math.PI)*H*1.5,Math.cos(tPos*Math.PI)*R*0.42);
+var cabBot=new THREE.Vector3(Math.cos(ca)*roofR,roofH+Math.cos(2*ca)*6,Math.sin(ca)*roofR);
+var cabCurve=new THREE.LineCurve3(cabTop,cabBot);
+stadium.add(new THREE.Mesh(new THREE.TubeGeometry(cabCurve,3,0.12,4,false),M(0xBB4444)));}});
+// 外围银灰色立柱（24根，更精细：带柱础+柱头）
+for(var pi=0;pi<24;pi++){
+var pa=pi*Math.PI*2/24;
+var px=Math.cos(pa)*(R+2),pz=Math.sin(pa)*(R+2);
+// 柱身
+var pil=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.4, hStands+2,8),M(0x8898A8));
+pil.position.set(px,(hStands+2)/2,pz);stadium.add(pil);
+// 柱础（底部石板）
+var plinth=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.35,1.2),M(0x7788A0));
+plinth.position.set(px,0.175,pz);stadium.add(plinth);
+// 柱头（顶部石板）
+var cap=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.25,1.1),M(0x99AAC0));
+cap.position.set(px,hStands+2.12,pz);stadium.add(cap);
+}
+// 入口拱门（南北各一个，带台阶群）
+[-1,1].forEach(function(dz){
+// 拱门主体
+var archGeo=new THREE.TorusGeometry(7,1.4,8,20,Math.PI);
+var arch=new THREE.Mesh(archGeo,M(0xCC3333));
+arch.position.set(0,7,dz*(R+3));arch.rotation.z=Math.PI;stadium.add(arch);
+// 拱门立柱
+[-1,1].forEach(function(sx){
+var col=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.7,7,6),M(0xAA2222));
+col.position.set(sx*6.5,3.5,dz*(R+3));stadium.add(col);});
+// 台阶（7级，扇形展开）
+for(var si=0;si<7;si++){
+var stepH=si*0.45;
+var stepD=3+si*0.6;
+var step=new THREE.Mesh(new THREE.BoxGeometry(14+si*1.5,0.4,stepD),M(0x9CA8B0));
+step.position.set(0,stepH,dz*(R+3)+dz*stepD*0.45);stadium.add(step);}
+// 入口平台（拱门下小广场）
+var plaza=new THREE.Mesh(new THREE.BoxGeometry(20,0.15,8),M(0x8898A8));
+plaza.position.set(0,0.08,dz*(R+3)+dz*5);stadium.add(plaza);
+});
+// 夜间灯光
+var lightRing=new THREE.Mesh(new THREE.TorusGeometry(roofR-1,0.4,4,64),mkEmissiveMat(0xFFDD88,0.5));
+lightRing.rotation.x=Math.PI/2;lightRing.position.y=roofH;
+stadium.add(lightRing);
+// 4座聚光灯塔
+for(var li=0;li<4;li++){
+var la=li*Math.PI/2+Math.PI/4;
+var tower=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.8,hStands+14,6),M(0x667788));
+tower.position.set(Math.cos(la)*(R+4),(hStands+14)/2,Math.sin(la)*(R+4));stadium.add(tower);
+var lampH=new THREE.Mesh(new THREE.BoxGeometry(2.5,1.2,1),mkEmissiveMat(0xFFFFCC,1.8));
+lampH.position.set(Math.cos(la)*(R+4),hStands+14.6,Math.sin(la)*(R+4));stadium.add(lampH);}
+// 名称牌
+var nmCv=document.createElement('canvas');nmCv.width=512;nmCv.height=128;
+var nmCtx=nmCv.getContext('2d');
+nmCtx.fillStyle='rgba(10,16,32,0.88)';nmCtx.fillRect(0,0,512,128);
+nmCtx.strokeStyle='#CC3333';nmCtx.lineWidth=3;nmCtx.strokeRect(4,4,504,120);
+nmCtx.fillStyle='#F5F0E8';nmCtx.font='bold 42px "PingFang SC","Microsoft YaHei",sans-serif';
+nmCtx.textAlign='center';nmCtx.textBaseline='middle';
+nmCtx.fillText('南京奥体中心',256,46);
+nmCtx.fillStyle='#CC3333';nmCtx.font='18px Arial,sans-serif';
+nmCtx.fillText('Nanjing Olympic Sports Center',256,88);
+var nmTex=new THREE.CanvasTexture(nmCv);nmTex.minFilter=THREE.LinearFilter;
+var nmBoard=new THREE.Mesh(new THREE.PlaneGeometry(24,6),new THREE.MeshBasicMaterial({map:nmTex,transparent:true,side:THREE.DoubleSide}));
+nmBoard.position.set(0,hStands+10,R+5);stadium.add(nmBoard);
+// 定位（悬浮地图外面）
+stadium.position.set(200,0,180);
+scn.add(stadium);
+// ★★★ 苏超加油巨幅广告牌 ★★★
+var suCv=document.createElement('canvas');suCv.width=512;suCv.height=512;
+var suCtx=suCv.getContext('2d');
+var suGrad=suCtx.createLinearGradient(0,0,512,512);
+suGrad.addColorStop(0,'#0A1628');suGrad.addColorStop(1,'#1A2A48');
+suCtx.fillStyle=suGrad;suCtx.fillRect(0,0,512,512);
+suCtx.strokeStyle='#D4A040';suCtx.lineWidth=12;suCtx.strokeRect(20,20,472,472);
+suCtx.strokeStyle='#FFD700';suCtx.lineWidth=3;suCtx.strokeRect(35,35,442,442);
+suCtx.fillStyle='#FFD700';suCtx.font='bold 200px "PingFang SC","Microsoft YaHei","SimHei",sans-serif';
+suCtx.textAlign='center';suCtx.textBaseline='middle';
+suCtx.fillText('苏超',256,220);
+suCtx.fillStyle='#FF4444';suCtx.font='bold 120px "PingFang SC","Microsoft YaHei",sans-serif';
+suCtx.fillText('加油',256,370);
+suCtx.fillStyle='#FFD700';suCtx.font='40px sans-serif';
+suCtx.fillText('★',80,100);suCtx.fillText('★',432,100);
+suCtx.fillText('★',80,420);suCtx.fillText('★',432,420);
+suCtx.fillStyle='rgba(255,255,255,0.4)';suCtx.font='bold 28px Arial,sans-serif';
+suCtx.fillText('JIAYOU SUZHOU SUPER LEAGUE',256,470);
+var suTex=new THREE.CanvasTexture(suCv);suTex.minFilter=THREE.LinearFilter;
+var suBoard=new THREE.Mesh(new THREE.PlaneGeometry(22,22),new THREE.MeshBasicMaterial({map:suTex,transparent:true,side:THREE.DoubleSide}));
+suBoard.position.set(R+18,hStands+12,0);suBoard.rotation.y=Math.PI/2;
+stadium.add(suBoard);
+var suPoleH=(hStands+12)/2;
+var suPoleL=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.4,hStands+12,6),M(0x555555));
+suPoleL.position.set(R+16,suPoleH,0);stadium.add(suPoleL);
+var suPoleR=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.4,hStands+12,6),M(0x555555));
+suPoleR.position.set(R+20,suPoleH,0);stadium.add(suPoleR);
+})();
+
+// ===== Benches =====
+mkBench(-15,-15,0);mkBench(15,15,Math.PI/2);
+mkBench(-15,15,Math.PI);mkBench(15,-15,Math.PI/2);
+mkBench(-105,-105,0);mkBench(-118,-118,Math.PI/4);
+mkBench(50,130,0);mkBench(-130,30,Math.PI/2);
+mkBench(130,-30,Math.PI/2);mkBench(0,130,Math.PI);
+
+// ===== Signs (zone markers) =====
+[[-60,-52,0xE87878],[60,-52,0x58B8D8],[-60,52,0xB8D088],[60,52,0xE8C040]
+].forEach(function(s){var g=new THREE.Group();g.position.set(s[0],0,s[1]);g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,4,6),M(0x555555))).position.y=2;g.add(new THREE.Mesh(new THREE.BoxGeometry(4,1.5,0.2),M(s[2]))).position.y=4.2;scn.add(g);});
+
+// ===== Camera Animation =====
+var camAnim=null;
+function animCam(ep,et){camAnim={sp:cam3d.position.clone(),ep:ep,st:tgt.clone(),et:et,p:0};}
+function updAnim(){
+    if(!camAnim)return;
+    camAnim.p+=0.02;
+    if(camAnim.p>=1){cam3d.position.copy(camAnim.ep);tgt.copy(camAnim.et);sph.setFromVector3(cam3d.position.clone().sub(tgt));camAnim=null;return;}
+    var t=camAnim.p;var e=t<0.5?2*t*t:-1+(4-2*t)*t;
+    cam3d.position.lerp(camAnim.ep,e);tgt.lerp(camAnim.et,e);
+    sph.setFromVector3(cam3d.position.clone().sub(tgt));
+}
+document.getElementById('btnTop').onclick=function(){animCam(new THREE.Vector3(0.1,200,0.1),new THREE.Vector3(0,0,0));};
+document.getElementById('btn45').onclick=function(){animCam(new THREE.Vector3(120,150,120),new THREE.Vector3(0,0,0));};
+document.getElementById('btnRst').onclick=function(){animCam(new THREE.Vector3(120,150,120),new THREE.Vector3(0,0,0));};
+ren.domElement.addEventListener('dblclick',function(){
+    if(appMode==='interior'){
+        tgt.copy(interiorTgt);sph.radius=5;
+        animCam(new THREE.Vector3(0,3.8,-1.5),new THREE.Vector3(0,2.8,3));
+    } else {
+        animCam(new THREE.Vector3(120,150,120),new THREE.Vector3(0,0,0));
+    }
+});
+
+// ===== Star Twinkling =====
+var starTime=0;
+
+// ===== Render Loop =====
+(function loop(){
+    requestAnimationFrame(loop);
+    updAnim();tick();
+    starTime+=0.008;
+    if(starMat){starMat.opacity=0.7+Math.sin(starTime)*0.2;}
+    ren.render(scn,cam3d);
+})();
+
+window.addEventListener('resize',function(){cam3d.aspect=innerWidth/innerHeight;cam3d.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight);});
+
+// ===== Move block objects to blockGroup =====
+(function(){
+    for(var i=scn.children.length-1;i>=0;i--){
+        var c=scn.children[i];
+        if(c!==gAmbient&&c!==gMoon&&c!==gHemi&&c!==gStars&&c!==blockGroup){
+            blockGroup.add(c);
+        }
+    }
+    console.log('blockGroup children:',blockGroup.children.length);
+})();
+
+// ===== Cafe Detail Scene =====
+function buildCafeScene(){
+    if(cafeGroup)return;
+    cafeGroup=new THREE.Group();
+    cafeGroup.visible=false;
+    scn.add(cafeGroup);
+
+    var M2=function(c,opts){return new THREE.MeshPhongMaterial(Object.assign({color:c,shininess:opts&&opts.shin||10,specular:opts&&opts.spec||0x111111},opts||{}));};
+    var Em=function(c,i){return new THREE.MeshStandardMaterial({color:new THREE.Color(c),emissive:new THREE.Color(c),emissiveIntensity:i||1.0});};
+    function add(g,geo,mat,x,y,z){var m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);if(m.castShadow!==undefined)m.castShadow=true;m.receiveShadow=true;g.add(m);return m;}
+    function grp(x,z){var g=new THREE.Group();g.position.set(x,0,z);cafeGroup.add(g);return g;}
+
+    // ----- 咖啡店主体（更精致） -----
+    var cafe=grp(0,0);
+
+    // 石基座（更厚实，层次感）
+    add(cafe,new THREE.BoxGeometry(22,0.6,16),M2(0x4A4545,{shin:20,spec:0x333333}),0,0.3,0);
+    add(cafe,new THREE.BoxGeometry(22,0.3,16.3),M2(0x3A3535,{shin:20,spec:0x333333}),0,0.75,0);
+
+    // 木外墙（暖棕深色，带竖条纹理）
+    var wallMat=M2(0x5C3D2E,{shin:15,spec:0x222222});
+    add(cafe,new THREE.BoxGeometry(20,5.5,14),wallMat,0,3.75,0);
+    // 木纹装饰条（竖向）
+    for(var wi=-9;wi<=9;wi+=3){
+        add(cafe,new THREE.BoxGeometry(0.08,5.5,0.08),M2(0x4A2D1E),wi,3.75,-7.05);
+    }
+
+    // 内部浅色墙
+    add(cafe,new THREE.BoxGeometry(18.5,4.8,12.5),M2(0xF5F0E8,{shin:5,spec:0x0A0A0A}),0,3.4,0);
+
+    // ----- 屋顶（精致坡屋顶）-----
+    var roofMat=M2(0x2A2520,{shin:20,spec:0x333333});
+    // 檐口
+    add(cafe,new THREE.BoxGeometry(23.5,0.5,17),roofMat,0,6.85,0);
+    // 主体屋顶（用楔形模拟坡度）
+    add(cafe,new THREE.BoxGeometry(23,2,16),roofMat,0,8.05,0);
+    // 前坡倾斜面
+    add(cafe,new THREE.BoxGeometry(23,0.3,9),roofMat,0,9.1,-4.2);
+    // 后坡倾斜面
+    add(cafe,new THREE.BoxGeometry(23,0.3,9),roofMat,0,9.1,4.2);
+    // 屋脊装饰线
+    add(cafe,new THREE.BoxGeometry(23.5,0.15,0.4),M2(0x3A3025,{shin:25,spec:0x444444}),0,9.35,0);
+    // 屋檐滴水线（前后）
+    add(cafe,new THREE.BoxGeometry(0.2,0.25,17),M2(0x3A3025),11.6,6.55,0);
+    add(cafe,new THREE.BoxGeometry(0.2,0.25,17),M2(0x3A3025),-11.6,6.55,0);
+
+    // ----- 店名招牌"慢半拍"（悬挂在前檐下方） -----
+    // 招牌底板（深色木质感）
+    add(cafe,new THREE.BoxGeometry(8,1.4,0.15),M2(0x1A1008,{shin:25,spec:0x333333}),0,6.1,-8.6);
+    // 招牌边框（橙红色呼应门框）
+    add(cafe,new THREE.BoxGeometry(8.4,0.1,0.18),M2(0xE85D30,{shin:40,spec:0x666666}),0,6.85,-8.6);
+    add(cafe,new THREE.BoxGeometry(8.4,0.1,0.18),M2(0xE85D30,{shin:40,spec:0x666666}),0,5.35,-8.6);
+    add(cafe,new THREE.BoxGeometry(0.1,1.5,0.18),M2(0xE85D30,{shin:40,spec:0x666666}),-4.15,6.1,-8.6);
+    add(cafe,new THREE.BoxGeometry(0.1,1.5,0.18),M2(0xE85D30,{shin:40,spec:0x666666}),4.15,6.1,-8.6);
+    // 招牌文字Canvas
+    var signCv=document.createElement('canvas');signCv.width=640;signCv.height=120;
+    var signCtx=signCv.getContext('2d');
+    signCtx.fillStyle='#1A1008';signCtx.fillRect(0,0,640,120);
+    // 主标题"慢半拍"
+    signCtx.fillStyle='#F5F0E8';signCtx.font='bold 56px "PingFang SC",sans-serif';
+    signCtx.textAlign='center';signCtx.textBaseline='middle';
+    signCtx.fillText('慢 半 拍',320,45);
+    // 英文副标题
+    signCtx.fillStyle='#E85D30';signCtx.font='16px Arial,sans-serif';
+    signCtx.fillText('S L O W   B E A T   C A F É',320,95);
+    var signTex=new THREE.CanvasTexture(signCv);signTex.minFilter=THREE.LinearFilter;
+    var signMesh=new THREE.Mesh(new THREE.PlaneGeometry(7.8,1.3),new THREE.MeshBasicMaterial({map:signTex,transparent:true,side:THREE.DoubleSide}));
+    signMesh.position.set(0,6.1,-8.53);cafe.add(signMesh);
+    // 招牌挂链（左右两根铁链）
+    add(cafe,new THREE.CylinderGeometry(0.03,0.03,1.2,4),M2(0x555555),-3.8,6.8,-8.5);
+    add(cafe,new THREE.CylinderGeometry(0.03,0.03,1.2,4),M2(0x555555),3.8,6.8,-8.5);
+
+    // 天窗（发光，更精致）
+    add(cafe,new THREE.BoxGeometry(4.5,0.15,3),Em(0xFFEECC,0.5),0,9.25,-2);
+    add(cafe,new THREE.BoxGeometry(0.1,0.15,3),M2(0x3A3025),-2.3,9.25,-2);
+    add(cafe,new THREE.BoxGeometry(0.1,0.15,3),M2(0x3A3025),2.3,9.25,-2);
+    add(cafe,new THREE.BoxGeometry(3.5,0.15,2.2),Em(0xFFEECC,0.4),5,9.25,1);
+    add(cafe,new THREE.BoxGeometry(0.1,0.15,2.2),M2(0x3A3025),3.3,9.25,1);
+    add(cafe,new THREE.BoxGeometry(0.1,0.15,2.2),M2(0x3A3025),6.7,9.25,1);
+
+    // ----- 前面大落地窗（更精致窗框） -----
+    var winEm=Em(0xFFDD88,0.7);
+    var winEm2=Em(0xFFCC66,0.8);
+    // 左右两扇大窗
+    add(cafe,new THREE.BoxGeometry(5.5,3.8,0.15),winEm,-6,3.9,-7.06);
+    add(cafe,new THREE.BoxGeometry(5.5,3.8,0.15),winEm,3,3.9,-7.06);
+    // 精致窗框
+    var frmMat=M2(0x1A1008,{shin:30,spec:0x444444});
+    // 竖框
+    add(cafe,new THREE.BoxGeometry(0.18,4.2,0.25),frmMat,-3.5,4,-7.06);
+    add(cafe,new THREE.BoxGeometry(0.18,4.2,0.25),frmMat,-8.8,4,-7.06);
+    add(cafe,new THREE.BoxGeometry(0.18,4.2,0.25),frmMat,0.55,4,-7.06);
+    add(cafe,new THREE.BoxGeometry(0.18,4.2,0.25),frmMat,5.8,4,-7.06);
+    // 横框（窗台、上楣）
+    add(cafe,new THREE.BoxGeometry(12.5,0.18,0.25),frmMat,-1.25,6.1,-7.06);
+
+    // ----- 中央大门（带OPEN字样） -----
+    // 门框（亮橙红色，非常醒目）
+    var doorFrmMat=M2(0xE85D30,{shin:40,spec:0x666666});
+    add(cafe,new THREE.BoxGeometry(0.22,4.5,0.35),doorFrmMat,-3.2,4,-7.06);
+    add(cafe,new THREE.BoxGeometry(0.22,4.5,0.35),doorFrmMat,-0.1,4,-7.06);
+    add(cafe,new THREE.BoxGeometry(3.5,0.22,0.35),doorFrmMat,-1.65,6.3,-7.06);
+    // 门板（鲜亮暖木色）
+    add(cafe,new THREE.BoxGeometry(1.5,4,0.12),M2(0xE8A060,{shin:25,spec:0x444444}),-2.35,3,-7.12);
+    add(cafe,new THREE.BoxGeometry(1.5,4,0.12),M2(0xE8A060,{shin:25,spec:0x444444}),-0.95,3,-7.12);
+    // 门上部半圆玻璃窗（发光）
+    add(cafe,new THREE.BoxGeometry(3,1.4,0.08),winEm2,-1.65,5.2,-7.12);
+    // OPEN招牌（Canvas纹理，更大更醒目）
+    var openCv=document.createElement('canvas');openCv.width=320;openCv.height=80;
+    var openCtx=openCv.getContext('2d');
+    openCtx.fillStyle='#1A0808';openCtx.fillRect(0,0,320,80);
+    openCtx.strokeStyle='#E85D30';openCtx.lineWidth=3;openCtx.strokeRect(6,6,308,68);
+    openCtx.fillStyle='#FFEE88';openCtx.font='bold 44px Arial,sans-serif';
+    openCtx.textAlign='center';openCtx.textBaseline='middle';
+    openCtx.fillText('O P E N',160,40);
+    var openTex=new THREE.CanvasTexture(openCv);openTex.minFilter=THREE.LinearFilter;
+    var openMesh=new THREE.Mesh(new THREE.PlaneGeometry(3.2,0.8),new THREE.MeshBasicMaterial({map:openTex,transparent:true}));
+    openMesh.position.set(-1.65,5.2,-7.06);cafe.add(openMesh);
+    // 门把手（亮铜色，大号竖向条形把手，在门板外侧）
+    // 左门把手
+    add(cafe,new THREE.BoxGeometry(0.1,0.5,0.12),M2(0xFF8844,{shin:80,spec:0xFFFFFF}),-1.85,3.2,-7.25);
+    add(cafe,new THREE.SphereGeometry(0.08,8,6),M2(0xFF8844,{shin:80,spec:0xFFFFFF}),-1.85,3.5,-7.25);
+    add(cafe,new THREE.SphereGeometry(0.08,8,6),M2(0xFF8844,{shin:80,spec:0xFFFFFF}),-1.85,2.9,-7.25);
+    // 右门把手
+    add(cafe,new THREE.BoxGeometry(0.1,0.5,0.12),M2(0xFF8844,{shin:80,spec:0xFFFFFF}),-1.45,3.2,-7.25);
+    add(cafe,new THREE.SphereGeometry(0.08,8,6),M2(0xFF8844,{shin:80,spec:0xFFFFFF}),-1.45,3.5,-7.25);
+    add(cafe,new THREE.SphereGeometry(0.08,8,6),M2(0xFF8844,{shin:80,spec:0xFFFFFF}),-1.45,2.9,-7.25);
+
+    // ----- 侧面窗户（更精致） -----
+    // 左侧
+    add(cafe,new THREE.BoxGeometry(0.15,2.8,3.5),Em(0xFFCC88,0.5),-10.06,3.5,-2);
+    add(cafe,new THREE.BoxGeometry(0.15,2.8,3.5),Em(0xFFCC88,0.5),-10.06,3.5,3);
+    // 窗框十字
+    add(cafe,new THREE.BoxGeometry(0.05,0.1,3.5),frmMat,-10.02,3.5,-2);
+    add(cafe,new THREE.BoxGeometry(0.05,2.8,0.1),frmMat,-10.02,3.5,-2);
+    add(cafe,new THREE.BoxGeometry(0.05,0.1,3.5),frmMat,-10.02,3.5,3);
+    add(cafe,new THREE.BoxGeometry(0.05,2.8,0.1),frmMat,-10.02,3.5,3);
+    // 右侧
+    add(cafe,new THREE.BoxGeometry(0.15,2.8,3.5),Em(0xFFCC88,0.5),10.06,3.5,-2);
+    add(cafe,new THREE.BoxGeometry(0.15,2.8,3.5),Em(0xFFCC88,0.5),10.06,3.5,3);
+    add(cafe,new THREE.BoxGeometry(0.05,0.1,3.5),frmMat,10.02,3.5,-2);
+    add(cafe,new THREE.BoxGeometry(0.05,2.8,0.1),frmMat,10.02,3.5,-2);
+    add(cafe,new THREE.BoxGeometry(0.05,0.1,3.5),frmMat,10.02,3.5,3);
+    add(cafe,new THREE.BoxGeometry(0.05,2.8,0.1),frmMat,10.02,3.5,3);
+
+    // ----- 后面窗户 -----
+    add(cafe,new THREE.BoxGeometry(3.5,2.2,0.15),Em(0xFFBB77,0.3),-4,3.5,7.06);
+    add(cafe,new THREE.BoxGeometry(3.5,2.2,0.15),Em(0xFFBB77,0.3),4,3.5,7.06);
+
+    // ----- 入口台阶（精致三层，只门前） -----
+    add(cafe,new THREE.BoxGeometry(4,0.2,1.2),M2(0x8A8A8A,{shin:15,spec:0x333333}),-1.5,0.1,-8.2);
+    add(cafe,new THREE.BoxGeometry(4.5,0.2,1),M2(0x9A9A9A,{shin:15,spec:0x333333}),-1.5,0.05,-9.2);
+    add(cafe,new THREE.BoxGeometry(5,0.2,0.8),M2(0x7A7A7A,{shin:15,spec:0x333333}),-1.5,0.025,-10);
+
+    // ----- 雨棚（更精致） -----
+    add(cafe,new THREE.BoxGeometry(5.5,0.12,2.8),M2(0x3A2A1A,{shin:20,spec:0x333333}),-1.5,6.5,-8.6);
+    // 雨棚前沿装饰
+    add(cafe,new THREE.BoxGeometry(5.5,0.06,0.15),M2(0xD4A040,{shin:40,spec:0x666666}),-1.5,6.5,-10);
+    // 雨棚支撑（带底座）
+    add(cafe,new THREE.CylinderGeometry(0.06,0.06,1.5,6),M2(0x2A1A10),-3.7,5.8,-8.8);
+    add(cafe,new THREE.CylinderGeometry(0.06,0.06,1.5,6),M2(0x2A1A10),0.7,5.8,-8.8);
+    add(cafe,new THREE.SphereGeometry(0.1,6,4),M2(0x2A1A10),-3.7,6.55,-8.8);
+    add(cafe,new THREE.SphereGeometry(0.1,6,4),M2(0x2A1A10),0.7,6.55,-8.8);
+
+    // ----- 门口大招牌（门正上方，横放，加大加高） -----
+    // 招牌底板（深色大板）
+    add(cafe,new THREE.BoxGeometry(10,2.4,0.2),M2(0x0D0A05,{shin:25,spec:0x333333}),-1.5,9.8,-7.2);
+    // 金色装饰边框（粗边）
+    add(cafe,new THREE.BoxGeometry(10.3,0.1,0.25),M2(0xD4A040,{shin:50,spec:0xAAAAAA}),-1.5,11.05,-7.2);
+    add(cafe,new THREE.BoxGeometry(10.3,0.1,0.25),M2(0xD4A040,{shin:50,spec:0xAAAAAA}),-1.5,8.55,-7.2);
+    add(cafe,new THREE.BoxGeometry(0.1,2.6,0.25),M2(0xD4A040,{shin:50,spec:0xAAAAAA}),-6.7,9.8,-7.2);
+    add(cafe,new THREE.BoxGeometry(0.1,2.6,0.25),M2(0xD4A040,{shin:50,spec:0xAAAAAA}),3.7,9.8,-7.2);
+    // 招牌支撑横梁（从门框上方伸出）
+    add(cafe,new THREE.BoxGeometry(12,0.2,0.3),M2(0x3A2D1E),-1.5,8.4,-7.2);
+    // Canvas招牌文字（大字白底+金色英文+咖啡杯图案）
+    var sgnCv=document.createElement('canvas');sgnCv.width=800;sgnCv.height=200;
+    var sgnCtx=sgnCv.getContext('2d');
+    sgnCtx.fillStyle='#0D0A05';sgnCtx.fillRect(0,0,800,200);
+    // 主标题"慢半拍咖啡"（大号）
+    sgnCtx.fillStyle='#F5F0E8';sgnCtx.font='bold 72px "PingFang SC","Microsoft YaHei",sans-serif';
+    sgnCtx.textAlign='center';sgnCtx.textBaseline='middle';
+    sgnCtx.fillText('慢半拍咖啡',400,65);
+    // 英文副标题
+    sgnCtx.fillStyle='#D4A040';sgnCtx.font='26px Arial,sans-serif';
+    sgnCtx.fillText('S L O W   B E A T   C A F É',400,130);
+    // 底部装饰线
+    sgnCtx.strokeStyle='#E85D30';sgnCtx.lineWidth=2;
+    sgnCtx.beginPath();sgnCtx.moveTo(150,165);sgnCtx.lineTo(650,165);sgnCtx.stroke();
+    // 小装饰：咖啡豆图案
+    sgnCtx.fillStyle='rgba(232,93,48,0.6)';sgnCtx.font='18px sans-serif';
+    sgnCtx.fillText('☕ SLOW DOWN, TASTE LIFE ☕',400,188);
+    // 正面Canvas（正常绘制——正面Plane旋转π面朝街道-Z方向，从街道看+Z面=字正）
+    var sgnTex=new THREE.CanvasTexture(sgnCv);sgnTex.minFilter=THREE.LinearFilter;
+    // 背面Canvas（正常绘制——背面Plane不旋转面朝店内+Z方向，从店内看+Z面=字正）
+    var sgnCvBack=document.createElement('canvas');sgnCvBack.width=800;sgnCvBack.height=200;
+    var sgnCtxBack=sgnCvBack.getContext('2d');
+    sgnCtxBack.fillStyle='#0D0A05';sgnCtxBack.fillRect(0,0,800,200);
+    sgnCtxBack.fillStyle='#F5F0E8';sgnCtxBack.font='bold 72px "PingFang SC","Microsoft YaHei",sans-serif';
+    sgnCtxBack.textAlign='center';sgnCtxBack.textBaseline='middle';
+    sgnCtxBack.fillText('慢半拍咖啡',400,65);
+    sgnCtxBack.fillStyle='#D4A040';sgnCtxBack.font='26px Arial,sans-serif';
+    sgnCtxBack.fillText('S L O W   B E A T   C A F É',400,130);
+    sgnCtxBack.strokeStyle='#E85D30';sgnCtxBack.lineWidth=2;
+    sgnCtxBack.beginPath();sgnCtxBack.moveTo(150,165);sgnCtxBack.lineTo(650,165);sgnCtxBack.stroke();
+    sgnCtxBack.fillStyle='rgba(232,93,48,0.6)';sgnCtxBack.font='18px sans-serif';
+    sgnCtxBack.fillText('☕ SLOW DOWN, TASTE LIFE ☕',400,188);
+    var sgnTexBack=new THREE.CanvasTexture(sgnCvBack);sgnTexBack.minFilter=THREE.LinearFilter;
+    // 招牌正面（门外看）：旋转π面朝街道，从街道看到+Z面=字正
+    var sgnMesh=new THREE.Mesh(new THREE.PlaneGeometry(9.6,2.2),new THREE.MeshBasicMaterial({map:sgnTex,transparent:true,side:THREE.FrontSide}));
+    sgnMesh.position.set(-1.5,9.8,-7.32);sgnMesh.rotation.y=Math.PI;cafe.add(sgnMesh);
+    // 招牌背面（门内看）：不旋转面朝店内，从店内看到+Z面=字正
+    var sgnMeshBack=new THREE.Mesh(new THREE.PlaneGeometry(9.6,2.2),new THREE.MeshBasicMaterial({map:sgnTexBack,transparent:true,side:THREE.FrontSide}));
+    sgnMeshBack.position.set(-1.5,9.8,-7.08);cafe.add(sgnMeshBack);
+    // 金色装饰边框（围绕招牌）
+    add(cafe,new THREE.BoxGeometry(10.3,0.1,0.15),M2(0xD4A040,{shin:50,spec:0xAAAAAA}),-1.5,11.05,-7.2);
+    add(cafe,new THREE.BoxGeometry(10.3,0.1,0.15),M2(0xD4A040,{shin:50,spec:0xAAAAAA}),-1.5,8.55,-7.2);
+    add(cafe,new THREE.BoxGeometry(0.1,2.6,0.15),M2(0xD4A040,{shin:50,spec:0xAAAAAA}),-6.7,9.8,-7.2);
+    add(cafe,new THREE.BoxGeometry(0.1,2.6,0.15),M2(0xD4A040,{shin:50,spec:0xAAAAAA}),3.7,9.8,-7.2);
+    // 招牌支撑横梁
+    add(cafe,new THREE.BoxGeometry(12,0.2,0.3),M2(0x3A2D1E),-1.5,8.4,-7.2);
+    // 招牌背光发光效果（夹在两个面中间）
+    add(cafe,new THREE.BoxGeometry(9.8,2.35,0.06),Em(0x3A2810,0.5),-1.5,9.8,-7.2);
+
+    // ----- 户外露台（精致木地板） -----
+    // 木地板（有接缝效果）
+    add(cafe,new THREE.BoxGeometry(14,0.25,8),M2(0x8B6F47,{shin:15,spec:0x222222}),5,0.12,-11);
+    // 木板缝隙线
+    for(var bi=-1;bi<=12;bi+=1.5){
+        add(cafe,new THREE.BoxGeometry(0.04,0.02,7.8),M2(0x7A5C3E),-1+bi,0.26,-11);
+    }
+    // 露台边框
+    add(cafe,new THREE.BoxGeometry(14.2,0.35,0.2),M2(0x6B5237),5,0.18,-15);
+    add(cafe,new THREE.BoxGeometry(14.2,0.35,0.2),M2(0x6B5237),5,0.18,-7);
+    // 露台台阶
+    add(cafe,new THREE.BoxGeometry(3,0.15,0.8),M2(0x7A5C3E),8,0.08,-15.5);
+    add(cafe,new THREE.BoxGeometry(3,0.15,0.8),M2(0x7A5C3E),8,0.08,-6.5);
+
+    // ----- 遮阳伞（精致，放露台外端） -----
+    add(cafe,new THREE.CylinderGeometry(0.1,0.1,4,8),M2(0x888888,{shin:30,spec:0x444444}),5,2,-12);
+    // 伞面（弯曲效果用多层模拟）
+    add(cafe,new THREE.CylinderGeometry(3.8,3.8,0.08,20),M2(0xE8DDD0,{shin:10,spec:0x111111}),5,4,-12);
+    add(cafe,new THREE.CylinderGeometry(3.2,3.2,0.08,20),M2(0xDDD0C0,{shin:10,spec:0x111111}),5,4.08,-12);
+    // 伞顶装饰
+    add(cafe,new THREE.ConeGeometry(0.2,0.35,8),M2(0xC2571A,{shin:30,spec:0x444444}),5,4.3,-12);
+
+    // ----- 户外桌椅（精致） -----
+    function mkTable(x,z){
+        // 桌腿（三条）
+        add(cafe,new THREE.CylinderGeometry(0.06,0.06,2,6),M2(0x3A3A3A,{shin:20,spec:0x444444}),x-0.4,1,z-0.3);
+        add(cafe,new THREE.CylinderGeometry(0.06,0.06,2,6),M2(0x3A3A3A,{shin:20,spec:0x444444}),x+0.4,1,z-0.3);
+        add(cafe,new THREE.CylinderGeometry(0.06,0.06,2,6),M2(0x3A3A3A,{shin:20,spec:0x444444}),x,1,z+0.4);
+        // 桌面
+        add(cafe,new THREE.CylinderGeometry(1.1,1.1,0.08,12),M2(0x5C4033,{shin:20,spec:0x222222}),x,2,z);
+        // 桌上咖啡杯
+        add(cafe,new THREE.CylinderGeometry(0.15,0.12,0.25,8),M2(0xF5F0E8,{shin:30,spec:0x444444}),x+0.3,2.18,z);
+        add(cafe,new THREE.CylinderGeometry(0.18,0.18,0.03,8),M2(0xE8E0D5),x+0.3,2.32,z);
+    }
+    function mkChair(x,z,ry){
+        var ch=grp(x,z);ch.rotation.y=ry||0;
+        // 座面
+        add(ch,new THREE.BoxGeometry(0.75,0.06,0.75),M2(0x5C4033,{shin:15,spec:0x222222}),0,1,0);
+        // 靠背
+        add(ch,new THREE.BoxGeometry(0.75,0.9,0.06),M2(0x5C4033,{shin:15,spec:0x222222}),0,1.5,0.35);
+        // 腿
+        add(ch,new THREE.CylinderGeometry(0.04,0.04,1,6),M2(0x3A3A3A),0.3,0.5,0.3);
+        add(ch,new THREE.CylinderGeometry(0.04,0.04,1,6),M2(0x3A3A3A),-0.3,0.5,0.3);
+        add(ch,new THREE.CylinderGeometry(0.04,0.04,1,6),M2(0x3A3A3A),0.3,0.5,-0.3);
+        add(ch,new THREE.CylinderGeometry(0.04,0.04,1,6),M2(0x3A3A3A),-0.3,0.5,-0.3);
+    }
+    // 伞下圆桌
+    mkTable(5,-12);
+    mkChair(3.5,-12,0.3);mkChair(6.5,-12,-0.3);mkChair(5,-13.5,Math.PI);mkChair(5,-10.5,0);
+    // 第二张桌
+    mkTable(9.5,-12);
+    mkChair(8,-11.5,0.2);mkChair(11,-11.5,-0.2);mkChair(9.5,-13.5,Math.PI);
+
+    // ----- 绿植 -----
+    function mkPot(x,z){
+        // 花盆（精致）
+        add(cafe,new THREE.CylinderGeometry(0.45,0.35,0.7,10),M2(0x8B5A3A,{shin:15,spec:0x222222}),x,0.35,z);
+        add(cafe,new THREE.CylinderGeometry(0.5,0.5,0.08,10),M2(0x7A4A2A),x,0.7,z);
+        // 植物
+        add(cafe,new THREE.SphereGeometry(0.7,10,8),M2(0x2A6B3A),x,1.35,z);
+        add(cafe,new THREE.SphereGeometry(0.45,8,6),M2(0x3A8B4A),x+0.25,1.8,z+0.15);
+        add(cafe,new THREE.SphereGeometry(0.3,6,4),M2(0x4A9B5A),x-0.15,1.65,z-0.2);
+    }
+    mkPot(-3.5,-9);mkPot(0.5,-9);
+
+    // 露台花箱
+    function mkPlanter(x,z,ry){
+        var p=grp(x,z);if(ry)p.rotation.y=ry;
+        add(p,new THREE.BoxGeometry(2.2,0.35,0.45),M2(0x6B4A30,{shin:10,spec:0x222222}),0,0.18,0);
+        add(p,new THREE.BoxGeometry(2.3,0.05,0.55),M2(0x5A3A20),0,0.36,0);
+        for(var i=0;i<4;i++){
+            add(p,new THREE.SphereGeometry(0.35,8,6),M2([0xFF6B8A,0xFFB347,0xFF69B4,0xDDA0DD][i]),-0.8+i*0.55,0.7,0);
+            add(p,new THREE.CylinderGeometry(0.03,0.03,0.4,4),M2(0x3A6B2A),-0.8+i*0.55,0.45,0);
+        }
+    }
+    mkPlanter(12.5,-12,0);mkPlanter(12.5,-9,0);
+
+    // 小花园（左侧更远）
+    var garden=grp(-16,-4);
+    add(garden,new THREE.BoxGeometry(5,0.5,4),M2(0x6B5A40,{shin:10,spec:0x222222}),0,0.25,0);
+    add(garden,new THREE.BoxGeometry(4.5,0.3,3.5),M2(0x4A3520),0,0.4,0);
+    var fc2=[0xFF6B8A,0xFFB347,0xFF69B4,0xDDA0DD,0xFFD700,0xFF4500,0x9B7BBF,0xA0B87A];
+    for(var fi=0;fi<8;fi++){
+        add(garden,new THREE.CylinderGeometry(0.04,0.04,0.5,4),M2(0x3A6B2A),-1.5+fi*0.4,0.7,-0.5+Math.sin(fi)*0.8);
+        add(garden,new THREE.SphereGeometry(0.22,6,4),M2(fc2[fi]),-1.5+fi*0.4,1,-0.5+Math.sin(fi)*0.8);
+    }
+    add(garden,new THREE.SphereGeometry(0.9,8,6),M2(0x2A5B3A),0,1.1,1.5);
+
+    // ----- 大树（推远） -----
+    function mkBigTree(x,z,s){
+        s=s||1;var t=grp(x,z);
+        // 树干（弯曲感）
+        add(t,new THREE.CylinderGeometry(0.35*s,0.6*s,5*s,8),M2(0x6B4226,{shin:10,spec:0x222222}),0,2.5*s,0);
+        // 树根
+        add(t,new THREE.CylinderGeometry(0.7*s,0.9*s,0.5*s,8),M2(0x5A3518),0,0.25*s,0);
+        [{y:6*s,r:3.5*s,c:0x2A5B3A},{y:8.5*s,r:2.8*s,c:0x3A7B4A},{y:10.5*s,r:2*s,c:0x4A8B5A}].forEach(function(l){
+            add(t,new THREE.SphereGeometry(Math.max(0.1,l.r),12,10),M2(l.c),0,l.y,0);
+        });
+        // 少量叶片散落
+        for(var li=0;li<3;li++){
+            add(t,new THREE.SphereGeometry(0.5*s,6,4),M2(0x3A7B4A),Math.cos(li*2)*1.5*s,7*s+Math.sin(li)*s,Math.sin(li*2)*1.5*s);
+        }
+    }
+    mkBigTree(-18,-12,1.2);
+    mkBigTree(-18,8,1);
+    mkBigTree(18,-14,0.9);
+    mkBigTree(18,10,0.85);
+    // 额外远处装饰树
+    mkBigTree(-20,0,0.8);
+    mkBigTree(20,-2,0.7);
+
+    // ----- 路灯 -----
+    function mkCafeLamp(x,z){
+        var l=grp(x,z);
+        add(l,new THREE.CylinderGeometry(0.08,0.12,5,6),M2(0x3A3A3A,{shin:20,spec:0x444444}),0,2.5,0);
+        // 灯臂
+        add(l,new THREE.CylinderGeometry(0.04,0.04,1.2,6),M2(0x3A3A3A,{shin:20,spec:0x444444}),0.5,5.2,0).rotation.z=Math.PI/2;
+        // 灯罩（八角形）
+        add(l,new THREE.CylinderGeometry(0.35,0.5,0.6,8),M2(0x2A2A2A,{shin:20,spec:0x444444}),0.9,5.3,0);
+        // 灯光
+        add(l,new THREE.BoxGeometry(0.7,0.7,0.7),Em(0xE8B44C,0.8),0.9,5,0);
+        if(lightCount<MAX_PT_LIGHTS){
+            var pl=new THREE.PointLight(0xFFCC66,0.5,18);
+            pl.position.set(x+0.9,5,z);
+            scn.add(pl);lightCount++;
+        }
+    }
+    mkCafeLamp(-3.5,-10);mkCafeLamp(1.5,-10);mkCafeLamp(13.5,-7);
+
+    // ----- 黑板菜单（精致） -----
+    var bbrd=grp(-8,-9);bbrd.rotation.x=-0.1;
+    // 黑板（木框）
+    add(bbrd,new THREE.BoxGeometry(2.8,2,0.08),M2(0x3A2A1A,{shin:15,spec:0x333333}),0,3.5,0);
+    add(bbrd,new THREE.BoxGeometry(2.5,1.7,0.1),M2(0x1A1A1A),0,3.5,0.05);
+    // 黑板文字
+    var bbCv=document.createElement('canvas');bbCv.width=280;bbCv.height=220;
+    var bbCtx=bbCv.getContext('2d');
+    bbCtx.fillStyle='#1A1A1A';bbCtx.fillRect(0,0,280,220);
+    bbCtx.fillStyle='#F5F0E8';bbCtx.font='bold 26px "PingFang SC",sans-serif';bbCtx.textAlign='center';
+    bbCtx.fillText('Today\'s Special',140,40);
+    bbCtx.strokeStyle='#F5F0E8';bbCtx.lineWidth=1;bbCtx.beginPath();bbCtx.moveTo(40,52);bbCtx.lineTo(240,52);bbCtx.stroke();
+    bbCtx.font='18px "PingFang SC",sans-serif';bbCtx.textAlign='left';
+    bbCtx.fillText('手冲 埃塞俄比亚  ¥42',35,85);
+    bbCtx.fillText('拿铁 燕麦        ¥38',35,115);
+    bbCtx.fillText('巴斯克蛋糕      ¥28',35,145);
+    bbCtx.fillText('桂花乌龙冷萃    ¥45',35,175);
+    bbCtx.fillStyle='#E8B44C';bbCtx.font='14px sans-serif';bbCtx.textAlign='center';
+    bbCtx.fillText('✦ 慢下来，等一杯好咖啡 ✦',140,205);
+    var bbTex=new THREE.CanvasTexture(bbCv);bbTex.minFilter=THREE.LinearFilter;
+    var bbMesh=new THREE.Mesh(new THREE.PlaneGeometry(2.3,1.7),new THREE.MeshBasicMaterial({map:bbTex,transparent:true}));
+    bbMesh.position.set(0,3.5,0.1);bbrd.add(bbMesh);
+    // 黑板架（A字型）
+    add(bbrd,new THREE.CylinderGeometry(0.05,0.05,3.5,4),M2(0x5C4033,{shin:10,spec:0x222222}),-1.15,1.75,0).rotation.z=0.08;
+    add(bbrd,new THREE.CylinderGeometry(0.05,0.05,3.5,4),M2(0x5C4033,{shin:10,spec:0x222222}),1.15,1.75,0).rotation.z=-0.08;
+
+    // ----- 露台串灯（更精致） -----
+    // 串灯线（几乎看不见的细线）
+    for(var si=0;si<10;si++){
+        var sx=1+si*1.1;
+        // 灯泡
+        var bulbColors=[0xFFEEAA,0xFFD866,0xFFCC44,0xFFEEAA,0xFFD866];
+        add(cafe,new THREE.SphereGeometry(0.1,6,4),Em(bulbColors[si%5],0.9),sx,3.9,-11+Math.sin(si*0.7)*1.8);
+        // 灯泡底座
+        add(cafe,new THREE.CylinderGeometry(0.04,0.06,0.08,6),M2(0x444444),sx,3.82,-11+Math.sin(si*0.7)*1.8);
+    }
+
+    // ----- 地面（大幅扩大，精致铺装） -----
+    // 主地面
+    add(cafe,new THREE.BoxGeometry(60,0.08,45),M2(0x253028),0,-0.04,0);
+    // 石板路（更大范围更密）
+    for(var ri=-15;ri<=10;ri++){
+        for(var ci=-5;ci<=5;ci++){
+            if(Math.random()>0.2){
+                var ox=(Math.random()-0.5)*0.4;
+                var oz=(Math.random()-0.5)*0.3;
+                add(cafe,new THREE.BoxGeometry(1.8+Math.random()*0.4,0.04,0.85+Math.random()*0.2),
+                    M2(0x3A3A35+Math.floor(Math.random()*0x050505),{shin:8,spec:0x111111}),
+                    ci*2.1+ox,-0.06,ri*2+oz);
+            }
+        }
+    }
+
+    // ----- 地面绿植装饰 -----
+    var coffeePot=grp(13,2);
+    add(coffeePot,new THREE.CylinderGeometry(0.55,0.45,0.55,10),M2(0x8B5A3A,{shin:15,spec:0x222222}),0,0.28,0);
+    add(coffeePot,new THREE.CylinderGeometry(0.6,0.6,0.06,10),M2(0x7A4A2A),0,0.56,0);
+    add(coffeePot,new THREE.SphereGeometry(0.9,10,8),M2(0x2A5B2A),0,1.25,0);
+    add(coffeePot,new THREE.SphereGeometry(0.6,8,6),M2(0x1A4B1A),0.3,1.7,0.2);
+    for(var ci2=0;ci2<5;ci2++){
+        add(coffeePot,new THREE.SphereGeometry(0.08,4,4),M2(0xCC3333),Math.cos(ci2*1.2)*0.45,1.4+Math.random()*0.4,Math.sin(ci2*1.2)*0.45);
+    }
+
+    // ----- 自行车（精致） -----
+    var bike=grp(8,-8);
+    add(bike,new THREE.TorusGeometry(0.55,0.05,6,14),M2(0x2A2A2A,{shin:20,spec:0x444444}),-0.75,0.65,0).rotation.y=Math.PI/2;
+    add(bike,new THREE.TorusGeometry(0.55,0.05,6,14),M2(0x2A2A2A,{shin:20,spec:0x444444}),0.75,0.65,0).rotation.y=Math.PI/2;
+    add(bike,new THREE.BoxGeometry(1.5,0.05,0.05),M2(0xE84040,{shin:25,spec:0x444444}),0,1.25,0);
+    add(bike,new THREE.BoxGeometry(0.05,0.7,0.05),M2(0xE84040,{shin:25,spec:0x444444}),0,0.85,0);
+    add(bike,new THREE.BoxGeometry(0.05,0.5,0.05),M2(0xE84040,{shin:25,spec:0x444444}),-0.75,0.85,0);
+    add(bike,new THREE.BoxGeometry(0.05,0.5,0.05),M2(0xE84040,{shin:25,spec:0x444444}),0.75,0.85,0);
+    add(bike,new THREE.BoxGeometry(0.25,0.06,0.18),M2(0x3A2A1A,{shin:10,spec:0x222222}),0,1.45,0);
+    add(bike,new THREE.BoxGeometry(0.35,0.25,0.3),M2(0x8B6F47,{shin:10,spec:0x222222}),-0.75,1.4,0.22);
+    // 车篮里的花
+    add(bike,new THREE.SphereGeometry(0.15,6,4),M2(0xFF6B8A),-0.75,1.6,0.22);
+    add(bike,new THREE.SphereGeometry(0.12,6,4),M2(0xFFB347),-0.65,1.55,0.18);
+
+    // ----- 门口咖啡杯 -----
+    var doorCup=grp(-4.5,-9);
+    add(doorCup,new THREE.CylinderGeometry(0.35,0.3,0.7,12),M2(0xF5F0E8,{shin:30,spec:0x444444}),0,0.35,0);
+    add(doorCup,new THREE.CylinderGeometry(0.4,0.4,0.04,12),M2(0xE8E0D5),0,0.7,0);
+    // 杯把手
+    add(doorCup,new THREE.TorusGeometry(0.15,0.03,6,8,Math.PI),M2(0xF5F0E8,{shin:30,spec:0x444444}),0.45,0.45,0).rotation.z=Math.PI/2;
+    // 蒸汽
+    for(var vi=0;vi<3;vi++){
+        var steam=add(doorCup,new THREE.SphereGeometry(0.12,6,4),new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.25}));
+        steam.position.set(-0.08+vi*0.08,0.9+vi*0.18,0);
+    }
+
+    // ----- 烟囱（屋顶） -----
+    add(cafe,new THREE.BoxGeometry(1,2,1),M2(0x6B5A4A,{shin:15,spec:0x333333}),6,9.5,4);
+    add(cafe,new THREE.BoxGeometry(1.2,0.15,1.2),M2(0x5A4A3A),6,10.5,4);
+
+    // ----- 窗台花盆 -----
+    function mkWinBox(x,y,z){
+        add(cafe,new THREE.BoxGeometry(1.8,0.25,0.35),M2(0x6B4A30,{shin:10,spec:0x222222}),x,y,z);
+        add(cafe,new THREE.SphereGeometry(0.25,6,4),M2(0xFF6B8A),x-0.4,y+0.25,z);
+        add(cafe,new THREE.SphereGeometry(0.25,6,4),M2(0xFFB347),x+0.4,y+0.25,z);
+        add(cafe,new THREE.SphereGeometry(0.2,6,4),M2(0x3A8B4A),x,y+0.3,z);
+    }
+    mkWinBox(-6,2.2,-7.2);
+    mkWinBox(3,2.2,-7.2);
+
+    // ----- 咖啡店暖光点光源 -----
+    if(lightCount<MAX_PT_LIGHTS){
+        var cafeLight1=new THREE.PointLight(0xFFAA44,0.8,35);
+        cafeLight1.position.set(-1.5,4,-6);
+        scn.add(cafeLight1);lightCount++;
+    }
+    if(lightCount<MAX_PT_LIGHTS){
+        var cafeLight2=new THREE.PointLight(0xFFCC66,0.6,30);
+        cafeLight2.position.set(5,3.5,-11);
+        scn.add(cafeLight2);lightCount++;
+    }
+
+    console.log('Cafe scene built, lights:',lightCount);
+}
+
+// ===== Raycaster & Door Click =====
+var raycaster=new THREE.Raycaster();
+var mouse=new THREE.Vector2();
+var doorMeshes=[]; // 存储门板mesh引用，用于点击检测
+var doorWorldPos=new THREE.Vector3(-1.65,3,-7.12); // 门的世界坐标
+
+ren.domElement.addEventListener('click',function(e){
+    // 内部模式：检测点击门区域
+    if(appMode==='interior' && interiorGroup){
+        mouse.x=(e.clientX/innerWidth)*2-1;
+        mouse.y=-(e.clientY/innerHeight)*2+1;
+        raycaster.setFromCamera(mouse,cam3d);
+        var iHits=raycaster.intersectObjects(interiorGroup.children,true);
+        // 先检测NPC点击（优先级高于门）
+        for(var ih=0;ih<iHits.length;ih++){
+            var obj=iHits[ih].object;
+            while(obj){if(obj.userData&&obj.userData.type==='npc')break;obj=obj.parent;}
+            if(obj&&obj.userData.type==='npc'){
+                openNpcDialog();
+                return;
+            }
+        }
+        // 再检测门点击
+        for(var ih=0;ih<iHits.length;ih++){
+            var iPt=iHits[ih].point;
+            // 前墙门洞区域（z < -2.5, x在门宽内, y在门高内）
+            if(iPt.z<-2 && Math.abs(iPt.x)<2 && iPt.y>0.5 && iPt.y<5){
+                document.getElementById('exitOverlay').style.display='flex';
+                return;
+            }
+        }
+        // 检测海报、笔记本、笔记本电脑、咖啡机、植物点击
+        for(var ih=0;ih<iHits.length;ih++){
+            var iObj=iHits[ih].object;
+            while(iObj&&iObj!==interiorGroup){
+                if(iObj.userData&&iObj.userData.type==='poster'){
+                    showItemPopup(iObj.userData.title,getPosterContent(iObj.userData.title));
+                    return;
+                }
+                if(iObj.userData&&iObj.userData.type==='notebook'){
+                    showItemPopup('碰撞笔记本',getNotebookContent());
+                    return;
+                }
+                if(iObj.userData&&iObj.userData.type==='laptop'){
+                    showItemPopup('慢半拍 · 豆子商城',getLaptopContent());
+                    return;
+                }
+                if(iObj.userData&&iObj.userData.type==='coffeeMachine'){
+                    showItemPopup('今日特供 · 优惠活动',getCoffeeMachineContent());
+                    return;
+                }
+                if(iObj.userData&&iObj.userData.type==='plant'){
+                    showItemPopup('绿植的秘密',getPlantContent());
+                    return;
+                }
+                if(iObj.userData&&iObj.userData.type==='egg'){
+                    var egIdx=iObj.userData.eggIdx;
+                    var eggMesh=iObj;
+                    if(window._eggStates[egIdx]){
+                        // 消耗彩蛋，增加注意力
+                        window._eggStates[egIdx]=false;
+                        var bonuses=[5,10,15];
+                        npcAttention+=bonuses[egIdx];
+                        document.getElementById('npcAttentionVal').textContent=npcAttention;
+                        // 盒子变暗（已拾取）
+                        eggMesh.material=new THREE.MeshBasicMaterial({color:0x333333,transparent:true,opacity:0.3});
+                        showItemPopup('彩蛋 · '+eggMesh.userData.eggName,getEggContent(egIdx));
+                    } else {
+                        showItemPopup('彩蛋 · '+eggMesh.userData.eggName,'这个盒子已经空了……
+
+「没关系，注意力已经拿到啦。」');
+                    }
+                    return;
+                }
+                iObj=iObj.parent;
+            }
+        }
+        return;
+    }
+    if(appMode!=='cafe')return;
+    // 标准化鼠标坐标
+    mouse.x=(e.clientX/innerWidth)*2-1;
+    mouse.y=-(e.clientY/innerHeight)*2+1;
+    raycaster.setFromCamera(mouse,cam3d);
+    // 检测是否点击到cafeGroup内门板区域
+    if(cafeGroup){
+        var hits=raycaster.intersectObjects(cafeGroup.children,true);
+        for(var hi=0;hi<hits.length;hi++){
+            var pt=hits[hi].point;
+            // 判断是否在门板范围内（x: -3.2~-0.1, y: 1~6, z: -7.2~-7.0）
+            if(Math.abs(pt.x+1.65)<1.8 && pt.y>1 && pt.y<6.2 && Math.abs(pt.z+7.1)<0.5){
+                showEnterDialog();
+                return;
+            }
+        }
+    }
+});
+
+function showEnterDialog(){
+    document.getElementById('enterOverlay').style.display='flex';
+}
+function hideEnterDialog(){
+    document.getElementById('enterOverlay').style.display='none';
+}
+document.getElementById('enterBtn').onclick=function(){
+    hideEnterDialog();
+    enterCafeInterior();
+};
+document.getElementById('exitBtn').onclick=function(){
+    document.getElementById('exitOverlay').style.display='none';
+    // 执行返回咖啡店外部
+    appMode='cafe';
+    interiorGroup.visible=false;
+    cafeGroup.visible=true;
+    // 恢复环境光
+    gAmbient.intensity=1.2;
+    sph.radius=30;sph.phi=Math.PI/2-0.05;
+    document.querySelector('.hdr').innerHTML='<div class="ht">慢半拍 · 咖啡店</div><div class="hs">TOPSPACE · SINGLE STORE PREVIEW</div>';
+    animCam(new THREE.Vector3(0,15,-25),new THREE.Vector3(0,4,-7));
+};
+document.getElementById('exitCancel').onclick=function(){
+    document.getElementById('exitOverlay').style.display='none';
+};
+document.getElementById('enterCancel').onclick=hideEnterDialog;
+
+var interiorGroup=null;
+
+function enterCafeInterior(){
+    if(!interiorGroup)buildInteriorScene();
+    appMode='interior';
+    cafeGroup.visible=false;
+    interiorGroup.visible=true;
+    // 降低环境光，营造昏暗温馨氛围
+    gAmbient.intensity=0.25;
+    // 隐藏所有外部UI
+    document.querySelector('.ctrl').style.display='none';
+    document.querySelector('.ctrl-l').style.display='none';
+    document.getElementById('enterOverlay').style.display='none';
+    document.getElementById('btnBack').style.display='block';
+    document.querySelector('.hdr').innerHTML='<div class="ht">慢半拍 · 咖啡店</div><div class="hs">推开门，咖啡香飘过来</div>';
+    // 设置interior模式的target和radius（更高空间感）
+    tgt.copy(interiorTgt);
+    sph.radius=5;
+    // 摄像机在房间内部门口偏上位置看向吧台方向
+    animCam(new THREE.Vector3(0,3.8,-1.5),new THREE.Vector3(0,2.8,3));
+}
+
+// ===== Interior Scene Entry (definition moved below buildInteriorScene) =====
+
+function buildInteriorScene(){
+    if(interiorGroup)return;
+    interiorGroup=new THREE.Group();
+    interiorGroup.visible=false;
+    scn.add(interiorGroup);
+
+    var IM=function(c,opts){return new THREE.MeshPhongMaterial(Object.assign({color:c,shininess:opts&&opts.shin||10,specular:opts&&opts.spec||0x111111},opts||{}));};
+    var IEm=function(c,i){return new THREE.MeshStandardMaterial({color:new THREE.Color(c),emissive:new THREE.Color(c),emissiveIntensity:i||1.0});};
+    function ia(g,geo,mat,x,y,z){var m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);g.add(m);return m;}
+
+    // ===== 房间外壳（长方体 12m宽 × 7m高 × 10m深） =====
+    var W=12, H=7, D=10;
+
+    // 地板（木地板暖色）
+    ia(interiorGroup,new THREE.BoxGeometry(W,0.15,D),IM(0x7A5C3E,{shin:20,spec:0x333333}),0,-0.075,2);
+    // 地板接缝
+    for(var fi=-5;fi<=5;fi+=1.2){
+        ia(interiorGroup,new THREE.BoxGeometry(W,0.02,0.04),IM(0x6A4C2E),0,0.01,2+fi);
+    }
+
+    // 天花板
+    ia(interiorGroup,new THREE.BoxGeometry(W,0.15,D),IM(0xF0EBE0,{shin:5,spec:0x0A0A0A}),0,H+0.075,2);
+
+    // 后墙
+    ia(interiorGroup,new THREE.BoxGeometry(W,H,0.2),IM(0xF5F0E8,{shin:5,spec:0x0A0A0A}),0,H/2,2+D/2+0.1);
+    // 左墙
+    ia(interiorGroup,new THREE.BoxGeometry(0.2,H,D),IM(0xF0EBE0,{shin:5,spec:0x0A0A0A}),-W/2-0.1,H/2,2);
+    // 右墙
+    ia(interiorGroup,new THREE.BoxGeometry(0.2,H,D),IM(0xF0EBE0,{shin:5,spec:0x0A0A0A}),W/2+0.1,H/2,2);
+    // 前墙（门后面，留窗）
+    ia(interiorGroup,new THREE.BoxGeometry(4,H,0.2),IM(0xF0EBE0,{shin:5,spec:0x0A0A0A}),0,H/2,2-D/2-0.1);
+    // 前墙左段（上部实墙 + 窗间墙）
+    ia(interiorGroup,new THREE.BoxGeometry(W/2-2,H*0.2,0.2),IM(0xF0EBE0,{shin:5,spec:0x0A0A0A}),-(W/2+2)/2,H*0.9,2-D/2-0.1);
+    ia(interiorGroup,new THREE.BoxGeometry(0.15,H,0.2),IM(0xF0EBE0,{shin:5,spec:0x0A0A0A}),-2.1,H/2,2-D/2-0.1);
+    ia(interiorGroup,new THREE.BoxGeometry(0.15,H,0.2),IM(0xF0EBE0,{shin:5,spec:0x0A0A0A}),-W/2+0.05,H/2,2-D/2-0.1);
+    // 前墙右段（上部实墙 + 窗间墙）
+    ia(interiorGroup,new THREE.BoxGeometry(W/2-2,H*0.2,0.2),IM(0xF0EBE0,{shin:5,spec:0x0A0A0A}),(W/2+2)/2,H*0.9,2-D/2-0.1);
+    ia(interiorGroup,new THREE.BoxGeometry(0.15,H,0.2),IM(0xF0EBE0,{shin:5,spec:0x0A0A0A}),2.1,H/2,2-D/2-0.1);
+    ia(interiorGroup,new THREE.BoxGeometry(0.15,H,0.2),IM(0xF0EBE0,{shin:5,spec:0x0A0A0A}),W/2-0.05,H/2,2-D/2-0.1);
+    // 前窗左扇（大落地窗，发光蓝色+夜景反射）
+    ia(interiorGroup,new THREE.BoxGeometry(3.2,H*0.75,0.06),IEm(0x4A6A8A,0.3),-(W/2+2)/2,H*0.4,2-D/2-0.08);
+    // 窗框十字
+    ia(interiorGroup,new THREE.BoxGeometry(3.2,0.08,0.08),IM(0x3A3025),-(W/2+2)/2,H*0.4,2-D/2-0.06);
+    ia(interiorGroup,new THREE.BoxGeometry(0.08,H*0.75,0.08),IM(0x3A3025),-(W/2+2)/2,H*0.4,2-D/2-0.06);
+    // 前窗右扇
+    ia(interiorGroup,new THREE.BoxGeometry(3.2,H*0.75,0.06),IEm(0x4A6A8A,0.3),(W/2+2)/2,H*0.4,2-D/2-0.08);
+    // 窗框十字
+    ia(interiorGroup,new THREE.BoxGeometry(3.2,0.08,0.08),IM(0x3A3025),(W/2+2)/2,H*0.4,2-D/2-0.06);
+    ia(interiorGroup,new THREE.BoxGeometry(0.08,H*0.75,0.08),IM(0x3A3025),(W/2+2)/2,H*0.4,2-D/2-0.06);
+    // 中间门上窗（从内看出去的发光窗）
+    ia(interiorGroup,new THREE.BoxGeometry(3.5,1.5,0.05),IEm(0x3A5A7A,0.4),0,4.5,2-D/2-0.08);
+
+    // 墙裙线（装饰横条）
+    ia(interiorGroup,new THREE.BoxGeometry(W-0.5,0.08,0.08),IM(0xD4A040,{shin:30,spec:0x444444}),0,1.2,2-D/2+0.04);
+    ia(interiorGroup,new THREE.BoxGeometry(W-0.5,0.08,0.08),IM(0xD4A040,{shin:30,spec:0x444444}),0,1.2,2+D/2-0.04);
+
+    // ===== 吧台（后墙前） =====
+    var barX=0, barZ=2+D/2-1.8;
+
+    // ★★★ 后墙发光招牌"慢半拍" ★★★
+    var isignCv=document.createElement('canvas');isignCv.width=640;isignCv.height=160;
+    var isignCtx=isignCv.getContext('2d');
+    isignCtx.fillStyle='#0D0A05';isignCtx.fillRect(0,0,640,160);
+    // 金色边框
+    isignCtx.strokeStyle='#D4A040';isignCtx.lineWidth=4;isignCtx.strokeRect(8,8,624,144);
+    isignCtx.strokeStyle='#E8B44C';isignCtx.lineWidth=1.5;isignCtx.strokeRect(16,16,608,128);
+    // 主标题
+    isignCtx.fillStyle='#F5F0E8';isignCtx.font='bold 60px "PingFang SC","Microsoft YaHei",sans-serif';
+    isignCtx.textAlign='center';isignCtx.textBaseline='middle';
+    isignCtx.fillText('慢 半 拍',320,58);
+    // 英文副标题
+    isignCtx.fillStyle='#E8B44C';isignCtx.font='18px Arial,sans-serif';
+    isignCtx.fillText('S L O W   B E A T   C A F É',320,110);
+    // 装饰线
+    isignCtx.strokeStyle='rgba(232,180,76,0.4)';isignCtx.lineWidth=1;
+    isignCtx.beginPath();isignCtx.moveTo(120,135);isignCtx.lineTo(520,135);isignCtx.stroke();
+    var isignTex=new THREE.CanvasTexture(isignCv);isignTex.minFilter=THREE.LinearFilter;
+    // 发光材质（emissive模拟霓虹感）
+    var isignMesh=new THREE.Mesh(new THREE.PlaneGeometry(7,1.8),
+        new THREE.MeshBasicMaterial({map:isignTex,transparent:true,side:THREE.DoubleSide}));
+    isignMesh.position.set(barX,5.5,2+D/2); // 后墙前面
+    interiorGroup.add(isignMesh);
+    // 招牌背光（暖黄色发光板）
+    ia(interiorGroup,new THREE.BoxGeometry(7.2,2,0.08),IM(0x3A2810),barX,5.5,2+D/2-0.06);
+    // 吧台台面
+    ia(interiorGroup,new THREE.BoxGeometry(7,0.12,1.2),IM(0x5C3D2E,{shin:25,spec:0x444444}),barX,1.1,barZ);
+    // 吧台正面板
+    ia(interiorGroup,new THREE.BoxGeometry(7,1,0.12),IM(0x4A2D1E,{shin:15,spec:0x333333}),barX,0.6,barZ+0.55);
+    // 吧台架板（放杯子）
+    ia(interiorGroup,new THREE.BoxGeometry(6,0.06,0.6),IM(0x5C3D2E),barX,2.5,barZ+0.15);
+    ia(interiorGroup,new THREE.BoxGeometry(6,0.06,0.6),IM(0x5C3D2E),barX,3.2,barZ+0.15);
+
+    // ===== 彩蛋盒子（吧台架板，3个彩色盒子，可点击）=====
+    window._eggStates=[true,true,true];
+    (function(){
+        var eggColors=[0xFF4466, 0x44AAFF, 0xFFDD44];
+        var eggPositions=[-2, 0.8, 2.5];
+        var eggNames=['红盒子','蓝盒子','金盒子'];
+        for(var ei=0;ei<3;ei++){
+            (function(idx){
+                var eggMesh=new THREE.Mesh(
+                    new THREE.BoxGeometry(0.32,0.32,0.32),
+                    IM(eggColors[idx],{shin:60,spec:0xFFFFFF})
+                );
+                eggMesh.position.set(eggPositions[idx],2.53,barZ+0.15);
+                eggMesh.castShadow=true;
+                eggMesh.userData={type:'egg',eggIdx:idx,eggName:eggNames[idx]};
+                interiorGroup.add(eggMesh);
+            })(ei);
+        }
+    })();
+
+    // 咖啡机（吧台上，可点击查看优惠）
+    var cmGroup=new THREE.Group();
+    var cmX=-2, cmZ=barZ-0.2;
+    // 机身
+    ia(cmGroup,new THREE.BoxGeometry(0.8,0.9,0.6),IM(0x333333,{shin:40,spec:0x555555}),0,0.5,0);
+    // 顶部
+    ia(cmGroup,new THREE.BoxGeometry(0.9,0.08,0.65),IM(0x444444,{shin:30,spec:0x444444}),0,0.94,0);
+    // 出水口
+    ia(cmGroup,new THREE.BoxGeometry(0.3,0.35,0.15),IM(0x222222),0,0.25,0.25);
+    // 杯子在出水口正下方（紧贴底面）
+    ia(cmGroup,new THREE.CylinderGeometry(0.1,0.08,0.18,8),IM(0xF5F0E8,{shin:30,spec:0x444444}),0,0.09,0.25);
+    cmGroup.position.set(cmX,1.05,cmZ);
+    cmGroup.userData={type:'coffeeMachine'};
+    interiorGroup.add(cmGroup);
+
+    // 吧台上的杯子和器具
+    for(var cupI=0;cupI<5;cupI++){
+        var cx=-1+cupI*1.2;
+        ia(interiorGroup,new THREE.CylinderGeometry(0.08,0.06,0.18,8),IM(0xF5F0E8,{shin:30}),cx,1.22,barZ-0.15);
+    }
+    // 甜点展示柜
+    ia(interiorGroup,new THREE.BoxGeometry(2,0.6,0.8),IM(0xDDDDEE,{shin:40,spec:0x666666,transparent:true,opacity:0.5}),2,1.4,barZ-0.1);
+    // 蛋糕
+    ia(interiorGroup,new THREE.CylinderGeometry(0.2,0.2,0.15,10),IM(0xFFE4C4),2,1.2,barZ-0.1);
+    ia(interiorGroup,new THREE.CylinderGeometry(0.25,0.25,0.12,10),IM(0xD2A679),2.4,1.15,barZ-0.1);
+
+    // ===== 高脚凳（吧台前） =====
+    for(var stI=0;stI<4;stI++){
+        var stX=-2+stI*1.5;
+        // 凳腿（中心柱+底座）
+        ia(interiorGroup,new THREE.CylinderGeometry(0.04,0.04,1.3,6),IM(0x3A3A3A),stX,0.65,barZ-1.2);
+        ia(interiorGroup,new THREE.CylinderGeometry(0.25,0.25,0.04,8),IM(0x3A3A3A),stX,0.02,barZ-1.2);
+        // 凳面
+        ia(interiorGroup,new THREE.CylinderGeometry(0.22,0.22,0.06,12),IM(0x5C4033,{shin:15,spec:0x222222}),stX,1.35,barZ-1.2);
+    }
+
+    // ===== 小桌椅（室内中间） =====
+    // 桌1
+    var t1x=-3, t1z=0;
+    ia(interiorGroup,new THREE.CylinderGeometry(0.04,0.04,1.4,6),IM(0x3A3A3A),t1x,0.7,t1z);
+    ia(interiorGroup,new THREE.CylinderGeometry(0.8,0.8,0.06,12),IM(0x5C4033,{shin:20,spec:0x333333}),t1x,1.42,t1z);
+    // 桌上的书和杯子
+    ia(interiorGroup,new THREE.BoxGeometry(0.4,0.06,0.3),IM(0x8B4513),t1x-0.15,1.48,t1z);
+    ia(interiorGroup,new THREE.CylinderGeometry(0.08,0.06,0.15,8),IM(0xF5F0E8),t1x+0.2,1.52,t1z);
+    // 桌上笔记本（可点击，翻开状态）
+    (function(){
+        var nbCv=document.createElement('canvas');nbCv.width=320;nbCv.height=200;
+        var nbCtx=nbCv.getContext('2d');
+        nbCtx.fillStyle='#F5F0E8';nbCtx.fillRect(0,0,320,200);
+        // 左页
+        nbCtx.fillStyle='#FFF8F0';nbCtx.fillRect(10,10,145,180);
+        // 右页
+        nbCtx.fillStyle='#FFFBF5';nbCtx.fillRect(165,10,145,180);
+        // 中线（书脊）
+        nbCtx.strokeStyle='#D4A040';nbCtx.lineWidth=2;nbCtx.beginPath();nbCtx.moveTo(160,10);nbCtx.lineTo(160,190);nbCtx.stroke();
+        // 左页手写文字
+        nbCtx.fillStyle='#3A5A7A';nbCtx.font='12px "PingFang SC",sans-serif';nbCtx.textAlign='left';
+        nbCtx.fillText('碰撞笔记 #001',20,30);
+        nbCtx.strokeStyle='#4A9EB8';nbCtx.lineWidth=0.5;
+        for(var nl=0;nl<6;nl++){nbCtx.beginPath();nbCtx.moveTo(20,45+nl*22);nbCtx.lineTo(140,45+nl*22);nbCtx.stroke();}
+        // 右页涂鸦（咖啡杯简笔画）
+        nbCtx.strokeStyle='#E85D30';nbCtx.lineWidth=1.5;nbCtx.beginPath();nbCtx.arc(237,80,25,0,Math.PI*2);nbCtx.stroke();
+        nbCtx.beginPath();nbCtx.moveTo(262,80);nbCtx.lineTo(280,80);nbCtx.stroke();
+        nbCtx.fillStyle='#4A9EB8';nbCtx.font='11px "PingFang SC",sans-serif';nbCtx.textAlign='center';
+        nbCtx.fillText('今天碰撞了3个新灵魂',237,140);
+        nbCtx.fillText('灵魂画像更新中...',237,158);
+        // 提示文字
+        nbCtx.fillStyle='#E85D30';nbCtx.font='bold 10px sans-serif';
+        nbCtx.fillText('点击翻开',237,182);
+        var nbTex=new THREE.CanvasTexture(nbCv);nbTex.minFilter=THREE.LinearFilter;
+        var nbMesh=new THREE.Mesh(new THREE.PlaneGeometry(0.45,0.3),new THREE.MeshBasicMaterial({map:nbTex,transparent:true,side:THREE.DoubleSide}));
+        nbMesh.position.set(t1x+0.15,1.46,t1z-0.1);
+        nbMesh.rotation.x=-Math.PI/2;
+        nbMesh.userData={type:'notebook'};
+        interiorGroup.add(nbMesh);
+    })();
+    // 椅子（简单）
+    ia(interiorGroup,new THREE.BoxGeometry(0.6,0.04,0.6),IM(0x5C4033),t1x-1,0.95,t1z);
+    ia(interiorGroup,new THREE.BoxGeometry(0.04,0.8,0.04),IM(0x3A3A3A),t1x-1.3,0.5,t1z-0.25);
+    ia(interiorGroup,new THREE.BoxGeometry(0.04,0.8,0.04),IM(0x3A3A3A),t1x-0.7,0.5,t1z-0.25);
+    ia(interiorGroup,new THREE.BoxGeometry(0.6,0.7,0.04),IM(0x5C4033),t1x-1,1.3,t1z+0.28);
+    ia(interiorGroup,new THREE.BoxGeometry(0.6,0.04,0.6),IM(0x5C4033),t1x+1,0.95,t1z);
+    ia(interiorGroup,new THREE.BoxGeometry(0.6,0.7,0.04),IM(0x5C4033),t1x+1,1.3,t1z-0.28);
+
+    // 桌2（靠窗）
+    var t2x=3, t2z=-1.5;
+    ia(interiorGroup,new THREE.CylinderGeometry(0.04,0.04,1.4,6),IM(0x3A3A3A),t2x,0.7,t2z);
+    ia(interiorGroup,new THREE.CylinderGeometry(0.9,0.9,0.06,12),IM(0x5C4033,{shin:20,spec:0x333333}),t2x,1.42,t2z);
+    // 笔记本电脑（可点击，进入商城）
+    (function(){
+        var lapGroup=new THREE.Group();
+        // 底座
+        var lapBase=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.02,0.35),IM(0x888888,{shin:40,spec:0x555555}));
+        // 屏幕
+        var lapScreen=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.3,0.02),IM(0xAAAAAA,{shin:40,spec:0x666666}));
+        lapScreen.position.set(0,0.13,-0.16);
+        lapGroup.add(lapBase);lapGroup.add(lapScreen);
+        lapGroup.position.set(t2x,1.47,t2z);
+        lapGroup.userData={type:'laptop'};
+        interiorGroup.add(lapGroup);
+    })();
+    // 椅子
+    ia(interiorGroup,new THREE.BoxGeometry(0.6,0.04,0.6),IM(0x5C4033),t2x,0.95,t2z+1);
+
+    // 桌3（角落）
+    var t3x=4, t3z=3.5;
+    ia(interiorGroup,new THREE.CylinderGeometry(0.04,0.04,1,6),IM(0x3A3A3A),t3x,0.5,t3z);
+    ia(interiorGroup,new THREE.CylinderGeometry(0.6,0.6,0.05,10),IM(0x5C4033),t3x,1.02,t3z);
+    ia(interiorGroup,new THREE.BoxGeometry(0.5,0.04,0.5),IM(0x5C4033),t3x-0.9,0.9,t3z);
+
+    // ===== 右墙书架 =====
+    var shelfX=W/2-0.15;
+    for(var si=0;si<4;si++){
+        var sy=1.2+si*0.8;
+        ia(interiorGroup,new THREE.BoxGeometry(0.5,0.05,3),IM(0x5C3D2E,{shin:15,spec:0x222222}),shelfX,sy,2);
+        // 书本
+        for(var bi=0;bi<5;bi++){
+            var bh=0.4+Math.random()*0.3;
+            var bColors=[0x8B4513,0xA0522D,0x2F4F4F,0x8B0000,0x006400,0x4A4A8A,0xCD853F,0xD2691E];
+            ia(interiorGroup,new THREE.BoxGeometry(0.35,bh,0.25),
+                IM(bColors[Math.floor(Math.random()*bColors.length)]),
+                shelfX,sy+0.025+bh/2,0.5+bi*0.55);
+        }
+    }
+
+    // ===== 左墙挂画 + 咖啡活动海报 =====
+    var artX=-W/2+0.15;
+    // 画框1（抽象画，保持原样）
+    ia(interiorGroup,new THREE.BoxGeometry(0.06,1.8,1.4),IM(0x3A3025,{shin:20,spec:0x333333}),artX,2.8,1);
+    ia(interiorGroup,new THREE.BoxGeometry(0.04,1.5,1.1),IM(0x2A4A6A),artX,2.8,1);
+
+    // 画框2 → 咖啡活动海报（手冲体验课）
+    ia(interiorGroup,new THREE.BoxGeometry(0.06,1.2,1.8),IM(0x3A3025),artX,2.5,4);
+    (function(){
+        var pCv=document.createElement('canvas');pCv.width=360;pCv.height=240;
+        var pCtx=pCv.getContext('2d');
+        pCtx.fillStyle='#1A1208';pCtx.fillRect(0,0,360,240);
+        // 装饰边框
+        pCtx.strokeStyle='#D4A040';pCtx.lineWidth=3;pCtx.strokeRect(8,8,344,224);
+        pCtx.strokeStyle='#E85D30';pCtx.lineWidth=1;pCtx.strokeRect(14,14,332,212);
+        // 标题
+        pCtx.fillStyle='#F5F0E8';pCtx.font='bold 24px "PingFang SC",sans-serif';pCtx.textAlign='center';
+        pCtx.fillText('手冲咖啡体验课',180,50);
+        pCtx.fillStyle='#E8B44C';pCtx.font='14px Arial,sans-serif';
+        pCtx.fillText('HAND DRIP WORKSHOP',180,75);
+        // 分割线
+        pCtx.strokeStyle='#D4A040';pCtx.lineWidth=1;pCtx.beginPath();pCtx.moveTo(60,88);pCtx.lineTo(300,88);pCtx.stroke();
+        // 内容
+        pCtx.fillStyle='#C8D8E8';pCtx.font='14px "PingFang SC",sans-serif';pCtx.textAlign='left';
+        pCtx.fillText('每周六 14:00-16:00',40,115);
+        pCtx.fillText('限定8人小班',40,140);
+        pCtx.fillText('从选豆到萃取全流程',40,165);
+        pCtx.fillStyle='#E85D30';pCtx.font='bold 16px "PingFang SC",sans-serif';pCtx.textAlign='center';
+        pCtx.fillText('探索者免费参加',180,205);
+        var pTex=new THREE.CanvasTexture(pCv);pTex.minFilter=THREE.LinearFilter;
+        var pMesh=new THREE.Mesh(new THREE.PlaneGeometry(0.9,1.5),new THREE.MeshBasicMaterial({map:pTex,transparent:true,side:THREE.DoubleSide}));
+        pMesh.position.set(artX+0.04,2.5,4);
+        pMesh.rotation.y=Math.PI/2;
+        pMesh.userData={type:'poster',title:'手冲咖啡体验课'};
+        interiorGroup.add(pMesh);
+    })();
+
+    // 画框3 → 咖啡活动海报（碰撞之夜）
+    ia(interiorGroup,new THREE.BoxGeometry(0.06,0.8,0.8),IM(0x3A3025),artX,3.5,6);
+    (function(){
+        var p2Cv=document.createElement('canvas');p2Cv.width=240;p2Cv.height=160;
+        var p2Ctx=p2Cv.getContext('2d');
+        p2Ctx.fillStyle='#0D0A1A';p2Ctx.fillRect(0,0,240,160);
+        p2Ctx.strokeStyle='#4A9EB8';p2Ctx.lineWidth=2;p2Ctx.strokeRect(6,6,228,148);
+        p2Ctx.fillStyle='#F5F0E8';p2Ctx.font='bold 20px "PingFang SC",sans-serif';p2Ctx.textAlign='center';
+        p2Ctx.fillText('碰撞之夜',120,40);
+        p2Ctx.fillStyle='#4A9EB8';p2Ctx.font='12px Arial,sans-serif';
+        p2Ctx.fillText('COLLISION NIGHT',120,60);
+        p2Ctx.fillStyle='#C8D8E8';p2Ctx.font='13px "PingFang SC",sans-serif';
+        p2Ctx.fillText('5月10日 19:00',120,90);
+        p2Ctx.fillText('慢半拍 × 蛋生壹号街区',120,112);
+        p2Ctx.fillStyle='#E85D30';p2Ctx.font='bold 14px sans-serif';
+        p2Ctx.fillText('点击了解详情',120,142);
+        var p2Tex=new THREE.CanvasTexture(p2Cv);p2Tex.minFilter=THREE.LinearFilter;
+        var p2Mesh=new THREE.Mesh(new THREE.PlaneGeometry(0.5,0.7),new THREE.MeshBasicMaterial({map:p2Tex,transparent:true,side:THREE.DoubleSide}));
+        p2Mesh.position.set(artX+0.04,3.5,6);
+        p2Mesh.rotation.y=Math.PI/2;
+        p2Mesh.userData={type:'poster',title:'碰撞之夜'};
+        interiorGroup.add(p2Mesh);
+    })();
+
+    // ===== 后墙菜单黑板 =====
+    var ibbX=0, ibbZ=2+D/2-0.2;
+    ia(interiorGroup,new THREE.BoxGeometry(4,2.5,0.08),IM(0x2A2A2A),ibbX,3.2,ibbZ);
+    // 黑板文字
+    var ibbCv=document.createElement('canvas');ibbCv.width=400;ibbCv.height=250;
+    var ibbCtx=ibbCv.getContext('2d');
+    ibbCtx.fillStyle='#1A1A1A';ibbCtx.fillRect(0,0,400,250);
+    ibbCtx.fillStyle='#F5F0E8';ibbCtx.font='bold 28px sans-serif';ibbCtx.textAlign='center';
+    ibbCtx.fillText('MENU',200,35);
+    ibbCtx.strokeStyle='#F5F0E8';ibbCtx.lineWidth=1;ibbCtx.beginPath();ibbCtx.moveTo(100,50);ibbCtx.lineTo(300,50);ibbCtx.stroke();
+    ibbCtx.font='18px "PingFang SC",sans-serif';ibbCtx.textAlign='left';
+    ibbCtx.fillText('美式咖啡        ¥28',50,85);
+    ibbCtx.fillText('燕麦拿铁        ¥38',50,115);
+    ibbCtx.fillText('手冲单品        ¥42',50,145);
+    ibbCtx.fillText('巴斯克蛋糕      ¥28',50,175);
+    ibbCtx.fillText('桂花乌龙冷萃    ¥45',50,205);
+    ibbCtx.fillStyle='#E8B44C';ibbCtx.font='14px sans-serif';ibbCtx.textAlign='center';
+    ibbCtx.fillText('~ 慢下来，等一杯好咖啡 ~',200,240);
+    var ibbTex=new THREE.CanvasTexture(ibbCv);ibbTex.minFilter=THREE.LinearFilter;
+    var ibbMesh=new THREE.Mesh(new THREE.PlaneGeometry(3.8,2.3),new THREE.MeshBasicMaterial({map:ibbTex,transparent:true}));
+    ibbMesh.position.set(ibbX,3.2,ibbZ-0.05);interiorGroup.add(ibbMesh);
+
+    // ===== 吊灯 =====
+    for(var li=0;li<3;li++){
+        var lx=-3+li*3, lz=1+li*0.5;
+        // 灯线
+        ia(interiorGroup,new THREE.CylinderGeometry(0.01,0.01,1.5,4),IM(0x333333),lx,H-0.3,lz);
+        // 灯罩
+        ia(interiorGroup,new THREE.CylinderGeometry(0.15,0.4,0.3,12),IM(0x2A2A2A,{shin:20,spec:0x444444}),lx,H-1.1,lz);
+        // 灯泡（发光）
+        ia(interiorGroup,new THREE.SphereGeometry(0.12,8,6),IEm(0xFFCC66,0.7),lx,H-1.2,lz);
+    }
+
+    // ===== 盆栽（可点击，与植物对话） =====
+    (function(){
+        var plantGroup=new THREE.Group();
+        // 左后角大盆栽
+        ia(plantGroup,new THREE.CylinderGeometry(0.35,0.28,0.6,10),IM(0x8B5A3A),-W/2+0.6,0.3,2+D/2-0.8);
+        ia(plantGroup,new THREE.SphereGeometry(0.6,10,8),IM(0x2A5B3A),-W/2+0.6,1.1,2+D/2-0.8);
+        ia(plantGroup,new THREE.SphereGeometry(0.4,8,6),IM(0x3A7B4A),-W/2+0.4,1.6,2+D/2-0.9);
+        // 右前角小盆栽
+        ia(plantGroup,new THREE.CylinderGeometry(0.2,0.15,0.35,8),IM(0x8B5A3A),W/2-0.5,0.175,2-D/2+0.8);
+        ia(plantGroup,new THREE.SphereGeometry(0.3,8,6),IM(0x4A8B5A),W/2-0.5,0.65,2-D/2+0.8);
+        plantGroup.userData={type:'plant'};
+        interiorGroup.add(plantGroup);
+    })();
+
+    // ===== 踢脚线 =====
+    ia(interiorGroup,new THREE.BoxGeometry(W-0.5,0.12,0.06),IM(0x5C4033),0,0.06,2+D/2-0.03);
+    ia(interiorGroup,new THREE.BoxGeometry(0.06,0.12,D-0.3),IM(0x5C4033),-W/2+0.03,0.06,2);
+    ia(interiorGroup,new THREE.BoxGeometry(0.06,0.12,D-0.3),IM(0x5C4033),W/2-0.03,0.06,2);
+
+    // ===== 暖光点光源（昏暗温馨风格，深黄暖调） =====
+    if(lightCount<MAX_PT_LIGHTS){
+        var iLight1=new THREE.PointLight(0xFF8C22,0.55,16);
+        iLight1.position.set(0,3.2,2);scn.add(iLight1);lightCount++;
+    }
+    if(lightCount<MAX_PT_LIGHTS){
+        var iLight2=new THREE.PointLight(0xFFAA44,0.4,12);
+        iLight2.position.set(-3,3.2,0);scn.add(iLight2);lightCount++;
+    }
+    if(lightCount<MAX_PT_LIGHTS){
+        var iLight3=new THREE.PointLight(0xFFAA44,0.4,12);
+        iLight3.position.set(3,3.2,3);scn.add(iLight3);lightCount++;
+    }
+    if(lightCount<MAX_PT_LIGHTS){
+        var iLight4=new THREE.PointLight(0xFF7722,0.4,10);
+        iLight4.position.set(0,2.2,-1);scn.add(iLight4);lightCount++;
+    }
+
+    // ===== 出口门（前墙门洞，从内部看出去的门） =====
+    var exitDoorZ=2-D/2-0.05;
+    // 门框（橙红色，与外部门对应）
+    var edFrmMat=IM(0xE85D30,{shin:40,spec:0x666666});
+    ia(interiorGroup,new THREE.BoxGeometry(0.2,4.5,0.3),edFrmMat,-1.7,2.25,exitDoorZ);
+    ia(interiorGroup,new THREE.BoxGeometry(0.2,4.5,0.3),edFrmMat,1.7,2.25,exitDoorZ);
+    ia(interiorGroup,new THREE.BoxGeometry(3.6,0.22,0.3),edFrmMat,0,4.61,exitDoorZ);
+    // 左门板（深棕色，微开暗示可交互）
+    var doorMat=IM(0x5C3D2E,{shin:15,spec:0x333333});
+    ia(interiorGroup,new THREE.BoxGeometry(1.6,4.2,0.15),doorMat,-0.85,2.1,exitDoorZ+0.12);
+    // 右门板
+    ia(interiorGroup,new THREE.BoxGeometry(1.6,4.2,0.15),doorMat,0.85,2.1,exitDoorZ+0.12);
+    // 门把手（黄铜色，内侧面）
+    var edHandleMat=IM(0xE8B44C,{shin:80,spec:0xFFFFFF});
+    ia(interiorGroup,new THREE.BoxGeometry(0.08,0.45,0.1),edHandleMat,-0.15,2.5,exitDoorZ+0.22);
+    ia(interiorGroup,new THREE.BoxGeometry(0.08,0.45,0.1),edHandleMat,0.15,2.5,exitDoorZ+0.22);
+    // 门上方的EXIT发光标识
+    var exitSignCv=document.createElement('canvas');exitSignCv.width=256;exitSignCv.height=64;
+    var exitSignCtx=exitSignCv.getContext('2d');
+    exitSignCtx.fillStyle='#1A1208';exitSignCtx.fillRect(0,0,256,64);
+    exitSignCtx.fillStyle='#E8B44C';exitSignCtx.font='bold 28px Arial,sans-serif';
+    exitSignCtx.textAlign='center';exitSignCtx.textBaseline='middle';
+    exitSignCtx.fillText('SLOW BEAT',128,22);
+    exitSignCtx.font='16px "PingFang SC",sans-serif';
+    exitSignCtx.fillText('慢 半 拍',128,48);
+    var exitSignTex=new THREE.CanvasTexture(exitSignCv);exitSignTex.minFilter=THREE.LinearFilter;
+    var exitSignMesh=new THREE.Mesh(new THREE.PlaneGeometry(2.4,0.6),new THREE.MeshBasicMaterial({map:exitSignTex,transparent:true}));
+    exitSignMesh.position.set(0,5.2,exitDoorZ+0.16);exitSignMesh.userData={type:'exitDoor'};interiorGroup.add(exitSignMesh);
+    // 门板也标记为可点击
+    // 出门检测用raycaster判断z方向最近的前墙mesh
+
+    // ===== NPC咖啡师（Q版+腿+鸭舌帽，吧台旁） =====
+    var npcGroup=new THREE.Group();
+    npcGroup.userData={type:'npc'};
+    var npcX=3.2, npcZ=2;
+
+    // === 腿（两条，加长消除空隙）===
+    // 左腿（黑色长裤+白色鞋）
+    ia(npcGroup,new THREE.CylinderGeometry(0.07,0.08,0.85,8),IM(0x2A2A3A),npcX-0.1,0.425,npcZ);
+    // 右腿
+    ia(npcGroup,new THREE.CylinderGeometry(0.07,0.08,0.85,8),IM(0x2A2A3A),npcX+0.1,0.425,npcZ);
+    // 左鞋
+    ia(npcGroup,new THREE.BoxGeometry(0.14,0.06,0.2),IM(0x1A1A1A),npcX-0.1,0.03,npcZ);
+    // 右鞋
+    ia(npcGroup,new THREE.BoxGeometry(0.14,0.06,0.2),IM(0x1A1A1A),npcX+0.1,0.03,npcZ);
+
+    // === 身体（圆胖圆柱，白衬衫）===
+    ia(npcGroup,new THREE.CylinderGeometry(0.18,0.22,0.95,10),IM(0xF5F0E8,{shin:20,spec:0x333333}),npcX,1.25,npcZ);
+    // 绿围裙（前片）
+    ia(npcGroup,new THREE.BoxGeometry(0.44,0.55,0.08),IM(0x00704A),npcX,1.15,npcZ+0.16);
+    // 围裙带
+    ia(npcGroup,new THREE.BoxGeometry(0.04,0.3,0.04),IM(0x00704A),npcX,1.52,npcZ);
+
+    // === 手臂（短小圆筒）===
+    ia(npcGroup,new THREE.CylinderGeometry(0.055,0.05,0.5,6),IM(0xF5F0E8),npcX-0.26,1.37,npcZ);
+    ia(npcGroup,new THREE.CylinderGeometry(0.055,0.05,0.5,6),IM(0xF5F0E8),npcX+0.26,1.37,npcZ);
+    // 手（小圆球）
+    ia(npcGroup,new THREE.SphereGeometry(0.055,6,5),IM(0xF5D5B8),npcX-0.26,1.14,npcZ+0.04);
+    ia(npcGroup,new THREE.SphereGeometry(0.055,6,5),IM(0xF5D5B8),npcX+0.26,1.14,npcZ+0.04);
+
+    // === Q版大头 ===
+    var headY=1.95;
+    ia(npcGroup,new THREE.SphereGeometry(0.36,14,12),IM(0xF5D5B8,{shin:20,spec:0x333333}),npcX,headY,npcZ);
+
+    // === 鸭舌帽（深绿，咖啡师风）===
+    // 帽顶（半球）
+    ia(npcGroup,new THREE.SphereGeometry(0.38,14,12,0,Math.PI*2,0,Math.PI*0.5),IM(0x005C3A),npcX,headY+0.04,npcZ);
+    // 帽檐（前方伸出的扁长方体）
+    var capBrim=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.03,0.22),IM(0x004A2E));
+    capBrim.position.set(npcX,headY+0.04,npcZ-0.42);
+    capBrim.rotation.x=0.2;
+    npcGroup.add(capBrim);
+    // 帽带（金色细线）
+    ia(npcGroup,new THREE.CylinderGeometry(0.37,0.37,0.03,14),IM(0xD4A040),npcX,headY+0.04,npcZ);
+
+    // 耳朵
+    ia(npcGroup,new THREE.SphereGeometry(0.045,6,4),IM(0xF5D5B8,{shin:10}),npcX-0.35,headY,npcZ);
+    ia(npcGroup,new THREE.SphereGeometry(0.045,6,4),IM(0xF5D5B8,{shin:10}),npcX+0.35,headY,npcZ);
+
+    // === 面部（极简可爱）===
+    var faceZ=npcZ-0.35;
+    // 豆豆眼
+    ia(npcGroup,new THREE.SphereGeometry(0.04,6,5),IM(0x111111),npcX-0.09,headY+0.01,faceZ);
+    ia(npcGroup,new THREE.SphereGeometry(0.04,6,5),IM(0x111111),npcX+0.09,headY+0.01,faceZ);
+    // 高光
+    ia(npcGroup,new THREE.SphereGeometry(0.012,4,3),IM(0xFFFFFF),npcX-0.07,headY+0.025,faceZ-0.01);
+    ia(npcGroup,new THREE.SphereGeometry(0.012,4,3),IM(0xFFFFFF),npcX+0.11,headY+0.025,faceZ-0.01);
+    // 腮红
+    ia(npcGroup,new THREE.SphereGeometry(0.05,6,4),IM(0xFFCCBB,0.4),npcX-0.18,headY-0.04,faceZ+0.01);
+    ia(npcGroup,new THREE.SphereGeometry(0.05,6,4),IM(0xFFCCBB,0.4),npcX+0.18,headY-0.04,faceZ+0.01);
+    // 微笑弧线
+    var smileQ=new THREE.Mesh(
+        new THREE.TorusGeometry(0.06,0.015,4,10,Math.PI),
+        IM(0xAA4A2A)
+    );
+    smileQ.position.set(npcX,headY-0.11,faceZ);
+    smileQ.rotation.z=Math.PI;
+    npcGroup.add(smileQ);
+
+    // 胸口名牌（绿底金字，改名为"小拍"）
+    var npcCv=document.createElement('canvas');npcCv.width=128;npcCv.height=48;
+    var npcCtx=npcCv.getContext('2d');
+    npcCtx.fillStyle='#00704A';npcCtx.fillRect(0,0,128,48);
+    npcCtx.strokeStyle='#FFD700';npcCtx.lineWidth=2;npcCtx.strokeRect(2,2,124,44);
+    npcCtx.fillStyle='#FFD700';npcCtx.font='bold 22px "PingFang SC",sans-serif';
+    npcCtx.textAlign='center';npcCtx.textBaseline='middle';
+    npcCtx.fillText('小拍',64,26);
+    var npcTex2=new THREE.CanvasTexture(npcCv);npcTex2.minFilter=THREE.LinearFilter;
+    // 正面名牌（-z朝向，NPC脸方向，门外看字正）
+    var npcMesh=new THREE.Mesh(new THREE.PlaneGeometry(0.35,0.14),new THREE.MeshBasicMaterial({map:npcTex2,transparent:true}));
+    npcMesh.position.set(npcX,1.2,npcZ-0.22);npcGroup.add(npcMesh);
+    // 背面名牌（+z朝向，NPC背方向，门内看字正）
+    var npcMeshBack=new THREE.Mesh(new THREE.PlaneGeometry(0.35,0.14),new THREE.MeshBasicMaterial({map:npcTex2,transparent:true}));
+    npcMeshBack.position.set(npcX,1.2,npcZ+0.22);npcGroup.add(npcMeshBack);
+
+    interiorGroup.add(npcGroup);
+    window._npcGroup=npcGroup;
+
+    console.log('Interior scene built, lights:',lightCount);
+}
+
+// ===== NPC点亮系统 =====
+var npcAttention=100; // 初始注意力值
+var igniteCount=0;
+var npcIgniteLines=[
+    '小拍的门牌微微亮了一下...\n「谢谢你，又多了一点光。」',
+    '小拍笑了笑：「你每次点亮，\n我的空间就会大一点点。」\n（空间 +1㎡）',
+    '「你知道吗，点亮不是随便点的。\n只有真正被打动的瞬间，\n人才会按下那个按钮。」',
+    '小拍递过来一杯咖啡：\n「你已经点亮了我这么多次，\n这杯算我请的。」',
+    '「有人说，注意力是这个世界上最\n稀缺的资源。你愿意把注意力给我，\n我很珍惜。」',
+    '「你有没有想过，\n你点亮我的时候，\n其实我也在点亮你？」',
+    '小拍靠在吧台上，看着你说：\n「你知道吗，\n在旧宇宙里，光熄灭之后……\n就什么都没了。但这里不一样。」',
+    '「你是少数愿意慢慢走的人。\n大部分人推开门就走了。\n而你，留下来了。」',
+    '「慢半拍这个名字啊，\n不是说慢，是说要给自己\n留出那个「半拍」的时间——\n去感受，去碰撞，去被点亮。」',
+    '小拍举起杯子，像是在敬你：\n「不管你是谁，不管你从哪来，\n你愿意在这里停留，\n本身就是一种点亮。」'
+];
+var npcIgniteIdx=0;
+
+function openNpcDialog(){
+    document.getElementById('npcDialog').style.display='flex';
+    document.getElementById('npcAttentionVal').textContent=npcAttention;
+    document.getElementById('npcText').innerHTML='欢迎来到慢半拍~\n点击「点亮」消耗1点注意力，给小拍的光。<br><span style="color:rgba(255,255,255,.35);font-size:12px;">（每点亮一次，小拍会说不同的话）</span>';
+}
+function closeNpcDialog(){
+    document.getElementById('npcDialog').style.display='none';
+}
+function doIgnite(){
+    if(npcAttention<=0){
+        document.getElementById('npcText').innerHTML='<span style="color:#E89090;">注意力不足了……<br>明天再来吧，慢半拍永远等你。</span>';
+        return;
+    }
+    npcAttention--;
+    igniteCount++;
+    // 更新数值
+    document.getElementById('npcAttentionVal').textContent=npcAttention;
+    // 飘出 +1 动画
+    var anim=document.getElementById('npcIgniteAnim');
+    anim.textContent='+1';
+    anim.style.opacity='1';
+    anim.style.transform='translate(-50%,-80%)';
+    setTimeout(function(){anim.style.opacity='0';anim.style.transform='translate(-50%,-50%)';},600);
+    // 显示小拍的话
+    var line=npcIgniteLines[npcIgniteIdx % npcIgniteLines.length];
+    npcIgniteIdx++;
+    document.getElementById('npcText').innerHTML=line.replace(/\n/g,'<br>');
+    // 按钮反馈
+    var btn=document.getElementById('npcIgnite');
+    btn.style.background='linear-gradient(135deg,rgba(212,160,64,.3),rgba(232,93,48,.3))';
+    btn.style.boxShadow='0 0 20px rgba(212,160,64,.3)';
+    setTimeout(function(){
+        btn.style.background='linear-gradient(135deg,rgba(212,160,64,.15),rgba(232,93,48,.15))';
+        btn.style.boxShadow='none';
+    },300);
+    // 注意力低时变色提示
+    if(npcAttention<=10){
+        document.getElementById('npcAttentionVal').style.color='#E89090';
+    }
+}
+
+// ===== 彩蛋盒子对话 =====
+function getEggContent(idx){
+    var msgs=[
+        '【红盒子】\n\n你小心翼翼打开红盒子……\n里面飘出一阵暖光。\n\n>> 注意力 +5 <<\n\n小拍探头看了一眼：\n「哦，那个啊。是上次\n一个探索者落下的。\n他说打开的人会走运。」',
+        '【蓝盒子】\n\n蓝盒子里面是一张皱巴巴的纸条：\n\n"如果你看到了这条纸条，\n说明你愿意为好奇心\n停留3秒钟。"\n\n>> 注意力 +10 <<\n\n（纸条背面写着：\n「小拍的咖啡其实没有那么好喝，\n但店里的氛围是一流的。」）',
+        '【金盒子】\n\n金盒子自己「咔嗒」一声打开了。\n里面有一枚亮闪闪的徽章：\n\n[ 探索者之友 ]\n\n>> 注意力 +15 <<\n\n小拍在远处吹了声口哨：\n「那是我的私藏，\n算你捡着了。」'
+    ];
+    return msgs[idx];
+}
+
+// 点亮按钮事件
+document.getElementById('npcIgnite').onclick=doIgnite;
+// 点击overlay背景关闭
+document.getElementById('npcDialog').addEventListener('click',function(e){
+    if(e.target===this) closeNpcDialog();
+});
+document.getElementById('itemPopupClose').onclick=function(){document.getElementById('itemPopup').style.display='none';};
+
+// ===== 海报/笔记本弹框系统 =====
+function showItemPopup(title,body){
+    document.getElementById('itemPopupTitle').textContent=title;
+    document.getElementById('itemPopupBody').textContent=body;
+    document.getElementById('itemPopup').style.display='flex';
+}
+function getPosterContent(title){
+    if(title==='手冲咖啡体验课'){
+        return '【手冲咖啡体验课】\n\n时间：每周六 14:00-16:00\n地点：慢半拍 · 蛋生壹号街区\n人数：限定8人小班\n\n你将学到：\n· 如何挑选适合自己口味的咖啡豆\n· 手冲壶的使用手法和注水技巧\n· 从研磨到萃取的完整流程\n· 品鉴不同产区的风味差异\n\n探索者凭编号免费参加\n创造者享受8折优惠\n\n"每一杯手冲都是一次小型探索\n水温、流速、时间……\n微小的碰撞，产生巨大的变化。"';
+    }
+    if(title==='碰撞之夜'){
+        return '【碰撞之夜】\n\n时间：5月10日 19:00\n地点：慢半拍 × 蛋生壹号街区\n\n一场属于探索者的夜间派对。\n\n活动内容：\n· 盲品挑战——猜对3种豆子的产地赢限定徽章\n· 灵魂画像快闪——现场生成你的初版灵魂画像\n· 碰撞对话——和陌生灵魂1v1聊天5分钟\n· 露台Live——民谣歌手不插电演出\n\n报名方式：在TopSpace内点击"参加"即可\n\n"你以为这是一场活动，\n其实是一次预谋已久的碰撞。"';
+    }
+    return '活动详情加载中...';
+}
+function getNotebookContent(){
+    return '【碰撞笔记 #001】\n\n翻开第一页，看到一行手写字：\n\n"如果你看到了这本笔记，\n说明你已经在这里留下了痕迹。"\n\n后面是密密麻麻的记录——\n有的是咖啡渍，有的是铅笔字：\n\n· 第3天：碰到了一个做陶艺的，\n  聊了两个小时，忘了喝咖啡。\n· 第7天：有人在窗边画画，\n  画的是窗外的银杏叶。\n· 第12天：第一次有人留下来\n  帮我擦吧台。她说是探索者。\n· 第15天：今天的豆子不太对劲，\n  可能是烘焙度的问题。明天换一批。\n\n最后一页只有一句话：\n\n"碰撞不需要理由，\n但每一次碰撞都会留下痕迹。\n三个月后回头看，\n你会发现——\n你已经不是走进来的那个人了。"\n\n—— 小拍';
+}
+
+// ===== 笔记本电脑（商城入口）=====
+function getLaptopContent(){
+    return '【慢半拍 · 咖啡豆商城】\n\n咖啡豆（可邮购）\n\n· 云南·日晒处理    ¥68/200g\n  坚果香，低酸，适合入门\n· 埃塞·耶加雪菲    ¥88/200g\n  花香，柑橘调，手冲首选\n· 哥伦比亚·蜜处理  ¥78/200g\n  焦糖甜，平衡感好\n· 慢半拍特调拼配  ¥98/200g\n  独家配方，小拍签名批次\n\n>> 在TopSpace内点击「购买」\n>> 系统会自动扣款并邮寄到家\n>> 探索者享9折，创造者享8折\n\n"每一颗豆子，\n都是一次来自远方的碰撞。"';
+}
+
+// ===== 咖啡机（优惠活动）=====
+function getCoffeeMachineContent(){
+    return '【今日优惠 · 慢半拍咖啡机特供】\n\n>> 扫码或点击进入点单系统 <<\n\n【到店优惠】（出示TopSpace编号）\n· 美式咖啡    ￥28 → ￥15\n· 燕麦拿铁    ￥38 → ￥22\n· 手冲单品    ￥42 → ￥30\n· 巴斯克蛋糕  ￥28 → ￥18\n\n【隐藏菜单】（跟小拍说暗号）\n暗号：「我在拓圈」\n→ 送一份小拍手作曲奇（限量）\n\n>> 所有优惠仅限在店堂食 <<\n>> 编号在手，优惠我有 <<\n\n"不着急，慢慢喝。\n优惠是给你的，\n心情是咖啡给的。"';
+}
+
+// ===== 植物对话 =====
+function getPlantContent(){
+    return '【绿植物语】\n\n你靠近盆栽，似乎听到一个很轻的声音：\n\n"……你看到了我？\n大部分人来咖啡店，只看咖啡和小拍。\n但其实我也在的。\n\n我是一棵橡皮树，\n在小拍把我买回来之前，\n我在花鸟市场等了23天。\n\n你知道吗？\n植物也会碰撞的——\n阳光照进来，我会朝它转过去。\n这不是条件反射，\n这是……\n我想看看光从哪个方向来。\n\n（橡皮树抖了抖叶子）\n\n>> 点击叶子，留下1点注意力 <<\n>> 你的注意力，会让它长得更快 <<';
+}
+
+// ===== Mode Switch Logic =====
+function switchToCafe(){
+    buildCafeScene();
+    appMode='cafe';
+    blockGroup.visible=false;
+    cafeGroup.visible=true;
+    if(interiorGroup)interiorGroup.visible=false;
+    document.getElementById('btnBack').style.display='block';
+    document.querySelector('.ctrl').style.display='none';
+    document.querySelector('.ctrl-l').style.display='none';
+    document.getElementById('enterOverlay').style.display='none';
+    document.querySelector('.hdr').innerHTML='<div class="ht">慢半拍 · 咖啡店</div><div class="hs">TOPSPACE · SINGLE STORE PREVIEW</div>';
+    animCam(new THREE.Vector3(0,15,-25),new THREE.Vector3(0,4,-7));
+}
+
+function switchToBlock(){
+    appMode='block';
+    blockGroup.visible=true;
+    if(cafeGroup)cafeGroup.visible=false;
+    if(interiorGroup)interiorGroup.visible=false;
+    document.getElementById('btnBack').style.display='none';
+    document.getElementById('enterOverlay').style.display='none';
+    document.querySelector('.ctrl').style.display='flex';
+    document.querySelector('.ctrl-l').style.display='';
+    document.querySelector('.hdr').innerHTML='<div class="ht">蛋生壹号街区</div><div class="hs">TOPSPACE · 3D BLOCK #001</div>';
+    animCam(new THREE.Vector3(120,150,120),new THREE.Vector3(0,0,0));
+}
+
+document.getElementById('btnCafe').onclick=switchToCafe;
+document.getElementById('btnBack').onclick=function(){
+    if(appMode==='interior'){
+        // 从内部回到咖啡店外部
+        appMode='cafe';
+        interiorGroup.visible=false;
+        cafeGroup.visible=true;
+        // 恢复环境光
+        gAmbient.intensity=1.2;
+        // 恢复外部视角参数
+        sph.radius=30;sph.phi=Math.PI/2-0.05;
+        document.querySelector('.hdr').innerHTML='<div class="ht">慢半拍 · 咖啡店</div><div class="hs">TOPSPACE · SINGLE STORE PREVIEW</div>';
+        animCam(new THREE.Vector3(0,15,-25),new THREE.Vector3(0,4,-7));
+    } else if(appMode==='cafe'){
+        switchToBlock();
+    }
+};
+
+console.log('initApp done, THREE r'+THREE.REVISION+', Lights:'+lightCount);
+
+} catch(e) {
+    var _ld=document.getElementById('loading');if(_ld)_ld.style.display='none';
+    var el=document.getElementById('err');
+    el.style.display='flex';
+    el.innerHTML='<div style="max-width:320px"><div style="font-size:20px;margin-bottom:12px">&#x26A0;</div><div style="color:#E89090;font-size:15px;margin-bottom:8px">街区渲染出错</div><div style="color:#8A9AAA;font-size:12px;line-height:1.8;word-break:break-all">'+e.message+'</div></div>';
+}
+}
+
+
+
+    // Start the app
+    var _ld=document.getElementById("loading"); if(_ld)_ld.style.display="none";
+    initApp();
+</script>
+</body>
+</html>
