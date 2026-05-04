@@ -39,8 +39,8 @@ body{background:#0A1020;overflow:hidden;font-family:-apple-system,"PingFang SC",
 <body>
 <div id="loading">
     <div class="ld-ring"></div>
-    <div class="ld-txt">正在加载街区...</div>
-    <div class="ld-sub">LOADING TOPSPACE</div>
+    <div class="ld-txt" id="ld-txt">正在加载街区...</div>
+    <div class="ld-sub" id="ld-sub">LOADING TOPSPACE</div>
 </div>
 <div id="err"></div>
 <canvas id="c"></canvas>
@@ -101,7 +101,24 @@ body{background:#0A1020;overflow:hidden;font-family:-apple-system,"PingFang SC",
 </div>
 
 <script>
-window.onerror=function(m,u,l){var _ld=document.getElementById('loading');if(_ld)_ld.style.display='none';var e=document.getElementById('err');e.style.display='flex';e.innerHTML='<div style="max-width:320px"><div style="font-size:20px;margin-bottom:12px">&#x26A0;</div><div style="color:#E89090;font-size:15px;margin-bottom:8px">JavaScript 运行错误</div><div style="color:#8A9AAA;font-size:12px;line-height:1.8;word-break:break-all">'+m+'</div></div>';};
+// 调试模式：强制显示错误到loading文字
+var _debugTimer=setTimeout(function(){
+  var ld=document.getElementById('ld-txt');
+  var ld2=document.getElementById('ld-sub');
+  if(ld){
+    ld.textContent='加载超时 - 请截图此页发给我';
+    ld.style.color='#E89090';
+    if(ld2) ld2.textContent='THREE='+(typeof THREE!=='undefined'?'OK':'MISS')+' WebGL='+!!(document.createElement('canvas').getContext('webgl'))+' UA='+navigator.userAgent.substring(0,80);
+  }
+},8000);
+window.onerror=function(m,u,l,c,e){
+  clearTimeout(_debugTimer);
+  var _ld=document.getElementById('loading');
+  if(_ld)_ld.style.display='none';
+  var el=document.getElementById('err');
+  el.style.display='flex';
+  el.innerHTML='<div style="max-width:340px"><div style="font-size:20px;margin-bottom:12px">&#x26A0;</div><div style="color:#E89090;font-size:15px;margin-bottom:8px">运行错误</div><div style="color:#8A9AAA;font-size:12px;line-height:1.8;word-break:break-all">'+m+'<br><br>行:'+l+'<br><br>UA:'+navigator.userAgent.substring(0,100)+'</div></div>';
+};
 function initApp(){
 try {
 
@@ -2179,6 +2196,8 @@ document.getElementById('btnBack').onclick=function(){
 };
 
 console.log('initApp done, THREE r'+THREE.REVISION+', Lights:'+lightCount);
+clearTimeout(_debugTimer);
+var _ld=document.getElementById('loading');if(_ld)_ld.style.display='none';
 
 } catch(e) {
     var _ld=document.getElementById('loading');if(_ld)_ld.style.display='none';
@@ -2189,9 +2208,7 @@ console.log('initApp done, THREE r'+THREE.REVISION+', Lights:'+lightCount);
 }
 
 
-
     // Start the app
-    var _ld=document.getElementById("loading"); if(_ld)_ld.style.display="none";
     initApp();
 </script>
 </body>
