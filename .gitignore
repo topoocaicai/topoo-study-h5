@@ -1,0 +1,9 @@
+# 排除大文件
+*.mp3
+*.mp4
+*.zip
+*.rar
+
+# 排除Python缓存
+*.pyc
+__pycache__/
